@@ -31,33 +31,78 @@ class ColorPickerWidgetState extends State<ColorPickerWidget> {
   bool showMaterialPicker = false;
   bool showBlockPicker = false;
   bool showSlidePicker = false;
+  late Color selectedColor = widget.currentColor;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedColor = widget.currentColor;
+  }
+
+  void _saveAndClosePicker() {
+    widget.onColorSelected(selectedColor);
+    setState(() {
+      showColorPicker = false;
+      showMaterialPicker = false;
+      showBlockPicker = false;
+      showSlidePicker = false;
+    });
+  }
 
   void _togglePicker(String pickerType) {
     setState(() {
-      showColorPicker = pickerType == 'color';
-      showMaterialPicker = pickerType == 'material';
-      showBlockPicker = pickerType == 'block';
-      showSlidePicker = pickerType == 'slide';
+      if (pickerType == 'color') {
+        if (showColorPicker) {
+          _saveAndClosePicker();
+        } else {
+          _saveAndClosePicker();
+          showColorPicker = true;
+        }
+      } else if (pickerType == 'material') {
+        if (showMaterialPicker) {
+          _saveAndClosePicker();
+        } else {
+          _saveAndClosePicker();
+          showMaterialPicker = true;
+        }
+      } else if (pickerType == 'block') {
+        if (showBlockPicker) {
+          _saveAndClosePicker();
+        } else {
+          _saveAndClosePicker();
+          showBlockPicker = true;
+        }
+      } else if (pickerType == 'slide') {
+        if (showSlidePicker) {
+          _saveAndClosePicker();
+        } else {
+          _saveAndClosePicker();
+          showSlidePicker = true;
+        }
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final buttonColor = theme.buttonTheme.colorScheme?.primary ?? Colors.blue;
+    final textColor = theme.textTheme.bodyLarge?.color ?? Colors.white;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ElevatedButton(
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ElevatedButton(
                 onPressed: () {
                   _togglePicker('color');
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.lightBlueAccent,
+                  backgroundColor: buttonColor,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -65,21 +110,43 @@ class ColorPickerWidgetState extends State<ColorPickerWidget> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.color_lens),
+                    Icon(Icons.color_lens, color: textColor),
                     SizedBox(width: 8),
-                    Expanded(child: Text('Select a Color')),
+                    Expanded(child: Text('Select a Color', style: TextStyle(color: textColor))),
                   ],
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ElevatedButton(
+              if (showColorPicker)
+                Flexible(
+                  fit: FlexFit.loose,
+                  child: ColorPicker(
+                    pickerColor: selectedColor,
+                    onColorChanged: (color) {
+                      setState(() {
+                        selectedColor = color;
+                      });
+                    },
+                    labelTypes: [],
+                    pickerAreaHeightPercent: 0.8,
+                    enableAlpha: true,
+                    displayThumbColor: true,
+                    pickerAreaBorderRadius: const BorderRadius.all(Radius.circular(10.0)),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ElevatedButton(
                 onPressed: () {
                   _togglePicker('material');
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.lightBlueAccent,
+                  backgroundColor: buttonColor,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -87,21 +154,39 @@ class ColorPickerWidgetState extends State<ColorPickerWidget> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.palette),
+                    Icon(Icons.palette, color: textColor),
                     SizedBox(width: 8),
-                    Expanded(child: Text('Material Picker')),
+                    Expanded(child: Text('Material Picker', style: TextStyle(color: textColor))),
                   ],
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ElevatedButton(
+              if (showMaterialPicker)
+                Flexible(
+                  fit: FlexFit.loose,
+                  child: MaterialPicker(
+                    pickerColor: selectedColor,
+                    onColorChanged: (color) {
+                      setState(() {
+                        selectedColor = color;
+                      });
+                    },
+                    enableLabel: true,
+                  ),
+                ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ElevatedButton(
                 onPressed: () {
                   _togglePicker('block');
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.lightBlueAccent,
+                  backgroundColor: buttonColor,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -109,21 +194,35 @@ class ColorPickerWidgetState extends State<ColorPickerWidget> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.grid_on),
+                    Icon(Icons.grid_on, color: textColor),
                     SizedBox(width: 8),
-                    Expanded(child: Text('Block Picker')),
+                    Expanded(child: Text('Block Picker', style: TextStyle(color: textColor))),
                   ],
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ElevatedButton(
+              if (showBlockPicker)
+                BlockPicker(
+                  pickerColor: selectedColor,
+                  onColorChanged: (color) {
+                    setState(() {
+                      selectedColor = color;
+                    });
+                  },
+                ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ElevatedButton(
                 onPressed: () {
                   _togglePicker('slide');
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.lightBlueAccent,
+                  backgroundColor: buttonColor,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -131,57 +230,32 @@ class ColorPickerWidgetState extends State<ColorPickerWidget> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.slideshow),
+                    Icon(Icons.slideshow, color: textColor),
                     SizedBox(width: 8),
-                    Expanded(child: Text('Slide Picker')),
+                    Expanded(child: Text('Slide Picker', style: TextStyle(color: textColor))),
                   ],
                 ),
               ),
-            ),
-          ],
+              if (showSlidePicker)
+                Flexible(
+                  fit: FlexFit.loose,
+                  child: SlidePicker(
+                    pickerColor: selectedColor,
+                    onColorChanged: (color) {
+                      setState(() {
+                        selectedColor = color;
+                        widget.onColorSelected(color); // Mettre à jour la couleur sélectionnée
+                      });
+                    },
+                    enableAlpha: true,
+                    showParams: true,
+                    showIndicator: true,
+                    labelTypes: [],
+                  ),
+                ),
+            ],
+          ),
         ),
-        if (showColorPicker)
-          Flexible(
-            fit: FlexFit.loose,
-            child: ColorPicker(
-              pickerColor: widget.currentColor,
-              onColorChanged: widget.onColorSelected,
-              labelTypes: [],
-              pickerAreaHeightPercent: 0.8,
-              enableAlpha: true,
-              displayThumbColor: true,
-              pickerAreaBorderRadius: const BorderRadius.all(Radius.circular(10.0)),
-            ),
-          ),
-        if (showMaterialPicker)
-          Flexible(
-            fit: FlexFit.loose,
-            child: MaterialPicker(
-              pickerColor: widget.currentColor,
-              onColorChanged: widget.onColorSelected,
-              enableLabel: true,
-            ),
-          ),
-        if (showBlockPicker)
-          Flexible(
-            fit: FlexFit.loose,
-            child: BlockPicker(
-              pickerColor: widget.currentColor,
-              onColorChanged: widget.onColorSelected,
-            ),
-          ),
-        if (showSlidePicker)
-          Flexible(
-            fit: FlexFit.loose,
-            child: SlidePicker(
-              pickerColor: widget.currentColor,
-              onColorChanged: widget.onColorSelected,
-              enableAlpha: true,
-              showParams: true,
-              showIndicator: true,
-              labelTypes: [],
-            ),
-          ),
       ],
     );
   }

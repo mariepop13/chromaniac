@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:math';
-import 'package:logger/logger.dart';
-import '../widgets/palette_display.dart';
 import '../providers/theme_provider.dart';
 import '../widgets/color_picker.dart';
 import '../widgets/palette_generator.dart';
+import '../utils/export_palette.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -49,21 +48,6 @@ class _HomeScreenState extends State<HomeScreen> {
     return hexRegExp.hasMatch(hexColor);
   }
 
-  void _addHexColorToPalette(String hexColor) {
-    if (!isValidHexColor(hexColor)) {
-      Logger().e('Invalid hex color');
-      return;
-    }
-    if (!hexColor.startsWith('#')) {
-      hexColor = '#$hexColor';
-    }
-    setState(() {
-      if (_palette.length < 5) {
-        _palette.add(
-            Color(int.parse(hexColor.substring(1), radix: 16) + 0xFF000000));
-      }
-    });
-  }
 
   Color _generateRandomColor() {
     final random = Random();
@@ -133,6 +117,46 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Padding(
                 padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: _palette.asMap().entries.map((entry) {
+                    int index = entry.key;
+                    Color color = entry.value;
+                    bool isDarkColor = color.computeLuminance() < 0.5;
+                    return Container(
+                      height: 50,
+                      width: double.infinity,
+                      color: color,
+                      child: Row(
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.close, color: isDarkColor ? Colors.white : Colors.black),
+                            onPressed: () {
+                              _removeColorFromPalette(index);
+                            },
+                          ),
+                          Expanded(
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: Padding(
+                                padding: const EdgeInsets.only(right: 8.0),
+                                child: Text(
+                                  '#${color.value.toRadixString(16).padLeft(8, '0').substring(2)}',
+                                  style: TextStyle(
+                                    color: isDarkColor ? Colors.white : Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16),
                 child: ColorPickerWidget(
                   currentColor: _currentColor,
                   onColorSelected: _updateCurrentColor,
@@ -141,7 +165,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Container(
                 height: 100,
                 width: double.infinity,
-                color: _currentColor,
+                color: _currentColor, // Utilisez _currentColor ici
                 child: Center(
                   child: ElevatedButton(
                     onPressed: () {
@@ -181,9 +205,11 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               Padding(
                 padding: const EdgeInsets.all(16),
-                child: PaletteDisplay(
-                  palette: _palette,
-                  onColorRemoved: _removeColorFromPalette,
+                child: ElevatedButton(
+                  onPressed: () {
+                    exportPalette(context, _palette);
+                  },
+                  child: const Text('Export'),
                 ),
               ),
             ],

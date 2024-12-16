@@ -15,6 +15,10 @@ class ThemeProvider with ChangeNotifier {
   static final ThemeData _lightTheme = ThemeData(
     brightness: Brightness.light,
     primaryColor: Colors.blue,
+    buttonTheme: ButtonThemeData(
+      buttonColor: Colors.blue, // Couleur du bouton
+      textTheme: ButtonTextTheme.primary, // Texte clair sur bouton foncé
+    ),
     appBarTheme: const AppBarTheme(
       color: Colors.white,
       iconTheme: IconThemeData(color: Colors.black),
@@ -30,6 +34,10 @@ class ThemeProvider with ChangeNotifier {
   static final ThemeData _darkTheme = ThemeData(
     brightness: Brightness.dark,
     primaryColor: Colors.blue,
+    buttonTheme: ButtonThemeData(
+      buttonColor: Colors.grey[800], // Couleur du bouton
+      textTheme: ButtonTextTheme.primary, // Texte clair sur bouton foncé
+    ),
     appBarTheme: const AppBarTheme(
       color: Colors.black,
       iconTheme: IconThemeData(color: Colors.white),
