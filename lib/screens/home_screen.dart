@@ -184,7 +184,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: PaletteDisplay(
                   palette: _palette,
                   onColorRemoved: _removeColorFromPalette,
-                  onHexColorAdded: _addHexColorToPalette,
                 ),
               ),
             ],

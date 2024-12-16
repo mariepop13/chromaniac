@@ -45,5 +45,57 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>UTExportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeDescription</key>
+			<string>Procreate Palette</string>
+			<key>UTTypeIdentifier</key>
+			<string>com.yourcompany.procreate-palette</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<string>procreate-palette</string>
+				<key>public.mime-type</key>
+				<string>application/x-procreate-palette</string>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeDescription</key>
+			<string>Swatches Palette</string>
+			<key>UTTypeIdentifier</key>
+			<string>com.yourcompany.swatches-palette</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<string>swatches</string>
+				<key>public.mime-type</key>
+				<string>application/x-swatches-palette</string>
+			</dict>
+		</dict>
+	</array>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>Procreate Palette</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>com.yourcompany.procreate-palette</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>Swatches Palette</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>com.yourcompany.swatches-palette</string>
+			</array>
+		</dict>
+	</array>
+	<key>NSDocumentsFolderUsageDescription</key>
+	<string>We need access to your documents folder to save the palette.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>We need access to your photo library to save the palette.</string>
 </dict>
 </plist>
