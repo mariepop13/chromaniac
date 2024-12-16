@@ -1,0 +1,33 @@
+{
+    // Utilisez IntelliSense pour en savoir plus sur les attributs possibles.
+    // Pointez pour afficher la description des attributs existants.
+    // Pour plus d'informations, visitez : https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        
+
+        {
+            "name": "chromaniac",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "chromaniac (profile mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "chromaniac (release mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "chromaniac (iPhone)",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "00008101-001544420104001E"
+        }
+    ]
+}

@@ -57,58 +57,61 @@ class _ColorInputSection extends StatelessWidget {
     final TextEditingController hexController = TextEditingController();
     Color pickerColor = Colors.white;
 
-    return Row(
-      children: [
-        Expanded(
-          child: TextField(
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          TextField(
             controller: hexController,
             decoration: const InputDecoration(
               labelText: 'Enter Hex Color',
               border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 10.0),
             ),
+            keyboardType: TextInputType.text,
+            textInputAction: TextInputAction.done,
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(left: 12),
-          child: ElevatedButton(
-            onPressed: () => onHexColorAdded(hexController.text),
-            child: const Text('Add Hex Color'),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(left: 12),
-          child: ElevatedButton(
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    title: const Text('Pick a color'),
-                    content: SingleChildScrollView(
-                      child: ColorPicker(
-                        pickerColor: pickerColor,
-                        onColorChanged: (color) {
-                          pickerColor = color;
-                        },
-                      ),
-                    ),
-                    actions: <Widget>[
-                      ElevatedButton(
-                        child: const Text('Add Color'),
-                        onPressed: () {
-                          onHexColorAdded(pickerColor.value.toRadixString(16));
-                          Navigator.of(context).pop();
-                        },
-                      ),
-                    ],
+          SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              ElevatedButton(
+                onPressed: () => onHexColorAdded(hexController.text),
+                child: const Text('Add Hex Color'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text('Pick a color'),
+                        content: SingleChildScrollView(
+                          child: ColorPicker(
+                            pickerColor: pickerColor,
+                            onColorChanged: (color) {
+                              pickerColor = color;
+                            },
+                          ),
+                        ),
+                        actions: <Widget>[
+                          ElevatedButton(
+                            child: const Text('Add Color'),
+                            onPressed: () {
+                              onHexColorAdded(pickerColor.value.toRadixString(16));
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                        ],
+                      );
+                    },
                   );
                 },
-              );
-            },
-            child: const Text('Pick Color'),
+                child: const Text('Pick Color'),
+              ),
+            ],
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -135,7 +138,6 @@ class _PaletteList extends StatelessWidget {
             child: GestureDetector(
               onTap: () => onColorRemoved(index),
               child: Container(
-                width: 60,
                 decoration: BoxDecoration(
                   color: palette[index],
                   borderRadius: BorderRadius.circular(10),
