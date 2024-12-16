@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:provider/provider.dart';
 import 'providers/theme_provider.dart';
 import 'screens/home_screen.dart';
@@ -22,13 +21,35 @@ class ChromaniacApp extends StatelessWidget {
     return MaterialApp(
       title: 'Chromaniac',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
+        primarySwatch: Colors.blue,
+        buttonTheme: ButtonThemeData(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          buttonColor: Colors.blue,
+          textTheme: ButtonTextTheme.primary,
+        ),
+        appBarTheme: AppBarTheme(
+          color: Colors.blue,
+          iconTheme: IconThemeData(color: Colors.white),
+          titleTextStyle: TextStyle(color: Colors.white, fontSize: 20),
+        ),
       ),
       darkTheme: ThemeData(
         brightness: Brightness.dark,
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue, brightness: Brightness.dark),
-        useMaterial3: true,
+        primarySwatch: Colors.blue,
+        buttonTheme: ButtonThemeData(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          buttonColor: Colors.blue,
+          textTheme: ButtonTextTheme.primary,
+        ),
+        appBarTheme: AppBarTheme(
+          color: Colors.blue,
+          iconTheme: IconThemeData(color: Colors.white),
+          titleTextStyle: TextStyle(color: Colors.white, fontSize: 20),
+        ),
       ),
       themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
       home: const HomeScreen(),

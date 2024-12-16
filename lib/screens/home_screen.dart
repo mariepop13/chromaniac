@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:math';
-import '../widgets/color_grid.dart';
 import 'package:logger/logger.dart';
 import '../widgets/palette_display.dart';
 import '../providers/theme_provider.dart';
+import '../widgets/color_picker.dart';
+import '../widgets/palette_generator.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,6 +17,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final List<Color> _palette = [];
   Color _currentColor = Colors.blue;
+  PaletteType selectedPaletteType = PaletteType.auto;
 
   @override
   void initState() {
@@ -71,9 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _generateRandomPalette() {
     setState(() {
       _palette.clear();
-      for (int i = 0; i < 5; i++) {
-        _palette.add(_generateRandomColor());
-      }
+      _palette.addAll(generatePalette(selectedPaletteType, _generateRandomColor()));
     });
   }
 
@@ -94,13 +94,46 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor,
+              ),
+              child: Text(
+                'Menu',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                ),
+              ),
+            ),
+            ListTile(
+              leading: Icon(Icons.home),
+              title: Text('Home'),
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.settings),
+              title: Text('Settings'),
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+      ),
       body: LayoutBuilder(
         builder: (context, constraints) {
           return ListView(
             children: [
               Padding(
                 padding: const EdgeInsets.all(16),
-                child: ColorGrid(
+                child: ColorPickerWidget(
                   currentColor: _currentColor,
                   onColorSelected: _updateCurrentColor,
                 ),
@@ -120,9 +153,30 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               Padding(
                 padding: const EdgeInsets.all(16),
-                child: ElevatedButton(
-                  onPressed: _generateRandomPalette,
-                  child: const Text('Generate Random Palette'),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: _generateRandomPalette,
+                        child: const Text('Generate Random Palette'),
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    DropdownButton<PaletteType>(
+                      value: selectedPaletteType,
+                      onChanged: (PaletteType? newValue) {
+                        setState(() {
+                          selectedPaletteType = newValue!;
+                        });
+                      },
+                      items: PaletteType.values.map((PaletteType type) {
+                        return DropdownMenuItem<PaletteType>(
+                          value: type,
+                          child: Text(type.toString().split('.').last),
+                        );
+                      }).toList(),
+                    ),
+                  ],
                 ),
               ),
               Padding(

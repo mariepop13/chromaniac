@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 
 class PaletteDisplay extends StatelessWidget {
   final List<Color> palette;
@@ -26,10 +28,57 @@ class PaletteDisplay extends StatelessWidget {
             _ColorInputSection(onHexColorAdded: onHexColorAdded),
             Padding(padding: const EdgeInsets.only(top: 12)),
             _PaletteList(palette: palette, onColorRemoved: onColorRemoved),
+            Padding(padding: const EdgeInsets.only(top: 12)),
+            ElevatedButton(
+              onPressed: () => _exportPalette(context),
+              child: const Text('Export as Procreate Palette'),
+            ),
           ],
         ),
       ),
     );
+  }
+
+  void _exportPalette(BuildContext context) async {
+    if (kIsWeb) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Export not supported on web')),
+      );
+      return;
+    }
+
+    final procreatePalette = _convertToProcreatePalette(palette);
+
+    String? outputPath;
+    try {
+      outputPath = await FilePicker.platform.saveFile(
+        dialogTitle: 'Export Palette',
+        fileName: 'palette.swatches',
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
+      return;
+    }
+
+    if (outputPath != null) {
+      final file = File(outputPath);
+      final content = procreatePalette.join('\n');
+      await file.writeAsString(content);
+
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Palette exported: ${file.path}')),
+      );
+    }
+  }
+
+  List<String> _convertToProcreatePalette(List<Color> palette) {
+    return palette.map((color) {
+      return '#${color.value.toRadixString(16).padLeft(8, '0').substring(2)}';
+    }).toList();
   }
 }
 
@@ -55,7 +104,6 @@ class _ColorInputSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final TextEditingController hexController = TextEditingController();
-    Color pickerColor = Colors.white;
 
     return SingleChildScrollView(
       child: Column(
@@ -71,44 +119,9 @@ class _ColorInputSection extends StatelessWidget {
             textInputAction: TextInputAction.done,
           ),
           SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              ElevatedButton(
-                onPressed: () => onHexColorAdded(hexController.text),
-                child: const Text('Add Hex Color'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: const Text('Pick a color'),
-                        content: SingleChildScrollView(
-                          child: ColorPicker(
-                            pickerColor: pickerColor,
-                            onColorChanged: (color) {
-                              pickerColor = color;
-                            },
-                          ),
-                        ),
-                        actions: <Widget>[
-                          ElevatedButton(
-                            child: const Text('Add Color'),
-                            onPressed: () {
-                              onHexColorAdded(pickerColor.value.toRadixString(16));
-                              Navigator.of(context).pop();
-                            },
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                },
-                child: const Text('Pick Color'),
-              ),
-            ],
+          ElevatedButton(
+            onPressed: () => onHexColorAdded(hexController.text),
+            child: const Text('Add Hex Color'),
           ),
         ],
       ),
@@ -129,17 +142,17 @@ class _PaletteList extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       height: 60,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: palette.length,
-        itemBuilder: (context, index) {
-          return Padding(
-            padding: const EdgeInsets.only(right: 10),
+      child: Row(
+        children: palette.asMap().entries.map((entry) {
+          int index = entry.key;
+          Color color = entry.value;
+          return Expanded(
             child: GestureDetector(
               onTap: () => onColorRemoved(index),
               child: Container(
+                margin: const EdgeInsets.only(right: 10),
                 decoration: BoxDecoration(
-                  color: palette[index],
+                  color: color,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Center(
@@ -151,7 +164,7 @@ class _PaletteList extends StatelessWidget {
               ),
             ),
           );
-        },
+        }).toList(),
       ),
     );
   }
