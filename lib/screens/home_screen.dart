@@ -1,10 +1,10 @@
+import 'package:chromaniac/utils/export_palette.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:math';
 import '../providers/theme_provider.dart';
 import '../widgets/color_picker.dart';
 import '../widgets/palette_generator.dart';
-import '../utils/export_palette.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
