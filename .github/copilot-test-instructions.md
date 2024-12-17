@@ -1,6 +1,6 @@
 # Instructions for GitHub Copilot - Test Generation
 
-1. Use `.github/copilot-instructions.md`
+1. Use `.github/copilot-instructions.md` for general guidelines.
 2. Use `flutter_test` for unit tests.
 3. Ensure tests are independent.
 4. Use descriptive test names.

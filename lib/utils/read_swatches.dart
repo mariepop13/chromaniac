@@ -51,44 +51,6 @@ Future<Map<String, dynamic>> readSwatchesFile(Uint8List data, {String space = 'h
   }
 }
 
-Future<Uint8List> createSwatchesFile(String name, List colors, {String format = 'uint8array'}) async {
-  final swatchesData = {
-    'name': name,
-    'swatches': colors.map((entry) {
-      if (entry == null) return null;
-      if (entry is! List || entry.length != 2) {
-        throw TypeError();
-      }
-      var color = entry[0];
-      final space = entry[1];
-      if (space != 'hsv') {
-        checkColorSpaceSupport(space);
-        try {
-          color = convert(color, from: space, to: 'hsv');
-        } catch (error) {
-          throw ProcreateSwatchesError('$color is not a valid $space color');
-        }
-      }
-      final h = color[0];
-      final s = color[1];
-      final v = color[2];
-      return {
-        'hue': h / 360,
-        'saturation': s / 100,
-        'brightness': v / 100,
-        'alpha': 1,
-        'colorSpace': 0,
-      };
-    }).toList().sublist(0, 30),
-  };
-
-  final encoder = ZipEncoder();
-  final archive = Archive();
-  archive.addFile(ArchiveFile('Swatches.json', utf8.encode(jsonEncode(swatchesData)).length, utf8.encode(jsonEncode(swatchesData))));
-
-  return Uint8List.fromList(encoder.encode(archive));
-}
-
 List<String> getSupportedColorSpaces() {
   return ['hsv', 'rgb'];
 }

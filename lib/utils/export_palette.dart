@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:typed_data';
+import 'package:archive/archive.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'dart:io';
@@ -64,4 +66,68 @@ Future<String> getSwatchesFilePath() async {
 Future<void> writeSwatchesFile(String filePath, Uint8List content) async {
   File file = File(filePath);
   await file.writeAsBytes(content);
+}
+
+Future<Uint8List> createSwatchesFile(String name, List colors, {String format = 'uint8array'}) async {
+  final swatchesData = {
+    'name': name,
+    'swatches': colors.map((entry) {
+      if (entry == null) return null;
+      if (entry is! List || entry.length != 2) {
+        throw TypeError();
+      }
+      var color = entry[0];
+      final space = entry[1];
+      if (space != 'hsv') {
+        checkColorSpaceSupport(space);
+        try {
+          color = convert(color, from: space, to: 'hsv');
+        } catch (error) {
+          throw ProcreateSwatchesError('$color is not a valid $space color');
+        }
+      }
+      final h = color[0];
+      final s = color[1];
+      final v = color[2];
+      return {
+        'hue': h / 360,
+        'saturation': s / 100,
+        'brightness': v / 100,
+        'alpha': 1,
+        'colorSpace': 0,
+      };
+    }).toList().sublist(0, 30),
+  };
+
+  final encoder = ZipEncoder();
+  final archive = Archive();
+  archive.addFile(ArchiveFile('Swatches.json', utf8.encode(jsonEncode(swatchesData)).length, utf8.encode(jsonEncode(swatchesData))));
+
+  return Uint8List.fromList(encoder.encode(archive));
+}
+
+void checkColorSpaceSupport(String space) {
+  if (!getSupportedColorSpaces().contains(space)) {
+    throw ProcreateSwatchesError('Color space $space is not supported.');
+  }
+}
+
+List<String> getSupportedColorSpaces() {
+  return ['hsv', 'rgb'];
+}
+
+List<double> convert(List<double> color, {required String from, required String to}) {
+  if (from == 'hsv' && to == 'rgb') {
+    // Add conversion logic here
+  }
+  // Add more conversions as needed
+  return color;
+}
+
+class ProcreateSwatchesError implements Exception {
+  final String message;
+  ProcreateSwatchesError(this.message);
+
+  @override
+  String toString() => 'ProcreateSwatchesError: $message';
 }
