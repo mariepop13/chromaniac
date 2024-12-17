@@ -78,7 +78,7 @@ void main() {
       for (final swatch in sampleSwatchesToCreate) {
         final name = swatch[0];
         final colors = swatch[1];
-        final swatchesFile = await createSwatchesFile(name as String, colors as List<dynamic>);
+        final swatchesFile = await createSwatchesFile(name as String, colors as List);
         final swatches = await readSwatchesFile(swatchesFile);
         expect(swatches['name'], name);
         expect(swatches['colors'].length, colors.length);
@@ -91,6 +91,18 @@ void main() {
       final swatchesFile = await createSwatchesFile('', colors);
       final swatches = await readSwatchesFile(swatchesFile);
       expect(swatches['colors'].length, 30);
+    });
+
+    test('exported file is readable by readSwatchesFile', () async {
+      final colors = [
+        [[255, 0, 0], 'rgb'],
+        [[0, 255, 0], 'rgb'],
+        [[0, 0, 255], 'rgb'],
+      ];
+      final swatchesFile = await createSwatchesFile('Test Palette', colors);
+      final swatches = await readSwatchesFile(swatchesFile);
+      expect(swatches['name'], 'Test Palette');
+      expect(swatches['colors'].length, colors.length);
     });
   });
 }

@@ -1,3 +1,4 @@
+import 'package:chromaniac/utils/read_swatches.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:chromaniac/utils/export_palette.dart';
@@ -29,6 +30,14 @@ void main() {
       final content = createSwatchesContent(palette);
       expect(content, isA<Uint8List>());
       expect(content.length, 3 * 4 + 12); // 3 colors * 4 bytes + 12 bytes metadata
+    });
+
+    test('Exported content is readable by readSwatchesFile', () async {
+      final palette = [Colors.red, Colors.green, Colors.blue];
+      final content = createSwatchesContent(palette);
+      final swatches = await readSwatchesFile(content);
+      expect(swatches['name'], isNotEmpty);
+      expect(swatches['colors'].length, palette.length);
     });
   });
 }

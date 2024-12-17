@@ -19,36 +19,52 @@ void checkColorSpaceSupport(String space) {
 Future<Map<String, dynamic>> readSwatchesFile(Uint8List data, {String space = 'hsv'}) async {
   checkColorSpaceSupport(space);
   try {
-    final ZipDecoder zipDecoder = ZipDecoder();
-    final Archive archive = zipDecoder.decodeBytes(data);
-    final ArchiveFile swatchesFile = archive.files.firstWhere((file) => file.name == 'Swatches.json');
-    final String swatchesRawString = utf8.decode(swatchesFile.content);
+    final Archive archive = _decodeArchive(data);
+    final String swatchesRawString = _extractSwatchesJson(archive);
+    final Map<String, dynamic> swatchesData = _parseSwatchesData(swatchesRawString);
 
-    dynamic swatchesData = jsonDecode(swatchesRawString);
-    if (swatchesData is List) {
-      swatchesData = swatchesData[0];
-    }
-
-    final name = swatchesData['name'];
-    final swatches = swatchesData['swatches'];
-
-    return {
-      'name': name,
-      'colors': swatches.map((swatch) {
-        if (swatch == null) return null;
-        final hue = swatch['hue'];
-        final saturation = swatch['saturation'];
-        final brightness = swatch['brightness'];
-        List<double> color = [hue * 360, saturation * 100, brightness * 100];
-        if (space != 'hsv') {
-          color = convert(color, from: 'hsv', to: space);
-        }
-        return [color, space];
-      }).toList(),
-    };
+    return _processSwatchesData(swatchesData, space);
   } catch (error) {
     throw ProcreateSwatchesError('Invalid .swatches file.');
   }
+}
+
+Archive _decodeArchive(Uint8List data) {
+  final ZipDecoder zipDecoder = ZipDecoder();
+  return zipDecoder.decodeBytes(data);
+}
+
+String _extractSwatchesJson(Archive archive) {
+  final ArchiveFile swatchesFile = archive.files.firstWhere((file) => file.name == 'Swatches.json');
+  return utf8.decode(swatchesFile.content);
+}
+
+Map<String, dynamic> _parseSwatchesData(String swatchesRawString) {
+  dynamic swatchesData = jsonDecode(swatchesRawString);
+  if (swatchesData is List) {
+    swatchesData = swatchesData[0];
+  }
+  return swatchesData;
+}
+
+Map<String, dynamic> _processSwatchesData(Map<String, dynamic> swatchesData, String space) {
+  final name = swatchesData['name'];
+  final swatches = swatchesData['swatches'];
+
+  return {
+    'name': name,
+    'colors': swatches.map((swatch) {
+      if (swatch == null) return null;
+      final hue = swatch['hue'];
+      final saturation = swatch['saturation'];
+      final brightness = swatch['brightness'];
+      List<double> color = [hue * 360, saturation * 100, brightness * 100];
+      if (space != 'hsv') {
+        color = convert(color, from: 'hsv', to: space);
+      }
+      return [color, space];
+    }).toList(),
+  };
 }
 
 List<String> getSupportedColorSpaces() {
