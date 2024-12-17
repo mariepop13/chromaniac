@@ -69,35 +69,40 @@ Future<void> writeSwatchesFile(String filePath, Uint8List content) async {
 }
 
 Future<Uint8List> createSwatchesFile(String name, List colors, {String format = 'uint8array'}) async {
-  final swatchesData = {
+  final swatchesData = [{
     'name': name,
-    'swatches': colors.map((entry) {
+    'swatches': colors.take(30).map((entry) {
       if (entry == null) return null;
       if (entry is! List || entry.length != 2) {
-        throw TypeError();
+        throw ProcreateSwatchesError('Invalid entry format: $entry. Expected a list with 2 elements.');
       }
-      var color = entry[0];
+      final List rawColor = entry[0];
       final space = entry[1];
+      
+      if (!rawColor.every((e) => e is num)) {
+        throw ProcreateSwatchesError('Color values must be numbers');
+      }
+      
+      var color = rawColor.map((e) => (e as num).toDouble()).toList();
+      
       if (space != 'hsv') {
         checkColorSpaceSupport(space);
         try {
-          color = convert(color, from: space, to: 'hsv');
+          color = convertColor(color, from: space, to: 'hsv');
         } catch (error) {
           throw ProcreateSwatchesError('$color is not a valid $space color');
         }
       }
-      final h = color[0];
-      final s = color[1];
-      final v = color[2];
+      
       return {
-        'hue': h / 360,
-        'saturation': s / 100,
-        'brightness': v / 100,
+        'hue': color[0] / 360,
+        'saturation': color[1] / 100,
+        'brightness': color[2] / 100,
         'alpha': 1,
         'colorSpace': 0,
       };
-    }).toList().sublist(0, 30),
-  };
+    }).toList(),
+  }];
 
   final encoder = ZipEncoder();
   final archive = Archive();
@@ -116,12 +121,18 @@ List<String> getSupportedColorSpaces() {
   return ['hsv', 'rgb'];
 }
 
-List<double> convert(List<double> color, {required String from, required String to}) {
-  if (from == 'hsv' && to == 'rgb') {
+List<double> convertColor(List<num> color, {required String from, required String to}) {
+  if (color.length != 3) {
+    throw ProcreateSwatchesError('Color must have exactly 3 components');
+  }
+  final values = color.map((e) => e.toDouble()).toList();
+  
+  if (from == 'rgb' && to == 'hsv') {
     // Add conversion logic here
+    return values;
   }
   // Add more conversions as needed
-  return color;
+  return values;
 }
 
 class ProcreateSwatchesError implements Exception {

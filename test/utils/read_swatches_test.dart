@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:chromaniac/utils/export_palette.dart' as export_palette;
 import 'package:chromaniac/utils/export_palette.dart';
 import 'package:chromaniac/utils/read_swatches.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,14 +13,14 @@ void main() {
       .whereType<File>()
       .map((file) => file.readAsBytesSync())
       .toList();
-      
+
   final sampleSwatchesToCreate = [
     [
       'My palette',
       [
-        [[255, 0, 0], 'rgb'],
-        [[0, 255, 0], 'rgb'],
-        [[0, 0, 255], 'rgb'],
+        [[255.0, 0.0, 0.0], 'rgb'],
+        [[0.0, 255.0, 0.0], 'rgb'],
+        [[0.0, 0.0, 255.0], 'rgb'],
       ],
     ],
   ];
@@ -47,7 +48,7 @@ void main() {
       }
     });
 
-    test('converts parsed colors', () async {
+    test('converts parsed colors to rgb', () async {
       for (final sampleFile in sampleFiles) {
         final swatches = await readSwatchesFile(sampleFile, space: 'rgb');
         for (final color in swatches['colors']) {
@@ -63,12 +64,21 @@ void main() {
       }
     });
 
-    test('throws an error if the color space is not supported', () async {
+    test('throws an error for unsupported color space', () async {
       try {
         await readSwatchesFile(Uint8List(0), space: 'notavalidcolorspace');
       } catch (error) {
         expect(error, isA<read_swatches.ProcreateSwatchesError>());
         expect(error.toString(), contains('Color space'));
+      }
+    });
+
+    test('throws an error for invalid .swatches file', () async {
+      try {
+        await readSwatchesFile(Uint8List(0));
+      } catch (error) {
+        expect(error, isA<read_swatches.ProcreateSwatchesError>());
+        expect(error.toString(), contains('Invalid .swatches file.'));
       }
     });
   });
@@ -77,8 +87,8 @@ void main() {
     test('creates a new swatches file', () async {
       for (final swatch in sampleSwatchesToCreate) {
         final name = swatch[0];
-        final colors = swatch[1];
-        final swatchesFile = await createSwatchesFile(name as String, colors as List);
+        final List<List<dynamic>> colors = (swatch[1] as List).cast<List<dynamic>>();
+        final swatchesFile = await createSwatchesFile(name as String, colors);
         final swatches = await readSwatchesFile(swatchesFile);
         expect(swatches['name'], name);
         expect(swatches['colors'].length, colors.length);
@@ -91,6 +101,18 @@ void main() {
       final swatchesFile = await createSwatchesFile('', colors);
       final swatches = await readSwatchesFile(swatchesFile);
       expect(swatches['colors'].length, 30);
+    });
+
+    test('throws an error for invalid color format', () async {
+      try {
+        final colors = [
+          [[255, 0, 0], 'invalid'],
+        ];
+        await createSwatchesFile('Invalid Palette', colors);
+        fail('Should throw ProcreateSwatchesError');
+      } on export_palette.ProcreateSwatchesError catch (error) {
+        expect(error.toString(), contains('is not supported'));
+      }
     });
 
     test('exported file is readable by readSwatchesFile', () async {
