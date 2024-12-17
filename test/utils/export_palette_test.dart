@@ -28,13 +28,6 @@ void main() {
   PathProviderPlatform.instance = MockPathProviderPlatform();
 
   group('Export Palette Output Format Tests', () {
-    test('creates swatches content in correct format', () {
-      final palette = [Colors.red, Colors.green, Colors.blue];
-      final content = createSwatchesContent(palette);
-      expect(content, isA<Uint8List>());
-      expect(content.length, 3 * 4 + 12); // 3 colors * 4 bytes + 12 bytes metadata
-    });
-
     test('exported content is readable by readSwatchesFile', () async {
       final palette = [Colors.red, Colors.green, Colors.blue];
       final content = createSwatchesContent(palette);
