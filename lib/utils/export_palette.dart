@@ -37,25 +37,31 @@ Future<void> exportPalette(BuildContext context, List<Color> palette) async {
 }
 
 Uint8List createSwatchesContent(List<Color> palette) {
-  final int colorCount = palette.length;
+  final swatchesData = [{
+    'name': 'Palette',
+    'swatches': palette.map((color) {
+      return {
+        'hue': 0.0,
+        'saturation': 0.0, 
+        'brightness': color.computeLuminance(),
+        'alpha': 1.0,
+        'colorSpace': 0
+      };
+    }).toList()
+  }];
 
-  final List<int> metadata = [
-    0x53, 0x57, 0x41, 0x54,
-    0x01, 0x00, 0x00, 0x00,
-    colorCount, 0x00, 0x00, 0x00,
-  ];
+  final encoder = ZipEncoder();
+  final archive = Archive();
+  
+  archive.addFile(
+    ArchiveFile(
+      'Swatches.json',
+      utf8.encode(jsonEncode(swatchesData)).length,
+      utf8.encode(jsonEncode(swatchesData))
+    )
+  );
 
-  final List<int> colorData = [];
-  for (Color color in palette) {
-    colorData.addAll([
-      color.red,
-      color.green,
-      color.blue,
-      color.alpha,
-    ]);
-  }
-
-  return Uint8List.fromList(metadata + colorData);
+  return Uint8List.fromList(encoder.encode(archive));
 }
 
 Future<String> getSwatchesFilePath() async {
