@@ -116,4 +116,46 @@ void main() {
       expect(swatches['colors'].length, colors.length);
     });
   });
+
+  group('Sample swatches files', () {
+    final Map<String, String> sampleFileNames = {
+      'Modern_&_Fresh.swatches': 'Modern & Fresh',
+      'mypalette.swatches': 'Jakaś Sałatkowa Bonanza ',
+      'Pantone_2019.swatches': 'Pantone 2019',
+      'Retro_&_Vintage.swatches': 'Retro & Vintage',
+    };
+
+    sampleFileNames.forEach((fileName, expectedName) {
+      test('Testing $fileName', () async {
+        final file = File('$sampleFilesDir/$fileName');
+        final data = file.readAsBytesSync();
+
+        final swatchesHsv = await readSwatchesFile(data, space: 'hsv');
+        expect(swatchesHsv['name'], expectedName);
+        expect(swatchesHsv['colors'], isNotEmpty);
+        expect(swatchesHsv['colors'].first[1], equals('hsv'));
+
+        for (final color in swatchesHsv['colors']) {
+          expect(color[0], hasLength(3));
+          expect(color[1], equals('hsv'));
+          expect(color[0][0], inInclusiveRange(0, 360));
+          expect(color[0][1], inInclusiveRange(0, 100));
+          expect(color[0][2], inInclusiveRange(0, 100));
+        }
+
+        final swatchesRgb = await readSwatchesFile(data, space: 'rgb');
+        expect(swatchesRgb['name'], expectedName);
+        expect(swatchesRgb['colors'], isNotEmpty);
+        expect(swatchesRgb['colors'].first[1], equals('rgb'));
+
+        for (final color in swatchesRgb['colors']) {
+          expect(color[0], hasLength(3));
+          expect(color[1], equals('rgb'));
+          expect(color[0][0], inInclusiveRange(0, 255));
+          expect(color[0][1], inInclusiveRange(0, 255));
+          expect(color[0][2], inInclusiveRange(0, 255));
+        }
+      });
+    });
+  });
 }

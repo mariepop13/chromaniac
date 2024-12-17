@@ -4,8 +4,6 @@
     // Pour plus d'informations, visitez : https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-        
-
         {
             "name": "chromaniac",
             "request": "launch",
@@ -28,6 +26,12 @@
             "request": "launch",
             "type": "dart",
             "deviceId": "00008101-001544420104001E"
-        }
+        },
+        {
+            "name": "chromaniac (iPad)",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "00008101-000A00DE34F9001E"
+        },
     ]
 }

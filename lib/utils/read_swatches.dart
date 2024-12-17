@@ -18,14 +18,40 @@ void checkColorSpaceSupport(String space) {
 
 Future<Map<String, dynamic>> readSwatchesFile(Uint8List data, {String space = 'hsv'}) async {
   checkColorSpaceSupport(space);
+  
+  if (data.isEmpty) {
+    throw ProcreateSwatchesError('Invalid .swatches file: empty data');
+  }
+
   try {
     final Archive archive = _decodeArchive(data);
-    final String swatchesRawString = _extractSwatchesJson(archive);
-    final Map<String, dynamic> swatchesData = _parseSwatchesData(swatchesRawString);
+    if (archive.isEmpty) {
+      throw ProcreateSwatchesError('Invalid .swatches file: empty archive');
+    }
 
-    return _processSwatchesData(swatchesData, space);
+    final String swatchesRawString = _extractSwatchesJson(archive);
+    if (swatchesRawString.isEmpty) {
+      throw ProcreateSwatchesError('Invalid .swatches file: no Swatches.json found');
+    }
+
+    final Map<String, dynamic> swatchesData = _parseSwatchesData(swatchesRawString);
+    if (swatchesData['name'] == null || swatchesData['swatches'] == null) {
+      throw ProcreateSwatchesError('Invalid .swatches file: missing required fields');
+    }
+
+    final result = _processSwatchesData(swatchesData, space);
+    
+    if (result['colors'].any((color) => color == null)) {
+      result['colors'].removeWhere((color) => color == null);
+    }
+
+    return result;
+  } on ArchiveException catch (e) {
+    throw ProcreateSwatchesError('Invalid .swatches file: corrupted archive - ${e.message}');
+  } on FormatException catch (e) {
+    throw ProcreateSwatchesError('Invalid .swatches file: invalid JSON format - ${e.message}');
   } catch (error) {
-    throw ProcreateSwatchesError('Invalid .swatches file.');
+    throw ProcreateSwatchesError('Invalid .swatches file: ${error.toString()}');
   }
 }
 
@@ -55,16 +81,46 @@ Map<String, dynamic> _processSwatchesData(Map<String, dynamic> swatchesData, Str
     'name': name,
     'colors': swatches.map((swatch) {
       if (swatch == null) return null;
-      final hue = swatch['hue'];
-      final saturation = swatch['saturation'];
-      final brightness = swatch['brightness'];
+      
+      final double hue = (swatch['hue'] ?? 0.0).toDouble();
+      final double saturation = (swatch['saturation'] ?? 0.0).toDouble();
+      final double brightness = (swatch['brightness'] ?? 0.0).toDouble();
+      
       List<double> color = [hue * 360, saturation * 100, brightness * 100];
-      if (space != 'hsv') {
-        color = convert(color, from: 'hsv', to: space);
+      
+      if (space == 'rgb') {
+        color = _hsvToRgb(color[0], color[1], color[2]);
       }
+      
       return [color, space];
-    }).toList(),
+    }).toList()..removeWhere((color) => color == null),
   };
+}
+
+List<double> _hsvToRgb(double h, double s, double v) {
+  h = h / 360;
+  s = s / 100;
+  v = v / 100;
+  
+  final i = (h * 6).floor();
+  final f = h * 6 - i;
+  final p = v * (1 - s);
+  final q = v * (1 - f * s);
+  final t = v * (1 - (1 - f) * s);
+  
+  double r, g, b;
+  
+  switch (i % 6) {
+    case 0: r = v; g = t; b = p; break;
+    case 1: r = q; g = v; b = p; break;
+    case 2: r = p; g = v; b = t; break;
+    case 3: r = p; g = q; b = v; break;
+    case 4: r = t; g = p; b = v; break;
+    case 5: r = v; g = p; b = q; break;
+    default: r = 0; g = 0; b = 0;
+  }
+  
+  return [r * 255, g * 255, b * 255];
 }
 
 List<String> getSupportedColorSpaces() {
