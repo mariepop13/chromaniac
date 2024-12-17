@@ -32,6 +32,12 @@
             "request": "launch",
             "type": "dart",
             "deviceId": "00008101-000A00DE34F9001E"
-        },
+        }
+    ],
+    "compounds": [
+        {
+            "name": "chromaniac (iPhone & iPad)",
+            "configurations": ["chromaniac (iPhone)", "chromaniac (iPad)"]
+        }
     ]
 }

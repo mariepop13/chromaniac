@@ -8,8 +8,24 @@ import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart' show getApplicationDocumentsDirectory;
 
 Future<void> shareFile(BuildContext context, String filePath) async {
+  final box = context.findRenderObject() as RenderBox?;
+  final sharePositionOrigin = box != null 
+      ? box.localToGlobal(Offset.zero) & box.size
+      : Rect.zero;
+
   try {
-    await Share.shareXFiles([XFile(filePath)]);
+    final file = File(filePath);
+    if (await file.exists()) {
+      if (!context.mounted) return;
+
+      await Share.shareXFiles(
+        [XFile(filePath)],
+        subject: 'Color Palette',
+        sharePositionOrigin: sharePositionOrigin,
+      );
+    } else {
+      throw ProcreateSwatchesError('File not found: $filePath');
+    }
   } catch (e) {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(

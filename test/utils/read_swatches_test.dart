@@ -8,7 +8,7 @@ import 'package:chromaniac/utils/read_swatches.dart' as read_swatches;
 
 void main() {
   final sampleFilesDir = './test/sample';
-  final sampleFiles = Directory(sampleFilesDir)
+  Directory(sampleFilesDir)
       .listSync()
       .whereType<File>()
       .map((file) => file.readAsBytesSync())
