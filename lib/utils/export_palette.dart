@@ -40,11 +40,13 @@ Uint8List createSwatchesContent(List<Color> palette) {
   final swatchesData = [{
     'name': 'Palette',
     'swatches': palette.map((color) {
+      final HSVColor hsvColor = HSVColor.fromColor(color);
+      
       return {
-        'hue': 0.0,
-        'saturation': 0.0, 
-        'brightness': color.computeLuminance(),
-        'alpha': 1.0,
+        'hue': hsvColor.hue / 360,
+        'saturation': hsvColor.saturation,
+        'brightness': hsvColor.value,
+        'alpha': hsvColor.alpha,
         'colorSpace': 0
       };
     }).toList()
