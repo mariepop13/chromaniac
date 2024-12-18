@@ -2,7 +2,7 @@
 
 1. Main project is in `lib`.
 2. Test instructions: `.github/copilot-test-instructions.md`.
-3. No comments in generated code.
+3. Never use comments to explain code.
 4. Write in English.
 5. Ensure clean, best practice code.
 6. Use meaningful names.

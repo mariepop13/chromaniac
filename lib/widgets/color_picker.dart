@@ -40,7 +40,6 @@ class ColorPickerWidgetState extends State<ColorPickerWidget> {
   }
 
   void _saveAndClosePicker() {
-    widget.onColorSelected(selectedColor);
     setState(() {
       showColorPicker = false;
       showMaterialPicker = false;
@@ -112,7 +111,9 @@ class ColorPickerWidgetState extends State<ColorPickerWidget> {
                   children: [
                     Icon(Icons.color_lens, color: textColor),
                     SizedBox(width: 8),
-                    Expanded(child: Text('Select a Color', style: TextStyle(color: textColor))),
+                    Expanded(
+                        child: Text('Select a Color',
+                            style: TextStyle(color: textColor))),
                   ],
                 ),
               ),
@@ -124,13 +125,15 @@ class ColorPickerWidgetState extends State<ColorPickerWidget> {
                     onColorChanged: (color) {
                       setState(() {
                         selectedColor = color;
+                        widget.onColorSelected(color);
                       });
                     },
                     labelTypes: [],
                     pickerAreaHeightPercent: 0.8,
                     enableAlpha: true,
                     displayThumbColor: true,
-                    pickerAreaBorderRadius: const BorderRadius.all(Radius.circular(10.0)),
+                    pickerAreaBorderRadius:
+                        const BorderRadius.all(Radius.circular(10.0)),
                   ),
                 ),
             ],
@@ -156,7 +159,9 @@ class ColorPickerWidgetState extends State<ColorPickerWidget> {
                   children: [
                     Icon(Icons.palette, color: textColor),
                     SizedBox(width: 8),
-                    Expanded(child: Text('Material Picker', style: TextStyle(color: textColor))),
+                    Expanded(
+                        child: Text('Material Picker',
+                            style: TextStyle(color: textColor))),
                   ],
                 ),
               ),
@@ -168,6 +173,7 @@ class ColorPickerWidgetState extends State<ColorPickerWidget> {
                     onColorChanged: (color) {
                       setState(() {
                         selectedColor = color;
+                        widget.onColorSelected(color);
                       });
                     },
                     enableLabel: true,
@@ -196,7 +202,9 @@ class ColorPickerWidgetState extends State<ColorPickerWidget> {
                   children: [
                     Icon(Icons.grid_on, color: textColor),
                     SizedBox(width: 8),
-                    Expanded(child: Text('Block Picker', style: TextStyle(color: textColor))),
+                    Expanded(
+                        child: Text('Block Picker',
+                            style: TextStyle(color: textColor))),
                   ],
                 ),
               ),
@@ -206,6 +214,7 @@ class ColorPickerWidgetState extends State<ColorPickerWidget> {
                   onColorChanged: (color) {
                     setState(() {
                       selectedColor = color;
+                      widget.onColorSelected(color);
                     });
                   },
                 ),
@@ -232,7 +241,9 @@ class ColorPickerWidgetState extends State<ColorPickerWidget> {
                   children: [
                     Icon(Icons.slideshow, color: textColor),
                     SizedBox(width: 8),
-                    Expanded(child: Text('Slide Picker', style: TextStyle(color: textColor))),
+                    Expanded(
+                        child: Text('Slide Picker',
+                            style: TextStyle(color: textColor))),
                   ],
                 ),
               ),
@@ -244,7 +255,7 @@ class ColorPickerWidgetState extends State<ColorPickerWidget> {
                     onColorChanged: (color) {
                       setState(() {
                         selectedColor = color;
-                        widget.onColorSelected(color); // Mettre à jour la couleur sélectionnée
+                        widget.onColorSelected(color);
                       });
                     },
                     enableAlpha: true,
