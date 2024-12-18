@@ -2,23 +2,23 @@ import 'package:chromaniac/widgets/color_picker.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 
-List<Color> generatePalette(PaletteType type, Color color) {
+List<Color> generatePalette(ColorPaletteType type, Color color) {
   switch (type) {
-    case PaletteType.monochromatic:
+    case ColorPaletteType.monochromatic:
       return _generateMonochromaticPalette(color);
-    case PaletteType.analogous:
+    case ColorPaletteType.analogous:
       return _generateAnalogousPalette(color);
-    case PaletteType.complementary:
+    case ColorPaletteType.complementary:
       return _generateComplementaryPalette(color);
-    case PaletteType.splitComplementary:
+    case ColorPaletteType.splitComplementary:
       return _generateSplitComplementaryPalette(color);
-    case PaletteType.triadic:
+    case ColorPaletteType.triadic:
       return _generateTriadicPalette(color);
-    case PaletteType.tetradic:
+    case ColorPaletteType.tetradic:
       return _generateTetradicPalette(color);
-    case PaletteType.square:
+    case ColorPaletteType.square:
       return _generateSquarePalette(color);
-    case PaletteType.auto:
+    case ColorPaletteType.auto:
     default:
       return _generateAutoPalette(color);
   }

@@ -1,17 +1,17 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:palette_generator/palette_generator.dart';
+import 'dart:math';
+import 'package:chromaniac/features/color_palette/models/color_palette_type.dart';
+import 'package:chromaniac/features/color_palette/utils/palette_generator_service.dart';
+import 'package:chromaniac/features/color_palette/widgets/color_picker_widget.dart';
+import 'package:chromaniac/features/color_palette/widgets/color_tile_widget.dart';
 import 'package:chromaniac/utils/export_palette.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'dart:math';
-import 'package:chromaniac/providers/theme_provider.dart';
-import 'package:chromaniac/widgets/color_picker.dart';
-import 'package:chromaniac/widgets/palette_generator.dart';
-import 'package:chromaniac/widgets/color_tile.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:palette_generator/palette_generator.dart';
 import 'package:reorderable_grid/reorderable_grid.dart';
-
+import 'package:chromaniac/providers/theme_provider.dart';
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -23,7 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final List<Color> _palette = [];
   Color _currentColor = Colors.blue;
-  PaletteType selectedPaletteType = PaletteType.auto;
+  ColorPaletteType? selectedColorPaletteType = ColorPaletteType.auto;
   File? _selectedImage;
 
   @override
@@ -103,8 +103,10 @@ class _HomeScreenState extends State<HomeScreen> {
   void _generateRandomPalette() {
     setState(() {
       _palette.clear();
-      _palette
-          .addAll(generatePalette(selectedPaletteType, _generateRandomColor()));
+      _palette.addAll(PaletteGeneratorService.generatePalette(
+        selectedColorPaletteType ?? ColorPaletteType.auto,
+        _generateRandomColor(),
+      ));
     });
   }
 
@@ -205,11 +207,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Column(
       children: [
-        if (_palette.isEmpty)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 24),
-            child: Text('Generate a palette or add colors'),
-          ),
         if (_palette.isNotEmpty)
           Expanded(
             child: LayoutBuilder(
@@ -218,7 +215,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 final height =
                     constraints.maxHeight / (((_palette.length + 1) ~/ 2));
                 return ReorderableGridView.count(
-                  physics: NeverScrollableScrollPhysics(),
+                  physics: const NeverScrollableScrollPhysics(),
                   crossAxisCount: 2,
                   crossAxisSpacing: 0,
                   mainAxisSpacing: 0,
@@ -226,7 +223,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: _palette.map((color) {
                     final hex =
                         '#${color.value.toRadixString(16).padLeft(8, '0').substring(2)}';
-                    return ColorTile(
+                    return  ColorTileWidget(
                       key: ValueKey('$hex-${color.value}'),
                       color: color,
                       hex: hex,
@@ -255,14 +252,14 @@ class _HomeScreenState extends State<HomeScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            DropdownButton<PaletteType>(
-              value: selectedPaletteType,
+            DropdownButton<ColorPaletteType>(
+              value: selectedColorPaletteType,
               onChanged: (newValue) {
                 if (newValue != null) {
-                  setState(() => selectedPaletteType = newValue);
+                  setState(() => selectedColorPaletteType = newValue);
                 }
               },
-              items: PaletteType.values.map((type) {
+              items: ColorPaletteType.values.map((type) {
                 return DropdownMenuItem(
                   value: type,
                   child: Text(type.toString().split('.').last),
