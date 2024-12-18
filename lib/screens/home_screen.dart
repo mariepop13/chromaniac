@@ -12,6 +12,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:reorderable_grid/reorderable_grid.dart';
 import 'package:chromaniac/providers/theme_provider.dart';
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -29,7 +30,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _generateRandomPalette();
   }
 
   Future<void> _pickImage() async {
@@ -115,6 +115,12 @@ class _HomeScreenState extends State<HomeScreen> {
     await exportPalette(context, _palette, originBox: box);
   }
 
+  void _clearPalette() {
+    setState(() {
+      _palette.clear();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
@@ -181,8 +187,19 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                   ),
                   ListTile(
-                    leading: Icon(themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode),
-                    title: Text(themeProvider.isDarkMode ? 'Dark Mode' : 'Light Mode'),
+                    leading: const Icon(Icons.clear),
+                    title: const Text('Clear Palette'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _clearPalette();
+                    },
+                  ),
+                  ListTile(
+                    leading: Icon(themeProvider.isDarkMode
+                        ? Icons.dark_mode
+                        : Icons.light_mode),
+                    title: Text(
+                        themeProvider.isDarkMode ? 'Dark Mode' : 'Light Mode'),
                     onTap: () {
                       Navigator.pop(context);
                       themeProvider.toggleTheme(!themeProvider.isDarkMode);
@@ -220,16 +237,24 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisSpacing: 0,
                   mainAxisSpacing: 0,
                   childAspectRatio: width / height,
-                  children: _palette.map((color) {
-                    final hex =
-                        '#${color.value.toRadixString(16).padLeft(8, '0').substring(2)}';
-                    return  ColorTileWidget(
-                      key: ValueKey('$hex-${color.value}'),
-                      color: color,
-                      hex: hex,
-                      onRemoveColor: _removeColorFromPalette,
-                    );
-                  }).toList(),
+                  children: _palette
+                      .asMap()
+                      .map((index, color) {
+                        final hex =
+                            '#${color.value.toRadixString(16).padLeft(8, '0').substring(2)}';
+                        return MapEntry(
+                          index,
+                          ColorTileWidget(
+                            key: ValueKey(
+                                '$hex-$index-${DateTime.now().millisecondsSinceEpoch}'),
+                            color: color,
+                            hex: hex,
+                            onRemoveColor: _removeColorFromPalette,
+                          ),
+                        );
+                      })
+                      .values
+                      .toList(),
                   onReorder: (oldIndex, newIndex) {
                     setState(() {
                       final color = _palette.removeAt(oldIndex);
@@ -317,12 +342,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Cancel'),
+                    child: const Text('Done'),
                   ),
                   TextButton(
                     onPressed: () {
                       _addColorToPalette(previewColor);
-                      Navigator.pop(context);
                     },
                     child: const Text('Add'),
                   ),

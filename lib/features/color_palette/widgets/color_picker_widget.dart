@@ -29,15 +29,6 @@ class ColorPickerWidgetState extends State<ColorPickerWidget> {
     selectedColor = widget.currentColor;
   }
 
-  void _saveAndClosePicker() {
-    setState(() {
-      showColorPicker = false;
-      showMaterialPicker = false;
-      showBlockPicker = false;
-      showSlidePicker = false;
-    });
-  }
-
   void _togglePicker(String pickerType) {
     setState(() {
       if (pickerType == 'color') {
@@ -49,7 +40,6 @@ class ColorPickerWidgetState extends State<ColorPickerWidget> {
       } else if (pickerType == 'slide') {
         showSlidePicker = !showSlidePicker;
       }
-      // Fermer les autres pickers
       if (pickerType != 'color') showColorPicker = false;
       if (pickerType != 'material') showMaterialPicker = false;
       if (pickerType != 'block') showBlockPicker = false;
@@ -65,11 +55,20 @@ class ColorPickerWidgetState extends State<ColorPickerWidget> {
         children: [
           _buildPickerButton('Color Picker', Icons.colorize, 'color'),
           if (showColorPicker) _buildColorPicker(),
-          _buildPickerButton('Material Picker', Icons.format_paint, 'material'),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: _buildPickerButton('Material Picker', Icons.format_paint, 'material'),
+          ),
           if (showMaterialPicker) _buildMaterialPicker(),
-          _buildPickerButton('Block Picker', Icons.grid_on, 'block'),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: _buildPickerButton('Block Picker', Icons.grid_on, 'block'),
+          ),
           if (showBlockPicker) _buildBlockPicker(),
-          _buildPickerButton('Slide Picker', Icons.slideshow, 'slide'),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: _buildPickerButton('Slide Picker', Icons.slideshow, 'slide'),
+          ),
           if (showSlidePicker) _buildSlidePicker(),
         ],
       ),
