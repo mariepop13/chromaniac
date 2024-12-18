@@ -95,11 +95,11 @@ class ColorPickerWidgetState extends State<ColorPickerWidget> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            buildPickerButton('Color Picker', Icons.color_lens, 'color',
-                buttonColor, textColor),
+            buildPickerButton('Color Picker', Icons.colorize, 'color',
+              buttonColor, textColor),
             if (showColorPicker) buildColorPicker(),
-            buildPickerButton('Material Picker', Icons.palette, 'material',
-                buttonColor, textColor),
+            buildPickerButton('Material Picker', Icons.format_paint, 'material',
+              buttonColor, textColor),
             if (showMaterialPicker)
               SizedBox(
                 height: 240,

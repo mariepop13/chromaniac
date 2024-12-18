@@ -67,6 +67,11 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  void _exportPalette(BuildContext context) async {
+    final box = context.findRenderObject() as RenderBox?;
+    await exportPalette(context, _palette, originBox: box);
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
@@ -78,7 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.palette),
+            icon: const Icon(Icons.shuffle),
             onPressed: () => _showPaletteOptionsDialog(context),
           ),
           IconButton(
@@ -89,10 +94,7 @@ class _HomeScreenState extends State<HomeScreen> {
             builder: (context) => IconButton(
               key: const Key('export_button'),
               icon: const Icon(Icons.file_download),
-              onPressed: () {
-                final box = context.findRenderObject() as RenderBox?;
-                exportPalette(context, _palette, originBox: box);
-              },
+              onPressed: () => _exportPalette(context),
             ),
           ),
           IconButton(
