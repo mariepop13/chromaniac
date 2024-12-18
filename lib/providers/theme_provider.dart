@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class ThemeProvider with ChangeNotifier {
   bool _isDarkMode = false;
@@ -12,41 +13,79 @@ class ThemeProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  static final TextTheme _baseTextTheme = TextTheme(
+    displayLarge: GoogleFonts.quicksand(fontSize: 57, fontWeight: FontWeight.w600),
+    displayMedium: GoogleFonts.quicksand(fontSize: 45, fontWeight: FontWeight.w600),
+    displaySmall: GoogleFonts.quicksand(fontSize: 36, fontWeight: FontWeight.w600),
+    headlineLarge: GoogleFonts.quicksand(fontSize: 32, fontWeight: FontWeight.w700),
+    headlineMedium: GoogleFonts.quicksand(fontSize: 28, fontWeight: FontWeight.w700),
+    headlineSmall: GoogleFonts.quicksand(fontSize: 24, fontWeight: FontWeight.w700),
+    titleLarge: GoogleFonts.dmSans(fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: 0.15),
+    titleMedium: GoogleFonts.dmSans(fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: 0.15),
+    titleSmall: GoogleFonts.dmSans(fontSize: 14, fontWeight: FontWeight.w600, letterSpacing: 0.1),
+    bodyLarge: GoogleFonts.dmSans(fontSize: 16, fontWeight: FontWeight.w400, letterSpacing: 0.5),
+    bodyMedium: GoogleFonts.dmSans(fontSize: 14, fontWeight: FontWeight.w400, letterSpacing: 0.25),
+    bodySmall: GoogleFonts.dmSans(fontSize: 12, fontWeight: FontWeight.w400, letterSpacing: 0.4),
+    labelLarge: GoogleFonts.dmSans(fontSize: 14, fontWeight: FontWeight.w500, letterSpacing: 1.25),
+    labelMedium: GoogleFonts.dmSans(fontSize: 12, fontWeight: FontWeight.w500, letterSpacing: 1.0),
+    labelSmall: GoogleFonts.dmSans(fontSize: 11, fontWeight: FontWeight.w500, letterSpacing: 1.5),
+  );
+
   static final ThemeData _lightTheme = ThemeData(
+    useMaterial3: true,
     brightness: Brightness.light,
-    primaryColor: Colors.blue,
-    buttonTheme: ButtonThemeData(
-      buttonColor: Colors.blue, // Couleur du bouton
-      textTheme: ButtonTextTheme.primary, // Texte clair sur bouton foncé
+    textTheme: _baseTextTheme,
+    colorScheme: ColorScheme.light(
+      primary: const Color(0xFF6B4EE8),
+      secondary: const Color(0xFF9C8AFF),
+      tertiary: const Color(0xFFFF8FB1),
+      surface: Colors.white,
+      onPrimary: Colors.white,
+      onSecondary: Colors.white,
+      onSurface: const Color(0xFF2D2B3F),
     ),
-    appBarTheme: const AppBarTheme(
+    cardTheme: CardTheme(
       color: Colors.white,
-      iconTheme: IconThemeData(color: Colors.black),
-      titleTextStyle: TextStyle(color: Colors.black, fontSize: 20),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
     ),
-    scaffoldBackgroundColor: Colors.white,
-    textTheme: const TextTheme(
-      bodyLarge: TextStyle(color: Colors.black),
-      bodyMedium: TextStyle(color: Colors.black),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFF6B4EE8),
+        foregroundColor: Colors.white,
+        elevation: 2,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
     ),
   );
 
   static final ThemeData _darkTheme = ThemeData(
+    useMaterial3: true,
     brightness: Brightness.dark,
-    primaryColor: Colors.blue,
-    buttonTheme: ButtonThemeData(
-      buttonColor: Colors.grey[800], // Couleur du bouton
-      textTheme: ButtonTextTheme.primary, // Texte clair sur bouton foncé
+    textTheme: _baseTextTheme,
+    colorScheme: ColorScheme.dark(
+      primary: const Color(0xFF9C8AFF),
+      secondary: const Color(0xFF6B4EE8),
+      tertiary: const Color(0xFFFF8FB1),
+      surface: const Color(0xFF1E1B2E),
+      onPrimary: Colors.white,
+      onSecondary: Colors.white,
+      onSurface: Colors.white,
     ),
-    appBarTheme: const AppBarTheme(
-      color: Colors.black,
-      iconTheme: IconThemeData(color: Colors.white),
-      titleTextStyle: TextStyle(color: Colors.white, fontSize: 20),
+    cardTheme: CardTheme(
+      color: const Color(0xFF1E1B2E),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
     ),
-    scaffoldBackgroundColor: Colors.black,
-    textTheme: const TextTheme(
-      bodyLarge: TextStyle(color: Colors.white),
-      bodyMedium: TextStyle(color: Colors.white),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFF9C8AFF),
+        foregroundColor: Colors.white,
+        elevation: 2,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
     ),
   );
 }

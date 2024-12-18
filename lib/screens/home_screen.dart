@@ -122,36 +122,6 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('Chromaniac'),
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.shuffle),
-            onPressed: () => _showPaletteOptionsDialog(context),
-          ),
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => _showColorPickerDialog(),
-          ),
-          IconButton(
-            icon: const Icon(Icons.image),
-            onPressed: () async {
-              await _pickImage();
-              await _generatePaletteFromImage();
-            },
-          ),
-          Builder(
-            builder: (context) => IconButton(
-              key: const Key('export_button'),
-              icon: const Icon(Icons.file_download),
-              onPressed: () => _exportPalette(context),
-            ),
-          ),
-          IconButton(
-            icon: Icon(
-                themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode),
-            onPressed: () =>
-                themeProvider.toggleTheme(!themeProvider.isDarkMode),
-          ),
-        ],
       ),
       body: SafeArea(
         child: Column(
@@ -166,6 +136,62 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(child: _buildPaletteContent()),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          showModalBottomSheet(
+            context: context,
+            builder: (context) => Container(
+              padding: const EdgeInsets.all(16),
+              child: Wrap(
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.shuffle),
+                    title: const Text('Generate Palette'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _showPaletteOptionsDialog(context);
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.add),
+                    title: const Text('Add Color'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _showColorPickerDialog();
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.image),
+                    title: const Text('Import from Image'),
+                    onTap: () async {
+                      Navigator.pop(context);
+                      await _pickImage();
+                      await _generatePaletteFromImage();
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.file_download),
+                    title: const Text('Export Palette'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _exportPalette(context);
+                    },
+                  ),
+                  ListTile(
+                    leading: Icon(themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode),
+                    title: Text(themeProvider.isDarkMode ? 'Dark Mode' : 'Light Mode'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      themeProvider.toggleTheme(!themeProvider.isDarkMode);
+                    },
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+        child: const Icon(Icons.menu),
       ),
     );
   }
