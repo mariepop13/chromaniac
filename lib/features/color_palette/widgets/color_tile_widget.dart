@@ -1,3 +1,4 @@
+import 'package:chromaniac/features/color_palette/widgets/color_picker_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -6,11 +7,14 @@ class ColorTileWidget extends StatelessWidget {
   final String hex;
   final Function(Color) onRemoveColor;
 
+  final Function(Color) onEditColor;
+
   const ColorTileWidget({
     super.key,
     required this.color,
     required this.hex,
     required this.onRemoveColor,
+    required this.onEditColor,
   });
 
   @override
@@ -49,16 +53,27 @@ class ColorTileWidget extends StatelessWidget {
                     ),
                     items: [
                       PopupMenuItem(
-                        child: const Text('Copy Hex'),
+                        child: const Text('Modifier la couleur'),
+                        onTap: () {
+                          final BuildContext currentContext = context;
+                          Future.delayed(const Duration(milliseconds: 50), () {
+                            if (currentContext.mounted) {
+                              _showColorPickerDialog(currentContext, color);
+                            }
+                          });
+                        },
+                      ),
+                      PopupMenuItem(
+                        child: const Text('Copier Hex'),
                         onTap: () {
                           Clipboard.setData(ClipboardData(text: hex));
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Copied $hex to clipboard!')),
+                            SnackBar(content: Text('Copié $hex dans le presse-papier !')),
                           );
                         },
                       ),
                       PopupMenuItem(
-                        child: const Text('Remove Color'),
+                        child: const Text('Supprimer'),
                         onTap: () => onRemoveColor(color),
                       ),
                     ],
@@ -73,6 +88,16 @@ class ColorTileWidget extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showColorPickerDialog(BuildContext context, Color initialColor) {
+    showDialog(
+      context: context,
+      builder: (context) => ColorPickerDialog(
+        initialColor: initialColor,
+        onColorSelected: onEditColor,
       ),
     );
   }

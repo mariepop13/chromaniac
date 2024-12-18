@@ -2,7 +2,6 @@ import 'dart:io';
 import 'dart:math';
 import 'package:chromaniac/features/color_palette/models/color_palette_type.dart';
 import 'package:chromaniac/features/color_palette/utils/palette_generator_service.dart';
-import 'package:chromaniac/features/color_palette/widgets/color_picker_widget.dart';
 import 'package:chromaniac/features/color_palette/widgets/color_tile_widget.dart';
 import 'package:chromaniac/utils/export_palette.dart';
 import 'package:flutter/foundation.dart';
@@ -12,6 +11,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:reorderable_grid/reorderable_grid.dart';
 import 'package:chromaniac/providers/theme_provider.dart';
+import 'package:chromaniac/features/color_palette/widgets/color_picker_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -250,6 +250,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             color: color,
                             hex: hex,
                             onRemoveColor: _removeColorFromPalette,
+                            onEditColor: (newColor) => _editColorInPalette(
+                                color, newColor), // Ajout du callback
                           ),
                         );
                       })
@@ -308,53 +310,26 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _showColorPickerDialog() {
-    Color previewColor = _currentColor;
+  void _editColorInPalette(Color oldColor, Color newColor) {
+    setState(() {
+      final index = _palette.indexOf(oldColor);
+      if (index != -1) {
+        _palette[index] = newColor;
+      }
+    });
+  }
 
+  void _showColorPickerDialog() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        content: StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) => Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Text('Add Color',
-                    style: Theme.of(context).textTheme.titleLarge),
-              ),
-              Flexible(
-                child: ColorPickerWidget(
-                  currentColor: _currentColor,
-                  onColorSelected: (color) {
-                    setState(() => previewColor = color);
-                    _updateCurrentColor(color);
-                  },
-                  useMaterialPicker: true,
-                ),
-              ),
-              Container(
-                height: 50,
-                width: double.infinity,
-                color: previewColor,
-              ),
-              OverflowBar(
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Done'),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      _addColorToPalette(previewColor);
-                    },
-                    child: const Text('Add'),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
+      builder: (context) => ColorPickerDialog(
+        initialColor: _currentColor,
+        title: 'Ajouter une couleur',
+        confirmText: 'Ajouter',
+        onColorSelected: (color) {
+          _updateCurrentColor(color);
+          _addColorToPalette(color);
+        },
       ),
     );
   }
