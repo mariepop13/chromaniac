@@ -52,7 +52,7 @@ Future<void> exportPalette(BuildContext context, List<Color> palette, {RenderBox
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Export error: $e'),
+          content: Text('Error during export: $e'),
           duration: const Duration(seconds: 3),
         ),
       );

@@ -12,7 +12,7 @@ class ColorPickerDialog extends StatefulWidget {
     super.key,
     required this.initialColor,
     required this.onColorSelected,
-    this.title = 'Select color',
+    this.title = 'Select a color',
     this.cancelText = 'Cancel',
     this.confirmText = 'Apply',
   });

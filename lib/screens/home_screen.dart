@@ -12,6 +12,7 @@ import 'package:palette_generator/palette_generator.dart';
 import 'package:reorderable_grid/reorderable_grid.dart';
 import 'package:chromaniac/providers/theme_provider.dart';
 import 'package:chromaniac/features/color_palette/widgets/color_picker_dialog.dart';
+import 'package:chromaniac/utils/dialog_utils.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -47,9 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
         print('Error picking image: $e');
       }
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error picking image: $e')),
-        );
+        showSnackBar(context, 'Error picking image: $e');
       }
     }
   }
@@ -324,8 +323,8 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (context) => ColorPickerDialog(
         initialColor: _currentColor,
-        title: 'Ajouter une couleur',
-        confirmText: 'Ajouter',
+        title: 'Add Color',
+        confirmText: 'Add',
         onColorSelected: (color) {
           _updateCurrentColor(color);
           _addColorToPalette(color);

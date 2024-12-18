@@ -1,12 +1,12 @@
 import 'package:chromaniac/features/color_palette/widgets/color_picker_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:chromaniac/utils/dialog_utils.dart';
 
 class ColorTileWidget extends StatelessWidget {
   final Color color;
   final String hex;
   final Function(Color) onRemoveColor;
-
   final Function(Color) onEditColor;
 
   const ColorTileWidget({
@@ -53,27 +53,19 @@ class ColorTileWidget extends StatelessWidget {
                     ),
                     items: [
                       PopupMenuItem(
-                        child: const Text('Modifier la couleur'),
-                        onTap: () {
-                          final BuildContext currentContext = context;
-                          Future.delayed(const Duration(milliseconds: 50), () {
-                            if (currentContext.mounted) {
-                              _showColorPickerDialog(currentContext, color);
-                            }
-                          });
-                        },
+                        child: const Text('Edit Color'),
+                        onTap: () => showDelayedDialog(context, 
+                          (ctx) => _showColorPickerDialog(ctx, color)),
                       ),
                       PopupMenuItem(
-                        child: const Text('Copier Hex'),
+                        child: const Text('Copy Hex'),
                         onTap: () {
                           Clipboard.setData(ClipboardData(text: hex));
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Copié $hex dans le presse-papier !')),
-                          );
+                          showCopySnackBar(context, hex);
                         },
                       ),
                       PopupMenuItem(
-                        child: const Text('Supprimer'),
+                        child: const Text('Remove'),
                         onTap: () => onRemoveColor(color),
                       ),
                     ],
