@@ -19,7 +19,7 @@ class ColorPickerWidget extends StatefulWidget {
   const ColorPickerWidget({
     super.key,
     required this.currentColor,
-    required this.onColorSelected,
+    required this.onColorSelected, required bool useMaterialPicker,
   });
 
   @override
@@ -88,186 +88,90 @@ class ColorPickerWidgetState extends State<ColorPickerWidget> {
     final buttonColor = theme.buttonTheme.colorScheme?.primary ?? Colors.blue;
     final textColor = theme.textTheme.bodyLarge?.color ?? Colors.white;
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                  _togglePicker('color');
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: buttonColor,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.color_lens, color: textColor),
-                    SizedBox(width: 8),
-                    Expanded(
-                        child: Text('Select a Color',
-                            style: TextStyle(color: textColor))),
-                  ],
-                ),
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            buildPickerButton('Select a Color', Icons.color_lens, 'color', buttonColor, textColor),
+            if (showColorPicker) buildColorPicker(),
+            buildPickerButton('Material Picker', Icons.palette, 'material', buttonColor, textColor),
+            if (showMaterialPicker) 
+              SizedBox(
+                height: 240,
+                child: buildMaterialPicker(),
               ),
-              if (showColorPicker)
-                Flexible(
-                  fit: FlexFit.loose,
-                  child: ColorPicker(
-                    pickerColor: selectedColor,
-                    onColorChanged: (color) {
-                      setState(() {
-                        selectedColor = color;
-                        widget.onColorSelected(color);
-                      });
-                    },
-                    labelTypes: [],
-                    pickerAreaHeightPercent: 0.8,
-                    enableAlpha: true,
-                    displayThumbColor: true,
-                    pickerAreaBorderRadius:
-                        const BorderRadius.all(Radius.circular(10.0)),
-                  ),
-                ),
-            ],
+            buildPickerButton('Block Picker', Icons.grid_on, 'block', buttonColor, textColor),
+            if (showBlockPicker) buildBlockPicker(),
+            buildPickerButton('Slide Picker', Icons.slideshow, 'slide', buttonColor, textColor),
+            if (showSlidePicker) buildSlidePicker(),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget buildColorPicker() => ColorPicker(
+        pickerColor: selectedColor,
+        onColorChanged: updateColor,
+        labelTypes: const [],
+        pickerAreaHeightPercent: 0.8,
+        enableAlpha: true,
+        displayThumbColor: true,
+        pickerAreaBorderRadius: const BorderRadius.all(Radius.circular(10)),
+      );
+
+  Widget buildMaterialPicker() => Material(
+        child: MaterialPicker(
+          pickerColor: selectedColor,
+          onColorChanged: updateColor,
+          enableLabel: true,
+        ),
+      );
+
+  Widget buildBlockPicker() => BlockPicker(
+        pickerColor: selectedColor,
+        onColorChanged: updateColor,
+      );
+
+  Widget buildSlidePicker() => SlidePicker(
+        pickerColor: selectedColor,
+        onColorChanged: updateColor,
+        enableAlpha: true,
+        showParams: true,
+        showIndicator: true,
+        labelTypes: const [],
+      );
+
+  void updateColor(Color color) {
+    setState(() {
+      selectedColor = color;
+      widget.onColorSelected(color);
+    });
+  }
+
+  Widget buildPickerButton(String text, IconData icon, String type, Color buttonColor, Color textColor) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: ElevatedButton(
+        onPressed: () => _togglePicker(type),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: buttonColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                  _togglePicker('material');
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: buttonColor,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.palette, color: textColor),
-                    SizedBox(width: 8),
-                    Expanded(
-                        child: Text('Material Picker',
-                            style: TextStyle(color: textColor))),
-                  ],
-                ),
-              ),
-              if (showMaterialPicker)
-                Flexible(
-                  fit: FlexFit.loose,
-                  child: MaterialPicker(
-                    pickerColor: selectedColor,
-                    onColorChanged: (color) {
-                      setState(() {
-                        selectedColor = color;
-                        widget.onColorSelected(color);
-                      });
-                    },
-                    enableLabel: true,
-                  ),
-                ),
-            ],
-          ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: textColor),
+            const SizedBox(width: 8),
+            Expanded(child: Text(text, style: TextStyle(color: textColor))),
+          ],
         ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                  _togglePicker('block');
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: buttonColor,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.grid_on, color: textColor),
-                    SizedBox(width: 8),
-                    Expanded(
-                        child: Text('Block Picker',
-                            style: TextStyle(color: textColor))),
-                  ],
-                ),
-              ),
-              if (showBlockPicker)
-                BlockPicker(
-                  pickerColor: selectedColor,
-                  onColorChanged: (color) {
-                    setState(() {
-                      selectedColor = color;
-                      widget.onColorSelected(color);
-                    });
-                  },
-                ),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                  _togglePicker('slide');
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: buttonColor,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.slideshow, color: textColor),
-                    SizedBox(width: 8),
-                    Expanded(
-                        child: Text('Slide Picker',
-                            style: TextStyle(color: textColor))),
-                  ],
-                ),
-              ),
-              if (showSlidePicker)
-                Flexible(
-                  fit: FlexFit.loose,
-                  child: SlidePicker(
-                    pickerColor: selectedColor,
-                    onColorChanged: (color) {
-                      setState(() {
-                        selectedColor = color;
-                        widget.onColorSelected(color);
-                      });
-                    },
-                    enableAlpha: true,
-                    showParams: true,
-                    showIndicator: true,
-                    labelTypes: [],
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

@@ -65,82 +65,152 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
-
+    
     return Scaffold(
-      appBar: _buildAppBar(themeProvider),
-      drawer: _buildNavigationDrawer(context),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          return ListView(
-            children: [
-              _buildPaletteDisplay(),
-              _buildPaletteControls(),
-              _buildColorPickerSection(),
-              _buildCurrentColorDisplay(),
-              _buildExportButton(),
-            ],
-          );
-        },
+      appBar: AppBar(
+        title: const Text('Chromaniac'),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.palette),
+            onPressed: () => _showPaletteOptionsDialog(context),
+          ),
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () => _showColorPickerDialog(context),
+          ),
+          IconButton(
+            icon: const Icon(Icons.file_download),
+            onPressed: () => exportPalette(context, _palette),
+          ),
+          IconButton(
+            icon: Icon(themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode),
+            onPressed: () => themeProvider.toggleTheme(!themeProvider.isDarkMode),
+          ),
+        ],
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      if (_palette.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 24),
+                          child: Text('Generate a palette or add colors'),
+                        ),
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: _palette.length,
+                        itemBuilder: (context, index) {
+                          return _buildPaletteColorItem(index, _palette[index]);
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  AppBar _buildAppBar(ThemeProvider themeProvider) {
-    return AppBar(
-      title: const Text('Chromaniac - Color Palette Creator'),
-      centerTitle: true,
-      actions: [
-        IconButton(
-          icon: Icon(themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode),
-          onPressed: () => themeProvider.toggleTheme(!themeProvider.isDarkMode),
+  void _showPaletteOptionsDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Palette Options'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            DropdownButton<PaletteType>(
+              value: selectedPaletteType,
+              onChanged: (newValue) {
+                if (newValue != null) {
+                  setState(() => selectedPaletteType = newValue);
+                }
+              },
+              items: PaletteType.values.map((type) {
+                return DropdownMenuItem(
+                  value: type,
+                  child: Text(type.toString().split('.').last),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                _generateRandomPalette();
+                Navigator.pop(context);
+              },
+              child: const Text('Generate New Palette'),
+            ),
+          ],
         ),
-      ],
-    );
-  }
-
-  Drawer _buildNavigationDrawer(BuildContext context) {
-    return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: <Widget>[
-          _buildDrawerHeader(context),
-          _buildDrawerItem(Icons.home, 'Home', context),
-          _buildDrawerItem(Icons.settings, 'Settings', context),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
         ],
       ),
     );
   }
 
-  DrawerHeader _buildDrawerHeader(BuildContext context) {
-    return DrawerHeader(
-      decoration: BoxDecoration(
-        color: Theme.of(context).primaryColor,
-      ),
-      child: const Text(
-        'Menu',
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 24,
+  void _showColorPickerDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        child: Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.8,
+            maxWidth: MediaQuery.of(context).size.width * 0.9,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text('Add Color', style: Theme.of(context).textTheme.titleLarge),
+              ),
+              Flexible(
+                child: ColorPickerWidget(
+                  currentColor: _currentColor,
+                  onColorSelected: _updateCurrentColor,
+                  useMaterialPicker: true,
+                ),
+              ),
+              Container(
+                height: 50,
+                width: double.infinity,
+                color: _currentColor,
+              ),
+              OverflowBar(
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancel'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      _addColorToPalette(_currentColor);
+                      Navigator.pop(context);
+                    },
+                    child: const Text('Add'),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
-      ),
-    );
-  }
-
-  ListTile _buildDrawerItem(IconData icon, String title, BuildContext context) {
-    return ListTile(
-      leading: Icon(icon),
-      title: Text(title),
-      onTap: () => Navigator.pop(context),
-    );
-  }
-
-  Widget _buildPaletteDisplay() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: _palette.asMap().entries.map((entry) {
-          return _buildPaletteColorItem(entry.key, entry.value);
-        }).toList(),
       ),
     );
   }
@@ -181,75 +251,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildPaletteControls() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Expanded(
-            child: ElevatedButton(
-              onPressed: _generateRandomPalette,
-              child: const Text('Generate Random Palette'),
-            ),
-          ),
-          const SizedBox(width: 16),
-          _buildPaletteTypeDropdown(),
-        ],
-      ),
-    );
-  }
-
-  DropdownButton<PaletteType> _buildPaletteTypeDropdown() {
-    return DropdownButton<PaletteType>(
-      value: selectedPaletteType,
-      onChanged: (PaletteType? newValue) {
-        setState(() {
-          selectedPaletteType = newValue!;
-        });
-      },
-      items: PaletteType.values.map((PaletteType type) {
-        return DropdownMenuItem<PaletteType>(
-          value: type,
-          child: Text(type.toString().split('.').last),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildColorPickerSection() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: ColorPickerWidget(
-        currentColor: _currentColor,
-        onColorSelected: _updateCurrentColor,
-      ),
-    );
-  }
-
-  Widget _buildCurrentColorDisplay() {
-    return Container(
-      height: 100,
-      width: double.infinity,
-      color: _currentColor,
-      child: Center(
-        child: ElevatedButton(
-          onPressed: () => _addColorToPalette(_currentColor),
-          child: const Text('Add to Palette'),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildExportButton() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: ElevatedButton(
-        onPressed: () => exportPalette(context, _palette),
-        child: const Text('Export'),
       ),
     );
   }
