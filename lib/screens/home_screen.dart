@@ -77,7 +77,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           IconButton(
             icon: const Icon(Icons.add),
-            onPressed: () => _showColorPickerDialog(context),
+            onPressed: () => _showColorPickerDialog(),
           ),
           IconButton(
             icon: const Icon(Icons.file_download),
@@ -165,16 +165,14 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _showColorPickerDialog(BuildContext context) {
+  void _showColorPickerDialog() {
+    Color previewColor = _currentColor;
+    
     showDialog(
       context: context,
-      builder: (context) => Dialog(
-        child: Container(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.8,
-            maxWidth: MediaQuery.of(context).size.width * 0.9,
-          ),
-          child: Column(
+      builder: (context) => AlertDialog(
+        content: StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) => Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Padding(
@@ -184,14 +182,17 @@ class _HomeScreenState extends State<HomeScreen> {
               Flexible(
                 child: ColorPickerWidget(
                   currentColor: _currentColor,
-                  onColorSelected: _updateCurrentColor,
+                  onColorSelected: (color) {
+                    setState(() => previewColor = color);
+                    _updateCurrentColor(color);
+                  },
                   useMaterialPicker: true,
                 ),
               ),
               Container(
                 height: 50,
                 width: double.infinity,
-                color: _currentColor,
+                color: previewColor,
               ),
               OverflowBar(
                 children: [
@@ -201,7 +202,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   TextButton(
                     onPressed: () {
-                      _addColorToPalette(_currentColor);
+                      _addColorToPalette(previewColor);
                       Navigator.pop(context);
                     },
                     child: const Text('Add'),

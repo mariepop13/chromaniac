@@ -19,7 +19,8 @@ class ColorPickerWidget extends StatefulWidget {
   const ColorPickerWidget({
     super.key,
     required this.currentColor,
-    required this.onColorSelected, required bool useMaterialPicker,
+    required this.onColorSelected,
+    required bool useMaterialPicker,
   });
 
   @override
@@ -94,17 +95,21 @@ class ColorPickerWidgetState extends State<ColorPickerWidget> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            buildPickerButton('Select a Color', Icons.color_lens, 'color', buttonColor, textColor),
+            buildPickerButton('Color Picker', Icons.color_lens, 'color',
+                buttonColor, textColor),
             if (showColorPicker) buildColorPicker(),
-            buildPickerButton('Material Picker', Icons.palette, 'material', buttonColor, textColor),
-            if (showMaterialPicker) 
+            buildPickerButton('Material Picker', Icons.palette, 'material',
+                buttonColor, textColor),
+            if (showMaterialPicker)
               SizedBox(
                 height: 240,
                 child: buildMaterialPicker(),
               ),
-            buildPickerButton('Block Picker', Icons.grid_on, 'block', buttonColor, textColor),
+            buildPickerButton(
+                'Block Picker', Icons.grid_on, 'block', buttonColor, textColor),
             if (showBlockPicker) buildBlockPicker(),
-            buildPickerButton('Slide Picker', Icons.slideshow, 'slide', buttonColor, textColor),
+            buildPickerButton('Slide Picker', Icons.slideshow, 'slide',
+                buttonColor, textColor),
             if (showSlidePicker) buildSlidePicker(),
             const SizedBox(height: 16),
           ],
@@ -145,14 +150,21 @@ class ColorPickerWidgetState extends State<ColorPickerWidget> {
         labelTypes: const [],
       );
 
+  @override
+  void didUpdateWidget(ColorPickerWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    selectedColor = widget.currentColor;
+  }
+
   void updateColor(Color color) {
     setState(() {
       selectedColor = color;
-      widget.onColorSelected(color);
     });
+    widget.onColorSelected(color);
   }
 
-  Widget buildPickerButton(String text, IconData icon, String type, Color buttonColor, Color textColor) {
+  Widget buildPickerButton(String text, IconData icon, String type,
+      Color buttonColor, Color textColor) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: ElevatedButton(
