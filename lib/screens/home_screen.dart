@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:chromaniac/providers/theme_provider.dart';
 import 'package:chromaniac/widgets/color_picker.dart';
 import 'package:chromaniac/widgets/palette_generator.dart';
+import 'package:flutter/services.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -13,7 +14,39 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
+class ColorTile extends StatelessWidget {
+  final Color color;
+  final String hex;
+
+  const ColorTile({
+    super.key,
+    required this.color,
+    required this.hex,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = color.computeLuminance() < 0.5;
+    return Material(
+      color: color,
+      child: InkWell(
+        onTap: () {},
+        child: Center(
+          child: Text(
+            hex,
+            style: TextStyle(
+              color: isDark ? Colors.white : Colors.black,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _HomeScreenState extends State<HomeScreen> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final List<Color> _palette = [];
   Color _currentColor = Colors.blue;
   PaletteType selectedPaletteType = PaletteType.auto;
@@ -49,7 +82,6 @@ class _HomeScreenState extends State<HomeScreen> {
     return hexRegExp.hasMatch(hexColor);
   }
 
-
   Color _generateRandomColor() {
     final random = Random();
     return Color((random.nextDouble() * 0xFFFFFF).toInt()).withOpacity(1.0);
@@ -67,6 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final themeProvider = Provider.of<ThemeProvider>(context);
     
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
         title: const Text('Chromaniac'),
         centerTitle: true,
@@ -90,37 +123,68 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      if (_palette.isEmpty)
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 24),
-                          child: Text('Generate a palette or add colors'),
-                        ),
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: _palette.length,
-                        itemBuilder: (context, index) {
-                          return _buildPaletteColorItem(index, _palette[index]);
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
+        child: _buildPaletteContent(),
       ),
     );
+  }
+
+  Widget _buildPaletteContent() {
+    if (_palette.isEmpty) {
+      return const Center(
+        child: Text('Generate a palette or add colors'),
+      );
+    }
+
+    return Column(
+          children: [
+            if (_palette.isEmpty)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 24),
+                child: Text('Generate a palette or add colors'),
+              ),
+            if (_palette.isNotEmpty)
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final width = constraints.maxWidth / 2;
+                    final height = constraints.maxHeight / (((_palette.length + 1) ~/ 2));
+                    return GridView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 0,
+                        crossAxisSpacing: 0,
+                        childAspectRatio: width / height,
+                      ),
+                      itemCount: _palette.length,
+                      itemBuilder: (context, index) {
+                        final color = _palette[index];
+                        final hex = '#${color.value.toRadixString(16).padLeft(8, '0').substring(2)}';
+                        return GestureDetector(
+                          onLongPress: () async {
+                            final scaffoldMessenger = ScaffoldMessenger.of(context);
+                            await Clipboard.setData(ClipboardData(text: hex));
+                            if (!mounted) return;
+                            scaffoldMessenger.showSnackBar(
+                              SnackBar(
+                                content: Text('$hex copied to clipboard'),
+                                duration: const Duration(seconds: 1),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          },
+                          child: ColorTile(
+                            color: color,
+                            hex: hex,
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+          ],
+        );
   }
 
   void _showPaletteOptionsDialog(BuildContext context) {
@@ -207,46 +271,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPaletteColorItem(int index, Color color) {
-    bool isDarkColor = color.computeLuminance() < 0.5;
-    return Container(
-      height: 50,
-      width: double.infinity,
-      color: color,
-      child: Row(
-        children: [
-          _buildRemoveColorButton(index, isDarkColor),
-          _buildColorHexCode(color, isDarkColor),
-        ],
-      ),
-    );
-  }
-
-  IconButton _buildRemoveColorButton(int index, bool isDarkColor) {
-    return IconButton(
-      icon: Icon(Icons.close, color: isDarkColor ? Colors.white : Colors.black),
-      onPressed: () => _removeColorFromPalette(index),
-    );
-  }
-
-  Expanded _buildColorHexCode(Color color, bool isDarkColor) {
-    return Expanded(
-      child: Align(
-        alignment: Alignment.centerRight,
-        child: Padding(
-          padding: const EdgeInsets.only(right: 8.0),
-          child: Text(
-            '#${color.value.toRadixString(16).padLeft(8, '0').substring(2)}',
-            style: TextStyle(
-              color: isDarkColor ? Colors.white : Colors.black,
-              fontWeight: FontWeight.bold,
-            ),
           ),
         ),
       ),
