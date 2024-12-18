@@ -6,6 +6,7 @@ import 'package:chromaniac/providers/theme_provider.dart';
 import 'package:chromaniac/widgets/color_picker.dart';
 import 'package:chromaniac/widgets/palette_generator.dart';
 import 'package:flutter/services.dart';
+import 'package:reorderable_grid/reorderable_grid.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -30,7 +31,6 @@ class ColorTile extends StatelessWidget {
     return Material(
       color: color,
       child: InkWell(
-        onTap: () {},
         child: Center(
           child: Text(
             hex,
@@ -65,12 +65,6 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void _removeColorFromPalette(int index) {
-    setState(() {
-      _palette.removeAt(index);
-    });
-  }
-
   void _updateCurrentColor(Color color) {
     setState(() {
       _currentColor = color;
@@ -91,6 +85,13 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _palette.clear();
       _palette.addAll(generatePalette(selectedPaletteType, _generateRandomColor()));
+    });
+  }
+
+  void _swapColors(int oldIndex, int newIndex) {
+    setState(() {
+      final color = _palette.removeAt(oldIndex);
+      _palette.insert(newIndex, color);
     });
   }
 
@@ -136,55 +137,44 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     return Column(
-          children: [
-            if (_palette.isEmpty)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 24),
-                child: Text('Generate a palette or add colors'),
-              ),
-            if (_palette.isNotEmpty)
-              Expanded(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final width = constraints.maxWidth / 2;
-                    final height = constraints.maxHeight / (((_palette.length + 1) ~/ 2));
-                    return GridView.builder(
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        mainAxisSpacing: 0,
-                        crossAxisSpacing: 0,
-                        childAspectRatio: width / height,
-                      ),
-                      itemCount: _palette.length,
-                      itemBuilder: (context, index) {
-                        final color = _palette[index];
-                        final hex = '#${color.value.toRadixString(16).padLeft(8, '0').substring(2)}';
-                        return GestureDetector(
-                          onLongPress: () async {
-                            final scaffoldMessenger = ScaffoldMessenger.of(context);
-                            await Clipboard.setData(ClipboardData(text: hex));
-                            if (!mounted) return;
-                            scaffoldMessenger.showSnackBar(
-                              SnackBar(
-                                content: Text('$hex copied to clipboard'),
-                                duration: const Duration(seconds: 1),
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
-                          },
-                          child: ColorTile(
-                            color: color,
-                            hex: hex,
-                          ),
-                        );
-                      },
+      children: [
+        if (_palette.isEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 24),
+            child: Text('Generate a palette or add colors'),
+          ),
+        if (_palette.isNotEmpty)
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final width = constraints.maxWidth / 2;
+                final height = constraints.maxHeight / (((_palette.length + 1) ~/ 2));
+                return ReorderableGridView.count(
+                  physics: NeverScrollableScrollPhysics(),
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 0,
+                  mainAxisSpacing: 0,
+                  childAspectRatio: width / height,
+                  children: _palette.map((color) {
+                    final hex = '#${color.value.toRadixString(16).padLeft(8, '0').substring(2)}';
+                    return ColorTile(
+                      key: ValueKey('$hex-${color.value}'),
+                      color: color,
+                      hex: hex,
                     );
+                  }).toList(),
+                  onReorder: (oldIndex, newIndex) {
+                    setState(() {
+                      final color = _palette.removeAt(oldIndex);
+                      _palette.insert(newIndex, color);
+                    });
                   },
-                ),
-              ),
-          ],
-        );
+                );
+              },
+            ),
+          ),
+      ],
+    );
   }
 
   void _showPaletteOptionsDialog(BuildContext context) {

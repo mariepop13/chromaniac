@@ -1,13 +1,13 @@
-# GitHub Copilot Instructions
+# GitHub Copilot Guidelines
 
-1. Main project is in `lib`.
-2. Test instructions: `.github/copilot-test-instructions.md`.
-3. Never use comments.
-4. Write in English.
-5. Ensure clean, best practice code.
-6. Use meaningful names.
-7. Optimize readability and maintainability.
-8. Follow coding standards.
-9. Ensure well-structured, modular code.
-10. Handle errors appropriately.
-11. Write efficient, performant code.
+1. Source code location: Primary codebase resides in `lib` directory
+2. Testing documentation: Refer to `.github/copilot-test-instructions.md`
+3. Code clarity: Write self-documenting code without comments
+4. Language: Use English for all code and documentation
+5. Quality: Follow industry best practices and clean code principles
+6. Naming: Choose descriptive and precise variable/function names
+7. Architecture: Prioritize code readability and maintainability
+8. Standards: Adhere to established coding conventions
+9. Structure: Design modular and well-organized code components
+10. Reliability: Implement proper error handling mechanisms
+11. Performance: Write optimized and efficient code solutions
