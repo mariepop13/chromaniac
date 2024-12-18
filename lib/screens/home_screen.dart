@@ -85,9 +85,15 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: const Icon(Icons.add),
             onPressed: () => _showColorPickerDialog(),
           ),
-          IconButton(
-            icon: const Icon(Icons.file_download),
-            onPressed: () => exportPalette(context, _palette),
+          Builder(
+            builder: (context) => IconButton(
+              key: const Key('export_button'),
+              icon: const Icon(Icons.file_download),
+              onPressed: () {
+                final box = context.findRenderObject() as RenderBox?;
+                exportPalette(context, _palette, originBox: box);
+              },
+            ),
           ),
           IconButton(
             icon: Icon(

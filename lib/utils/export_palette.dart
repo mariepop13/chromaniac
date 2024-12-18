@@ -7,49 +7,57 @@ import 'dart:io';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart' show getApplicationDocumentsDirectory;
 
-Future<void> shareFile(BuildContext context, String filePath) async {
-  final box = context.findRenderObject() as RenderBox?;
-  final sharePositionOrigin = box != null 
-      ? box.localToGlobal(Offset.zero) & box.size
-      : Rect.zero;
-
+Future<void> shareFile(BuildContext context, String filePath, {RenderBox? originBox}) async {
   try {
-    final file = File(filePath);
-    if (await file.exists()) {
-      if (!context.mounted) return;
+    final sharePosition = originBox != null
+        ? originBox.localToGlobal(Offset.zero) & originBox.size
+        : null;
 
-      await Share.shareXFiles(
-        [XFile(filePath)],
-        subject: 'Color Palette',
-        sharePositionOrigin: sharePositionOrigin,
-      );
-    } else {
-      throw ProcreateSwatchesError('File not found: $filePath');
-    }
+    await Share.shareXFiles(
+      [XFile(filePath)],
+      sharePositionOrigin: sharePosition,
+    );
   } catch (e) {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error sharing file: $e')),
+        SnackBar(
+          content: Text('Error sharing file: $e'),
+          duration: const Duration(seconds: 3),
+        ),
       );
     }
   }
 }
 
-Future<void> exportPalette(BuildContext context, List<Color> palette) async {
+Future<void> exportPalette(BuildContext context, List<Color> palette, {RenderBox? originBox}) async {
   if (kIsWeb || Platform.isMacOS) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Export not supported on web or macOS')),
+      const SnackBar(
+        content: Text('Export is not supported on web or macOS'),
+        duration: Duration(seconds: 3),
+      ),
     );
     return;
   }
 
-  final swatchesContent = createSwatchesContent(palette);
-  final filePath = await getSwatchesFilePath();
-  await writeSwatchesFile(filePath, swatchesContent);
+  try {
+    final swatchesContent = createSwatchesContent(palette);
+    final filePath = await getSwatchesFilePath();
+    await writeSwatchesFile(filePath, swatchesContent);
 
-  if (!context.mounted) return;
+    if (!context.mounted) return;
 
-  await shareFile(context, filePath);
+    await shareFile(context, filePath, originBox: originBox);
+  } catch (e) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Export error: $e'),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+  }
 }
 
 Uint8List createSwatchesContent(List<Color> palette) {
@@ -152,10 +160,8 @@ List<double> convertColor(List<num> color, {required String from, required Strin
   final values = color.map((e) => e.toDouble()).toList();
   
   if (from == 'rgb' && to == 'hsv') {
-    // Add conversion logic here
     return values;
   }
-  // Add more conversions as needed
   return values;
 }
 

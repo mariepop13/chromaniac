@@ -2,7 +2,7 @@
 
 1. Source code location: Primary codebase resides in `lib` directory
 2. Testing documentation: Refer to `.github/copilot-test-instructions.md`
-3. Code clarity: Write self-documenting code without comments
+3. Remove comments: Remove unnecessary comments and placeholders
 4. Language: Use English for all code and documentation
 5. Quality: Follow industry best practices and clean code principles
 6. Naming: Choose descriptive and precise variable/function names
