@@ -5,7 +5,7 @@ import 'dart:math';
 import 'package:chromaniac/providers/theme_provider.dart';
 import 'package:chromaniac/widgets/color_picker.dart';
 import 'package:chromaniac/widgets/palette_generator.dart';
-import 'package:flutter/services.dart';
+import 'package:chromaniac/widgets/color_tile.dart';
 import 'package:reorderable_grid/reorderable_grid.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -13,36 +13,6 @@ class HomeScreen extends StatefulWidget {
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class ColorTile extends StatelessWidget {
-  final Color color;
-  final String hex;
-
-  const ColorTile({
-    super.key,
-    required this.color,
-    required this.hex,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = color.computeLuminance() < 0.5;
-    return Material(
-      color: color,
-      child: InkWell(
-        child: Center(
-          child: Text(
-            hex,
-            style: TextStyle(
-              color: isDark ? Colors.white : Colors.black,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 class _HomeScreenState extends State<HomeScreen> {
@@ -55,6 +25,14 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _generateRandomPalette();
+  }
+
+  void _removeColorFromPalette(Color color) {
+    if (_palette.contains(color)) {
+      setState(() {
+        _palette.remove(color);
+      });
+    }
   }
 
   void _addColorToPalette(Color color) {
@@ -84,21 +62,15 @@ class _HomeScreenState extends State<HomeScreen> {
   void _generateRandomPalette() {
     setState(() {
       _palette.clear();
-      _palette.addAll(generatePalette(selectedPaletteType, _generateRandomColor()));
-    });
-  }
-
-  void _swapColors(int oldIndex, int newIndex) {
-    setState(() {
-      final color = _palette.removeAt(oldIndex);
-      _palette.insert(newIndex, color);
+      _palette
+          .addAll(generatePalette(selectedPaletteType, _generateRandomColor()));
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
-    
+
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
@@ -118,8 +90,10 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () => exportPalette(context, _palette),
           ),
           IconButton(
-            icon: Icon(themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode),
-            onPressed: () => themeProvider.toggleTheme(!themeProvider.isDarkMode),
+            icon: Icon(
+                themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode),
+            onPressed: () =>
+                themeProvider.toggleTheme(!themeProvider.isDarkMode),
           ),
         ],
       ),
@@ -148,7 +122,8 @@ class _HomeScreenState extends State<HomeScreen> {
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final width = constraints.maxWidth / 2;
-                final height = constraints.maxHeight / (((_palette.length + 1) ~/ 2));
+                final height =
+                    constraints.maxHeight / (((_palette.length + 1) ~/ 2));
                 return ReorderableGridView.count(
                   physics: NeverScrollableScrollPhysics(),
                   crossAxisCount: 2,
@@ -156,11 +131,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   mainAxisSpacing: 0,
                   childAspectRatio: width / height,
                   children: _palette.map((color) {
-                    final hex = '#${color.value.toRadixString(16).padLeft(8, '0').substring(2)}';
+                    final hex =
+                        '#${color.value.toRadixString(16).padLeft(8, '0').substring(2)}';
                     return ColorTile(
                       key: ValueKey('$hex-${color.value}'),
                       color: color,
                       hex: hex,
+                      onRemoveColor: _removeColorFromPalette,
                     );
                   }).toList(),
                   onReorder: (oldIndex, newIndex) {
@@ -218,7 +195,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _showColorPickerDialog() {
     Color previewColor = _currentColor;
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -228,7 +205,8 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Text('Add Color', style: Theme.of(context).textTheme.titleLarge),
+                child: Text('Add Color',
+                    style: Theme.of(context).textTheme.titleLarge),
               ),
               Flexible(
                 child: ColorPickerWidget(
