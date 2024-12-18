@@ -147,10 +147,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () {
-                _generateRandomPalette();
-                Navigator.pop(context);
-              },
+              onPressed: _generateRandomPalette,
               child: const Text('Generate New Palette'),
             ),
           ],
@@ -158,7 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
+            child: const Text('Done'),
           ),
         ],
       ),
