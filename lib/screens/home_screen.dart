@@ -1,3 +1,7 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:palette_generator/palette_generator.dart';
 import 'package:chromaniac/utils/export_palette.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -20,11 +24,48 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<Color> _palette = [];
   Color _currentColor = Colors.blue;
   PaletteType selectedPaletteType = PaletteType.auto;
+  File? _selectedImage;
 
   @override
   void initState() {
     super.initState();
     _generateRandomPalette();
+  }
+
+  Future<void> _pickImage() async {
+    try {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+      if (pickedFile != null) {
+        setState(() {
+          _selectedImage = File(pickedFile.path);
+        });
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error picking image: $e');
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error picking image: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _generatePaletteFromImage() async {
+    if (_selectedImage == null) return;
+
+    final paletteGenerator = await PaletteGenerator.fromImageProvider(
+      FileImage(_selectedImage!),
+      maximumColorCount: 5,
+    );
+
+    setState(() {
+      _palette.clear();
+      _palette.addAll(paletteGenerator.colors);
+    });
   }
 
   void _removeColorFromPalette(Color color) {
@@ -90,6 +131,13 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: const Icon(Icons.add),
             onPressed: () => _showColorPickerDialog(),
           ),
+          IconButton(
+            icon: const Icon(Icons.image),
+            onPressed: () async {
+              await _pickImage();
+              await _generatePaletteFromImage();
+            },
+          ),
           Builder(
             builder: (context) => IconButton(
               key: const Key('export_button'),
@@ -106,7 +154,18 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       body: SafeArea(
-        child: _buildPaletteContent(),
+        child: Column(
+          children: [
+            if (_selectedImage != null)
+              Image.file(
+                _selectedImage!,
+                height: 200,
+                width: double.infinity,
+                fit: BoxFit.cover,
+              ),
+            Expanded(child: _buildPaletteContent()),
+          ],
+        ),
       ),
     );
   }

@@ -65,9 +65,9 @@ class ColorTile extends StatelessWidget {
                   );
                 },
                 child: Icon(
-                  Icons.color_lens,
+                  Icons.more_vert,
                   color: isDark ? Colors.white : Colors.black,
-                  size: 16,
+                  size: 30,
                 ),
               ),
             ),
