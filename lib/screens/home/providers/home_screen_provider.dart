@@ -2,32 +2,37 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:palette_generator/palette_generator.dart';
-import 'package:logger/logger.dart';
 import 'package:chromaniac/core/constants.dart';
 import 'package:chromaniac/features/color_palette/domain/color_palette_type.dart';
 import 'package:chromaniac/features/color_palette/domain/palette_generator_service.dart';
 import 'package:chromaniac/utils/dialog/dialog_utils.dart';
+import 'package:chromaniac/utils/logger/app_logger.dart';
 import '../state/home_screen_state_notifier.dart';
 
 class HomeScreenProvider extends ChangeNotifier {
   final HomeScreenStateNotifier _stateNotifier;
-  final Logger _logger = Logger();
 
-  HomeScreenProvider() : _stateNotifier = HomeScreenStateNotifier();
+  HomeScreenProvider() : _stateNotifier = HomeScreenStateNotifier() {
+    AppLogger.d('HomeScreenProvider initialized');
+  }
 
   HomeScreenState get state => _stateNotifier.state;
 
   Future<void> pickImage(BuildContext context) async {
     try {
+      AppLogger.d('Attempting to pick image from gallery');
       final picker = ImagePicker();
       final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
       if (pickedFile != null) {
+        AppLogger.i('Image picked successfully: ${pickedFile.path}');
         final bytes = await pickedFile.readAsBytes();
         _stateNotifier.setSelectedImage(File(pickedFile.path), bytes);
+      } else {
+        AppLogger.w('No image selected');
       }
-    } catch (e) {
-      _logger.e('Error picking image: $e');
+    } catch (e, stackTrace) {
+      AppLogger.e('Error picking image', error: e, stackTrace: stackTrace);
       if (context.mounted) {
         showSnackBar(context, 'Error picking image: $e');
       }
@@ -35,17 +40,22 @@ class HomeScreenProvider extends ChangeNotifier {
   }
 
   Future<void> generatePaletteFromImage() async {
-    if (state.selectedImage == null) return;
+    if (state.selectedImage == null) {
+      AppLogger.w('Cannot generate palette: no image selected');
+      return;
+    }
 
     try {
+      AppLogger.d('Generating palette from image: ${state.selectedImage!.path}');
       final paletteGenerator = await PaletteGenerator.fromImageProvider(
         FileImage(state.selectedImage!),
         maximumColorCount: AppConstants.defaultPaletteSize,
       );
 
+      AppLogger.i('Palette generated successfully with ${paletteGenerator.colors.length} colors');
       _stateNotifier.updatePalette(paletteGenerator.colors.toList());
-    } catch (e) {
-      _logger.e('Error generating palette from image: $e');
+    } catch (e, stackTrace) {
+      AppLogger.e('Error generating palette from image', error: e, stackTrace: stackTrace);
     }
   }
 
