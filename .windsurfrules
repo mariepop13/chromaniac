@@ -2,8 +2,6 @@
 
 # Code
 
-# Code
-
 1. Source code location: Primary codebase resides in `lib` directory
 2. Don't invoke 'print' in production code use 'logger' from 'logger.dart'
 3. Try using a logging framework.dartavoid_print
@@ -11,3 +9,8 @@
 # Testing
 
 1. Use `flutter_test` for unit tests.
+2. Test and test group names should follow the convention: 
+   - Use descriptive names that reflect the functionality being tested, prefixed with the feature name (e.g., `FeatureName_testCaseDescription`).
+   - Group related tests under a common description using `group('FeatureName', () { ... });`.
+3. Ensure that test cases are isolated and do not depend on each other.
+4. Use `setUp` and `tearDown` functions to manage any common setup or cleanup needed for the tests.

@@ -1,18 +1,11 @@
 import 'dart:convert';
-
 import 'package:archive/archive.dart';
 import 'package:chromaniac/utils/color/read_swatches.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:chromaniac/utils/color/export_palette.dart';
-
 import 'package:path_provider/path_provider.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
-
-class MockBuildContext extends BuildContext {
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
 
 class MockPathProviderPlatform extends PathProviderPlatform {
   @override
@@ -26,45 +19,61 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   PathProviderPlatform.instance = MockPathProviderPlatform();
 
-  group('Export Palette Output Format Tests', () {
-    test('exported content is readable by readSwatchesFile', () async {
-      final palette = [Colors.red, Colors.green, Colors.blue];
-      final content = createSwatchesContent(palette);
-      final swatches = await readSwatchesFile(content);
-      expect(swatches['name'], isNotEmpty);
-      expect(swatches['colors'].length, palette.length);
-    });
-  });
+  group('ExportPalette', () {
+    final standardTestPalette = [
+      const Color(0xFFFF0000),
+      const Color(0xFF00FF00),
+      const Color(0xFF0000FF),
+    ];
 
-  group('Color Conversion Tests', () {
-    test('preserves color information correctly', () {
-      final palette = [
-        const Color(0xFFFF0000),
-        const Color(0xFF00FF00),
-        const Color(0xFF0000FF),
-      ];
-      
-      final content = createSwatchesContent(palette);
-      final decoder = ZipDecoder();
-      final archive = decoder.decodeBytes(content);
-      final jsonContent = utf8.decode(archive.first.content);
-      final data = jsonDecode(jsonContent) as List<dynamic>;
-      final swatches = data[0]['swatches'] as List<dynamic>;
+    group('CreateSwatchesContent', () {
+      test('ExportPalette_CreateSwatches_ShouldGenerateValidSwatchFileWithHSVValues', () async {
+        final content = createSwatchesContent(standardTestPalette);
+        final swatchData = await readSwatchesFile(content);
 
-      final redSwatch = swatches[0];
-      expect(redSwatch['hue'], closeTo(0.0, 0.001));
-      expect(redSwatch['saturation'], equals(1.0));
-      expect(redSwatch['brightness'], equals(1.0));
+        expect(swatchData['name'], equals('Palette'));
+        expect(swatchData['colors'], hasLength(standardTestPalette.length));
 
-      final greenSwatch = swatches[1];
-      expect(greenSwatch['hue'], closeTo(0.333, 0.001));
-      expect(greenSwatch['saturation'], equals(1.0));
-      expect(greenSwatch['brightness'], equals(1.0));
+        for (var i = 0; i < standardTestPalette.length; i++) {
+          final color = HSVColor.fromColor(standardTestPalette[i]);
+          final exportedColor = swatchData['colors'][i][0];
+          final colorSpace = swatchData['colors'][i][1];
+          
+          expect(exportedColor[0], equals(color.hue));
+          expect(exportedColor[1], equals(color.saturation * 100));
+          expect(exportedColor[2], equals(color.value * 100));
+          expect(colorSpace, equals('hsv'));
+        }
+      });
 
-      final blueSwatch = swatches[2];
-      expect(blueSwatch['hue'], closeTo(0.667, 0.001));
-      expect(blueSwatch['saturation'], equals(1.0));
-      expect(blueSwatch['brightness'], equals(1.0));
+      test('ExportPalette_CreateSwatches_ShouldCreateValidZipArchiveWithJSON', () {
+        final content = createSwatchesContent(standardTestPalette);
+        final decoder = ZipDecoder();
+        final archive = decoder.decodeBytes(content);
+
+        expect(archive.length, equals(1));
+        expect(archive.first.name, equals('Swatches.json'));
+
+        final jsonContent = utf8.decode(archive.first.content);
+        final data = jsonDecode(jsonContent) as List<dynamic>;
+        
+        expect(data.length, equals(1));
+        expect(data[0]['name'], equals('Palette'));
+        expect(data[0]['swatches'].length, equals(standardTestPalette.length));
+      });
+
+      test('ExportPalette_CreateSwatches_ShouldHandleEmptyPaletteCorrectly', () {
+        final content = createSwatchesContent([]);
+        final decoder = ZipDecoder();
+        final archive = decoder.decodeBytes(content);
+        
+        final jsonContent = utf8.decode(archive.first.content);
+        final data = jsonDecode(jsonContent) as List<dynamic>;
+
+        expect(data.length, equals(1));
+        expect(data[0]['name'], equals('Palette'));
+        expect(data[0]['swatches'], isEmpty);
+      });
     });
   });
 }

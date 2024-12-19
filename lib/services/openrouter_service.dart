@@ -92,11 +92,18 @@ class OpenRouterService {
             You are a color analysis expert. Analyze the image and provide color suggestions in the following strict JSON format:
 
             {
-              "colors": ["color1", "color2", "color3"],
-              "descriptions": ["description1", "description2"]
+              "colors": ["red", "light blue", "forest green"],
+              "descriptions": ["element - color"]
             }
 
-            Keep descriptions concise and focus on key elements and their suggested colors.
+            Requirements:
+            1. Use only natural language color names (like "purple", "light blue", "forest green")
+            2. Do not use hex codes, RGB values, or any technical color formats
+            3. Each description MUST follow the exact format "element - color" where:
+               - element: the object or part of the image being described
+               - color: the color name for that element
+            4. Color names should only contain letters and spaces
+            5. The hyphen must be surrounded by spaces
           '''
         },
         {

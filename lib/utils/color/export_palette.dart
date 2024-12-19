@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart' show getApplicationDocumentsDirectory;
+import 'read_swatches.dart';
 
 Future<void> shareFile(BuildContext context, String filePath, {RenderBox? originBox}) async {
   try {
@@ -163,12 +164,4 @@ List<double> convertColor(List<num> color, {required String from, required Strin
     return values;
   }
   return values;
-}
-
-class ProcreateSwatchesError implements Exception {
-  final String message;
-  ProcreateSwatchesError(this.message);
-
-  @override
-  String toString() => 'ProcreateSwatchesError: $message';
 }
