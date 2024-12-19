@@ -21,6 +21,8 @@ class PaletteMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final debugEnabled = Provider.of<DebugProvider>(context, listen: false).isDebugEnabled;
+
     return PopupMenuButton<String>(
       icon: const Icon(Icons.menu),
       onSelected: (value) async {
@@ -47,70 +49,41 @@ class PaletteMenu extends StatelessWidget {
         }
       },
       itemBuilder: (context) => [
-        const PopupMenuItem(
-          value: 'generate',
-          child: Row(
-            children: [
-              Icon(Icons.shuffle),
-              SizedBox(width: 8),
-              Text('Generate Palette'),
-            ],
-          ),
-        ),
-        const PopupMenuItem(
-          value: 'add',
-          child: Row(
-            children: [
-              Icon(Icons.add),
-              SizedBox(width: 8),
-              Text('Add Color'),
-            ],
-          ),
-        ),
-        const PopupMenuItem(
-          value: 'import',
-          child: Row(
-            children: [
-              Icon(Icons.image),
-              SizedBox(width: 8),
-              Text('Import from Image'),
-            ],
-          ),
-        ),
-        const PopupMenuItem(
-          value: 'export',
-          child: Row(
-            children: [
-              Icon(Icons.file_download),
-              SizedBox(width: 8),
-              Text('Export Palette'),
-            ],
-          ),
-        ),
-        if (Provider.of<DebugProvider>(context, listen: false).isDebugEnabled)
-          const PopupMenuItem(
-            value: 'clear',
-            child: Row(
-              children: [
-                Icon(Icons.clear),
-                SizedBox(width: 8),
-                Text('Clear Palette'),
-              ],
-            ),
-          ),
-        PopupMenuItem(
-          value: 'theme',
-          child: Consumer<ThemeProvider>(
-            builder: (context, themeProvider, _) => Row(
-              children: [
-                Icon(themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode),
-                const SizedBox(width: 8),
-                Text(themeProvider.isDarkMode ? 'Dark Mode' : 'Light Mode'),
-              ],
-            ),
-          ),
-        ),
+        _buildMenuItem('generate', Icons.shuffle, 'Generate Palette'),
+        _buildMenuItem('add', Icons.add, 'Add Color'),
+        _buildMenuItem('import', Icons.image, 'Import from Image'),
+        _buildMenuItem('export', Icons.file_download, 'Export Palette'),
+        if (debugEnabled) _buildMenuItem('clear', Icons.clear, 'Clear Palette'),
+        _buildThemeMenuItem(context),
       ],
+    );
+  }
+
+  PopupMenuItem<String> _buildMenuItem(String value, IconData icon, String text) {
+    return PopupMenuItem(
+      value: value,
+      child: Row(
+        children: [
+          Icon(icon),
+          const SizedBox(width: 8),
+          Text(text),
+        ],
+      ),
+    );
+  }
+
+  PopupMenuItem<String> _buildThemeMenuItem(BuildContext context) {
+    return PopupMenuItem(
+      value: 'theme',
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, _) => Row(
+          children: [
+            Icon(themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode),
+            const SizedBox(width: 8),
+            Text(themeProvider.isDarkMode ? 'Dark Mode' : 'Light Mode'),
+          ],
+        ),
+      ),
     );
   }
 }

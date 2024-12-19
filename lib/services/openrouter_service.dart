@@ -30,8 +30,37 @@ class OpenRouterService {
     for (int attempt = 0; attempt <= _maxRetries; attempt++) {
       try {
         final response = await _sendRequest(apiKey, imageBytes);
+        
+        // Don't retry on permanent failures
+        if (response.statusCode == 401 || response.statusCode == 403) {
+          final message = 'API request failed with status: ${response.statusCode}';
+          AppLogger.e(message);
+          throw Exception(message);
+        }
+        
+        // Don't retry on server errors
+        if (response.statusCode >= 500) {
+          final message = 'API request failed with status: ${response.statusCode}';
+          AppLogger.e(message);
+          throw Exception(message);
+        }
+        
+        // Only retry on temporary failures (429, 408, etc.)
+        if (response.statusCode != 200) {
+          final message = 'API request failed with status: ${response.statusCode}';
+          AppLogger.e(message);
+          if (attempt == _maxRetries) {
+            throw Exception(message);
+          }
+          await Future.delayed(Duration(seconds: 1 << attempt));
+          continue;
+        }
+        
         return _processResponse(response);
       } catch (e) {
+        if (e is Exception && e.toString().contains('API request failed with status:')) {
+          rethrow; // Don't retry status code errors
+        }
         lastError = e is Exception ? e : Exception(e.toString());
         if (attempt == _maxRetries) {
           AppLogger.e('Failed after $_maxRetries retries', error: lastError);
@@ -93,6 +122,12 @@ class OpenRouterService {
 
   Map<String, dynamic> _processResponse(http.Response response) {
     try {
+      if (response.statusCode != 200) {
+        final message = 'API request failed with status: ${response.statusCode}';
+        AppLogger.e(message);
+        throw Exception(message);
+      }
+
       final responseData = jsonDecode(response.body);
       if (responseData['choices'] == null ||
           responseData['choices'].isEmpty ||

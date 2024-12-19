@@ -17,6 +17,7 @@ import 'package:chromaniac/widgets/color_analysis_button.dart';
 import '../core/constants.dart';
 import '../services/premium_service.dart';
 import '../providers/debug_provider.dart';
+import '../utils/logger/app_logger.dart'; // Import AppLogger
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -51,9 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
         });
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error picking image: $e');
-      }
+      AppLogger.e('Error picking image', error: e); // Replaced print with AppLogger
       if (mounted) {
         showSnackBar(context, 'Error picking image: $e');
       }

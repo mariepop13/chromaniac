@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:math';
+import 'package:chromaniac/utils/logger/app_logger.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -38,9 +39,7 @@ class HomeScreenState extends State<HomeScreen> {
         });
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error picking image: $e');
-      }
+      AppLogger.e('Error picking image', error: e);
       if (mounted) {
         showSnackBar(context, 'Error picking image: $e');
       }

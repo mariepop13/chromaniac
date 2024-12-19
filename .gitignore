@@ -70,6 +70,9 @@ lib/generated_plugin_registrant.dart
 debug_logs/*
 !debug_logs/README.md
 
+### Test Logs ###
+test/debug_logs
+
 ### VisualStudioCode ###
 .vscode/*
 !.vscode/settings.json

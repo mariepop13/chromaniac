@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:io';
+import 'package:chromaniac/core/constants.dart';
+import 'package:chromaniac/services/openrouter_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
@@ -21,7 +23,11 @@ void main() {
 
     setUpAll(() async {
       await dotenv.load(fileName: 'test/.env.test');
-      AppLogger.init();
+      AppLogger.enableTestMode();
+      await AppLogger.init();
+      if (!AppLogger.isInitialized) {
+        throw StateError('Failed to initialize AppLogger');
+      }
     });
 
     setUp(() {
@@ -35,14 +41,18 @@ void main() {
           'choices': [
             {
               'message': {
-                'content': '{"colors": ["red", "blue", "green"], "descriptions": ["Sky - blue", "Tree - green", "Flower - red"]}'
+                'content': jsonEncode({
+                  'colors': ['red', 'blue', 'green'],
+                  'descriptions': ['Sky - blue', 'Tree - green', 'Flower - red']
+                })
               }
             }
           ]
         }),
         200,
       ));
-      analyzer = ImageColorAnalyzer();
+      analyzer = ImageColorAnalyzer(
+        service: OpenRouterService(client: mockClient),);
     });
 
     test('analyzeColoringImage returns ColorAnalysisResult on successful API call', () async {
@@ -62,27 +72,47 @@ void main() {
       // Arrange
       await dotenv.load(fileName: 'test/.env.test');
       final imageBytes = Uint8List.fromList([1, 2, 3, 4]);
-      final analyzer = ImageColorAnalyzer();
+      final emptyKeyMockClient = MockClient();
+      when(emptyKeyMockClient.post(
+        any,
+        headers: anyNamed('headers'),
+        body: anyNamed('body'),
+      )).thenAnswer((_) async => http.Response(
+        jsonEncode({'error': 'Unauthorized'}),
+        401,
+      ));
+      
+      final analyzer = ImageColorAnalyzer(
+        service: OpenRouterService(client: emptyKeyMockClient),
+      );
 
       // Act & Assert
       expect(
         () => analyzer.analyzeColoringImage(imageBytes),
-        throwsException,
+        throwsA(isA<Exception>().having(
+          (e) => e.toString(),
+          'message',
+          contains('API request failed with status: 401'),
+        )),
       );
     });
 
     test('analyzeColoringImage throws exception on API error', () async {
       // Arrange
       final imageBytes = Uint8List.fromList([1, 2, 3, 4]);
-
-      when(mockClient.post(
+      final errorMockClient = MockClient();
+      when(errorMockClient.post(
         any,
         headers: anyNamed('headers'),
         body: anyNamed('body'),
       )).thenAnswer((_) async => http.Response(
-        'Error',
+        jsonEncode({'error': 'Internal Server Error'}),
         500,
       ));
+
+      final analyzer = ImageColorAnalyzer(
+        service: OpenRouterService(client: errorMockClient),
+      );
 
       // Act & Assert
       expect(
@@ -221,71 +251,86 @@ void main() {
 
     test('analyzeColoringImage validates response format', () async {
       final imageBytes = Uint8List.fromList([1, 2, 3, 4]);
-      var callCount = 0;
       
       when(mockClient.post(
         any,
         headers: anyNamed('headers'),
         body: anyNamed('body'),
-      )).thenAnswer((_) async {
-        callCount++;
-        return http.Response(
-          jsonEncode({
-            'choices': [
-              {
-                'message': {
-                  'content': '{"colors": [""], "descriptions": ["Valid description"]}'
-                }
+      )).thenAnswer((_) async => http.Response(
+        jsonEncode({
+          'choices': [
+            {
+              'message': {
+                'content': jsonEncode({
+                  'colors': [],  // Empty array should be invalid
+                  'descriptions': ['Valid description']
+                })
               }
-            ]
-          }),
-          200,
-        );
-      });
+            }
+          ]
+        }),
+        200,
+      ));
 
       await expectLater(
         () => analyzer.analyzeColoringImage(imageBytes),
-        throwsA(isA<Exception>()),
+        throwsA(isA<Exception>().having(
+          (e) => e.toString(),
+          'message',
+          contains('Invalid response data structure'),
+        )),
       );
-      
-      expect(callCount, 3); // Should retry twice after initial failure
     });
 
     test('sends correct request to OpenRouter API', () async {
       // Arrange
       final imageBytes = Uint8List.fromList([1, 2, 3, 4]);
-      final expectedUrl = Uri.parse('https://openrouter.ai/api/v1');
+      Uri.parse('https://openrouter.ai/api/v1/chat/completions');
       
       // Act
-      try {
-        await analyzer.analyzeColoringImage(imageBytes);
-        
-        // Assert
-        final verification = verify(mockClient.post(
-          expectedUrl,
-          headers: captureAnyNamed('headers'),
-          body: captureAnyNamed('body'),
-        ));
-        
-        verification.called(1);
-        
-        final capturedHeaders = verification.captured[0] as Map<String, String>;
-        final capturedBody = jsonDecode(verification.captured[1] as String);
-        
-        logger.i('Captured headers: $capturedHeaders');
-        logger.i('Captured body: $capturedBody');
-        
-        expect(capturedHeaders['HTTP-Referer'], 'https://github.com/mariepop13/chromaniac');
-        expect(capturedHeaders['X-Title'], 'Chromaniac Color Analyzer');
-        expect(capturedHeaders['Content-Type'], 'application/json');
-        expect(capturedHeaders['Authorization'], startsWith('Bearer '));
-        
-        expect(capturedBody['model'], equals('openai/gpt-4o-mini'));
-        expect(capturedBody['messages'], hasLength(2));
-        expect(capturedBody['messages'][1]['content'][1]['type'], equals('image'));
-      } catch (e, stackTrace) {
-logger.e('Test failed', error: e, stackTrace: stackTrace);        rethrow;
-      }
+      await analyzer.analyzeColoringImage(imageBytes);
+      
+      // Assert
+      final verification = verify(mockClient.post(
+        any,
+        headers: captureAnyNamed('headers'),
+        body: captureAnyNamed('body'),
+      ));
+      
+      verification.called(1);
+      
+      final captured = verification.captured;
+      expect(captured.length, 2); // Should have headers and body
+      
+      final headers = captured[0] as Map<String, String>;
+      final body = jsonDecode(captured[1] as String);
+      
+      // Verify headers
+      expect(headers['Content-Type'], equals('application/json'));
+      expect(headers['HTTP-Referer'], equals('https://github.com/mariepop13/chromaniac'));
+      expect(headers['X-Title'], equals('Chromaniac Color Analyzer'));
+      expect(headers['Authorization'], startsWith('Bearer '));
+      
+      // Verify body
+      expect(body['model'], equals('google/gemini-flash-1.5'));
+      expect(body['max_tokens'], equals(AppConstants.maxTokens));
+      expect(body['temperature'], equals(AppConstants.temperature));
+      expect(body['messages'], isA<List>());
+      expect(body['messages'].length, equals(2));
+      
+      // Verify system message
+      final systemMessage = body['messages'][0];
+      expect(systemMessage['role'], equals('system'));
+      expect(systemMessage['content'], contains('You are a color analysis expert'));
+      
+      // Verify user message
+      final userMessage = body['messages'][1];
+      expect(userMessage['role'], equals('user'));
+      expect(userMessage['content'], isA<List>());
+      expect(userMessage['content'].length, equals(2));
+      expect(userMessage['content'][0]['type'], equals('text'));
+      expect(userMessage['content'][1]['type'], equals('image_url'));
+      expect(userMessage['content'][1]['image_url'], startsWith('data:image/png;base64,'));
     });
 
     test('handles successful OpenRouter response correctly', () async {

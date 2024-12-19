@@ -13,24 +13,42 @@ class AppLogger {
   static late String _startTime;
   static late Directory _logsDirectory;
   static late Directory _localLogsDirectory;
+  static bool _isInitialized = false;
+  static bool _isTestMode = false;
+  
+  static bool get isInitialized => _isInitialized;
   
   // Local project directory path
   static const String _localLogsPath = '/Users/marie/chromaniac/debug_logs';
+  static const String _testLogsPath = '/Users/marie/chromaniac/test/debug_logs';
+
+  static void enableTestMode() {
+    _isTestMode = true;
+  }
 
   static Future<void> init() async {
+    if (_isInitialized) return;
+    
     try {
       _startTime = _fileNameFormat.format(DateTime.now());
       final logFileName = 'debug_logs_$_startTime.txt';
       
-      // Setup app documents directory logging
-      final appDir = await getApplicationDocumentsDirectory();
-      _logsDirectory = Directory('${appDir.path}/logs');
-      await _logsDirectory.create(recursive: true);
-      _logFile = File('${_logsDirectory.path}/$logFileName');
+      if (_isTestMode) {
+        // Use test directory for logs in test mode
+        _logsDirectory = Directory(_testLogsPath);
+        _localLogsDirectory = _logsDirectory;
+      } else {
+        // Setup app documents directory logging
+        final appDir = await getApplicationDocumentsDirectory();
+        _logsDirectory = Directory('${appDir.path}/logs');
+        // Setup local project directory logging
+        _localLogsDirectory = Directory(_localLogsPath);
+      }
       
-      // Setup local project directory logging
-      _localLogsDirectory = Directory(_localLogsPath);
+      await _logsDirectory.create(recursive: true);
       await _localLogsDirectory.create(recursive: true);
+      
+      _logFile = File('${_logsDirectory.path}/$logFileName');
       _localLogFile = File('${_localLogsDirectory.path}/$logFileName');
       
       debugPrint('📁 App logs directory: ${_logsDirectory.path}');
@@ -48,32 +66,47 @@ class AppLogger {
         output: MultiOutput([
           ConsoleOutput(),
           FileOutput(_logFile),
-          FileOutput(_localLogFile),
+          if (!_isTestMode) FileOutput(_localLogFile),
         ]),
       );
+
+      // Set initialized flag before writing initial messages
+      _isInitialized = true;
 
       // Write initial log entries
       final timestamp = _dateFormat.format(DateTime.now());
       final initialMessage = '[$timestamp] 🚀 Log file created: $logFileName\n';
       await _logFile.writeAsString(initialMessage);
-      await _localLogFile.writeAsString(initialMessage);
+      if (!_isTestMode) {
+        await _localLogFile.writeAsString(initialMessage);
+      }
       
       await _writeToFiles('🚀 Application initialized at $timestamp');
       debugPrint('✅ Logger initialized successfully');
       
     } catch (e, stackTrace) {
+      _isInitialized = false;  // Reset flag if initialization fails
       debugPrint('❌ Error initializing logger: $e');
       debugPrint('Stack trace: $stackTrace');
       rethrow;
     }
   }
 
+  static void _checkInitialized() {
+    if (!_isInitialized) {
+      throw StateError('AppLogger must be initialized by calling init() before use');
+    }
+  }
+
   static Future<void> _writeToFiles(String message) async {
+    _checkInitialized();
     try {
       final timestamp = _dateFormat.format(DateTime.now());
       final logMessage = '[$timestamp] $message\n';
       await _logFile.writeAsString(logMessage, mode: FileMode.append);
-      await _localLogFile.writeAsString(logMessage, mode: FileMode.append);
+      if (!_isTestMode) {
+        await _localLogFile.writeAsString(logMessage, mode: FileMode.append);
+      }
     } catch (e, stackTrace) {
       debugPrint('❌ Error writing to log files: $e');
       debugPrint('Stack trace: $stackTrace');
@@ -81,21 +114,25 @@ class AppLogger {
   }
 
   static void i(String message) async {
+    _checkInitialized();
     _logger.i(message);
     await _writeToFiles('ℹ️ $message');
   }
 
   static void d(String message) async {
+    _checkInitialized();
     _logger.d(message);
     await _writeToFiles('🔍 $message');
   }
 
   static void w(String message) async {
+    _checkInitialized();
     _logger.w(message);
     await _writeToFiles('⚠️ $message');
   }
 
   static void e(String message, {Object? error, StackTrace? stackTrace}) async {
+    _checkInitialized();
     _logger.e(message, error: error, stackTrace: stackTrace);
     await _writeToFiles('❌ $message${error != null ? '\nError: $error' : ''}${stackTrace != null ? '\nStack: $stackTrace' : ''}');
   }

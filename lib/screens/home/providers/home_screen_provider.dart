@@ -1,13 +1,11 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:chromaniac/core/constants.dart';
 import 'package:chromaniac/features/color_palette/domain/color_palette_type.dart';
 import 'package:chromaniac/features/color_palette/domain/palette_generator_service.dart';
-import 'package:chromaniac/utils/dialog/dialog_utils.dart';
 import 'package:chromaniac/utils/logger/app_logger.dart';
 import '../state/home_screen_state_notifier.dart';
+import 'package:chromaniac/services/image_service.dart'; // Added import statement
 
 class HomeScreenProvider extends ChangeNotifier {
   final HomeScreenStateNotifier _stateNotifier;
@@ -19,23 +17,10 @@ class HomeScreenProvider extends ChangeNotifier {
   HomeScreenState get state => _stateNotifier.state;
 
   Future<void> pickImage(BuildContext context) async {
-    try {
-      AppLogger.d('Attempting to pick image from gallery');
-      final picker = ImagePicker();
-      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
-      if (pickedFile != null) {
-        AppLogger.i('Image picked successfully: ${pickedFile.path}');
-        final bytes = await pickedFile.readAsBytes();
-        _stateNotifier.setSelectedImage(File(pickedFile.path), bytes);
-      } else {
-        AppLogger.w('No image selected');
-      }
-    } catch (e, stackTrace) {
-      AppLogger.e('Error picking image', error: e, stackTrace: stackTrace);
-      if (context.mounted) {
-        showSnackBar(context, 'Error picking image: $e');
-      }
+    final imageService = ImageService();
+    final (image, bytes) = await imageService.pickImage(context);
+    if (image != null && bytes != null) {
+      _stateNotifier.setSelectedImage(image, bytes);
     }
   }
 
