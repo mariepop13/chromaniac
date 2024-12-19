@@ -16,4 +16,10 @@ class PremiumService extends ChangeNotifier {
     // TODO: Implement restore purchases logic here
     notifyListeners();
   }
+
+  // Toggle premium status (for debug purposes only)
+  void togglePremium() {
+    _isPremium = !_isPremium;
+    notifyListeners();
+  }
 }

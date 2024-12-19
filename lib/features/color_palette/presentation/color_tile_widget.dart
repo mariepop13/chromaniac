@@ -1,3 +1,4 @@
+import 'package:chromaniac/core/constants.dart';
 import 'package:chromaniac/features/color_palette/presentation/color_picker_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -66,10 +67,11 @@ class ColorTileWidget extends StatelessWidget {
                           showCopySnackBar(context, hex);
                         },
                       ),
-                      PopupMenuItem(
-                        child: const Text('Remove'),
-                        onTap: () => onRemoveColor(color),
-                      ),
+                      if (paletteSize > AppConstants.minPaletteColors)
+                        PopupMenuItem(
+                          child: const Text('Remove'),
+                          onTap: () => onRemoveColor(color),
+                        ),
                     ],
                   );
                 },

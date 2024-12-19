@@ -1,10 +1,10 @@
 import 'dart:io';
 import 'dart:math';
+import 'package:flutter/foundation.dart';// Add this line
 import 'package:chromaniac/features/color_palette/domain/color_palette_type.dart';
 import 'package:chromaniac/features/color_palette/domain/palette_generator_service.dart';
 import 'package:chromaniac/features/color_palette/presentation/color_tile_widget.dart';
 import 'package:chromaniac/utils/color/export_palette.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
@@ -16,6 +16,7 @@ import 'package:chromaniac/utils/dialog/dialog_utils.dart';
 import 'package:chromaniac/widgets/color_analysis_button.dart';
 import '../core/constants.dart';
 import '../services/premium_service.dart';
+import '../providers/debug_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -34,6 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _generateRandomPalette();
   }
 
   Future<void> _pickImage() async {
@@ -152,88 +154,141 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
         title: const Text('Chromaniac'),
         actions: [
           Consumer<PremiumService>(
-            builder: (context, premiumService, _) => premiumService.isPremium
-              ? const Icon(Icons.star, color: Colors.amber)
-              : TextButton.icon(
-                  onPressed: () => premiumService.unlockPremium(),
-                  icon: const Icon(Icons.star_border),
-                  label: const Text('Premium'),
+            builder: (context, premiumService, _) => Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Consumer<DebugProvider>(
+                  builder: (context, debugProvider, _) => IconButton(
+                    onPressed: () => debugProvider.isDebugEnabled 
+                      ? premiumService.togglePremium()
+                      : premiumService.unlockPremium(),
+                    icon: Icon(
+                      premiumService.isPremium ? Icons.star : Icons.star_border,
+                      color: premiumService.isPremium ? Colors.amber : null,
+                    ),
+                  ),
                 ),
+                Consumer<DebugProvider>(
+                  builder: (context, debugProvider, _) => IconButton(
+                    onPressed: () {
+                      debugProvider.toggleDebug();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(debugProvider.isDebugEnabled ? 'Debug mode enabled' : 'Debug mode disabled'),
+                          duration: const Duration(seconds: 1),
+                        ),
+                      );
+                    },
+                    icon: Icon(
+                      debugProvider.isDebugEnabled ? Icons.bug_report : Icons.bug_report_outlined,
+                      color: debugProvider.isDebugEnabled ? Colors.red : null,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-          IconButton(
-            onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                builder: (context) => Container(
-                  padding: EdgeInsets.all(AppConstants.defaultPadding),
-                  child: Wrap(
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.menu),
+            onSelected: (value) async {
+              switch (value) {
+                case 'generate':
+                  _showPaletteOptionsDialog(context);
+                  break;
+                case 'add':
+                  _showColorPickerDialog();
+                  break;
+                case 'import':
+                  await _pickImage();
+                  await _generatePaletteFromImage();
+                  break;
+                case 'export':
+                  _exportPalette(context);
+                  break;
+                case 'clear':
+                  _clearPalette();
+                  break;
+                case 'theme':
+                  Provider.of<ThemeProvider>(context, listen: false)
+                      .toggleTheme(!Provider.of<ThemeProvider>(context, listen: false).isDarkMode);
+                  break;
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'generate',
+                child: Row(
+                  children: [
+                    Icon(Icons.shuffle),
+                    SizedBox(width: 8),
+                    Text('Generate Palette'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'add',
+                child: Row(
+                  children: [
+                    Icon(Icons.add),
+                    SizedBox(width: 8),
+                    Text('Add Color'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'import',
+                child: Row(
+                  children: [
+                    Icon(Icons.image),
+                    SizedBox(width: 8),
+                    Text('Import from Image'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'export',
+                child: Row(
+                  children: [
+                    Icon(Icons.file_download),
+                    SizedBox(width: 8),
+                    Text('Export Palette'),
+                  ],
+                ),
+              ),
+              if (Provider.of<DebugProvider>(context, listen: false).isDebugEnabled)
+                const PopupMenuItem(
+                  value: 'clear',
+                  child: Row(
                     children: [
-                      ListTile(
-                        leading: const Icon(Icons.shuffle),
-                        title: const Text('Generate Palette'),
-                        onTap: () {
-                          Navigator.pop(context);
-                          _showPaletteOptionsDialog(context);
-                        },
-                      ),
-                      ListTile(
-                        leading: const Icon(Icons.add),
-                        title: const Text('Add Color'),
-                        onTap: () {
-                          Navigator.pop(context);
-                          _showColorPickerDialog();
-                        },
-                      ),
-                      ListTile(
-                        leading: const Icon(Icons.image),
-                        title: const Text('Import from Image'),
-                        onTap: () async {
-                          Navigator.pop(context);
-                          await _pickImage();
-                          await _generatePaletteFromImage();
-                        },
-                      ),
-                      ListTile(
-                        leading: const Icon(Icons.file_download),
-                        title: const Text('Export Palette'),
-                        onTap: () {
-                          Navigator.pop(context);
-                          _exportPalette(context);
-                        },
-                      ),
-                      ListTile(
-                        leading: const Icon(Icons.clear),
-                        title: const Text('Clear Palette'),
-                        onTap: () {
-                          Navigator.pop(context);
-                          _clearPalette();
-                        },
-                      ),
-                      ListTile(
-                        leading: Icon(themeProvider.isDarkMode
-                            ? Icons.dark_mode
-                            : Icons.light_mode),
-                        title: Text(
-                            themeProvider.isDarkMode ? 'Dark Mode' : 'Light Mode'),
-                        onTap: () {
-                          Navigator.pop(context);
-                          themeProvider.toggleTheme(!themeProvider.isDarkMode);
-                        },
-                      ),
+                      Icon(Icons.clear),
+                      SizedBox(width: 8),
+                      Text('Clear Palette'),
                     ],
                   ),
                 ),
-              );
-            },
-            icon: const Icon(Icons.menu),
+              PopupMenuItem(
+                value: 'theme',
+                child: Consumer<ThemeProvider>(
+                  builder: (context, themeProvider, _) => Row(
+                    children: [
+                      Icon(themeProvider.isDarkMode
+                          ? Icons.dark_mode
+                          : Icons.light_mode),
+                      const SizedBox(width: 8),
+                      Text(themeProvider.isDarkMode
+                          ? 'Dark Mode'
+                          : 'Light Mode'),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -294,73 +349,6 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(child: _buildPaletteContent()),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showModalBottomSheet(
-            context: context,
-            builder: (context) => Container(
-              padding: EdgeInsets.all(AppConstants.defaultPadding),
-              child: Wrap(
-                children: [
-                  ListTile(
-                    leading: const Icon(Icons.shuffle),
-                    title: const Text('Generate Palette'),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _showPaletteOptionsDialog(context);
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.add),
-                    title: const Text('Add Color'),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _showColorPickerDialog();
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.image),
-                    title: const Text('Import from Image'),
-                    onTap: () async {
-                      Navigator.pop(context);
-                      await _pickImage();
-                      await _generatePaletteFromImage();
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.file_download),
-                    title: const Text('Export Palette'),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _exportPalette(context);
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.clear),
-                    title: const Text('Clear Palette'),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _clearPalette();
-                    },
-                  ),
-                  ListTile(
-                    leading: Icon(themeProvider.isDarkMode
-                        ? Icons.dark_mode
-                        : Icons.light_mode),
-                    title: Text(
-                        themeProvider.isDarkMode ? 'Dark Mode' : 'Light Mode'),
-                    onTap: () {
-                      Navigator.pop(context);
-                      themeProvider.toggleTheme(!themeProvider.isDarkMode);
-                    },
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-        child: const Icon(Icons.menu),
       ),
     );
   }

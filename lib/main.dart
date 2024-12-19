@@ -4,6 +4,7 @@ import 'providers/theme_provider.dart';
 import 'services/premium_service.dart';
 import 'screens/home_screen.dart';
 import 'utils/config/environment_config.dart';
+import 'providers/debug_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,6 +14,7 @@ Future<void> main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => PremiumService()),
+        ChangeNotifierProvider(create: (_) => DebugProvider()),
       ],
       child: const ChromaniacApp(),
     ),
