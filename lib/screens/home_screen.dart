@@ -13,6 +13,7 @@ import 'package:reorderable_grid/reorderable_grid.dart';
 import 'package:chromaniac/providers/theme_provider.dart';
 import 'package:chromaniac/features/color_palette/presentation/color_picker_dialog.dart';
 import 'package:chromaniac/utils/dialog/dialog_utils.dart';
+import 'package:chromaniac/widgets/color_analysis_button.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -27,6 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Color _currentColor = Colors.blue;
   ColorPaletteType? selectedColorPaletteType = ColorPaletteType.auto;
   File? _selectedImage;
+  Uint8List? _imageBytes;
 
   @override
   void initState() {
@@ -39,8 +41,10 @@ class _HomeScreenState extends State<HomeScreen> {
       final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
       if (pickedFile != null) {
+        final bytes = await pickedFile.readAsBytes();
         setState(() {
           _selectedImage = File(pickedFile.path);
+          _imageBytes = bytes;
         });
       }
     } catch (e) {
@@ -133,13 +137,57 @@ class _HomeScreenState extends State<HomeScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            if (_selectedImage != null)
+            if (_selectedImage != null) ...[
               Image.file(
                 _selectedImage!,
                 height: 200,
                 width: double.infinity,
                 fit: BoxFit.cover,
               ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ColorAnalysisButton(
+                  imageBytes: _imageBytes,
+                  onAnalysisComplete: (result) {
+                    setState(() {
+                      _palette.clear();
+                      for (final colorHex in result.colors) {
+                        if (colorHex.startsWith('#')) {
+                          final value = int.parse(colorHex.substring(1), radix: 16);
+                          _palette.add(Color(value | 0xFF000000));
+                        }
+                      }
+                    });
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Color Analysis Results'),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Suggested Colors:', style: TextStyle(fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 8),
+                            ...result.contextDescriptions.map((desc) => 
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 4),
+                                child: Text('• $desc'),
+                              ),
+                            ),
+                          ],
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Close'),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
             Expanded(child: _buildPaletteContent()),
           ],
         ),
