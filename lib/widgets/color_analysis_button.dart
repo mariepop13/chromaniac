@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:typed_data';
 import '../utils/color/image_color_analyzer.dart';
 import '../utils/logger/logger_util.dart';
+import '../core/constants.dart';
 
 class ColorAnalysisButton extends StatelessWidget {
   final Uint8List? imageBytes;
@@ -55,10 +56,10 @@ class ColorAnalysisButton extends StatelessWidget {
       onPressed: isLoading ? null : () => _analyzeColors(context),
       icon: isLoading 
         ? const SizedBox(
-            width: 20,
-            height: 20,
+            width: AppConstants.iconSize,
+            height: AppConstants.iconSize,
             child: CircularProgressIndicator(
-              strokeWidth: 2,
+              strokeWidth: AppConstants.iconStrokeWidth,
               valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
             ),
           )
@@ -67,7 +68,10 @@ class ColorAnalysisButton extends StatelessWidget {
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: EdgeInsets.symmetric(
+          horizontal: AppConstants.buttonHorizontalPadding,
+          vertical: AppConstants.buttonVerticalPadding,
+        ),
       ),
     );
   }

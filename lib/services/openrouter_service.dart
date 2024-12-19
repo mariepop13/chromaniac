@@ -3,10 +3,11 @@ import 'dart:typed_data';
 import 'package:chromaniac/utils/config/environment_config.dart';
 import 'package:http/http.dart' as http;
 import 'package:chromaniac/utils/logger.dart';
+import '../core/constants.dart';
 
 class OpenRouterService {
   static const String _baseUrl = 'https://openrouter.ai/api/v1/chat/completions';
-  static const int _maxRetries = 2;
+  static const int _maxRetries = AppConstants.maxApiRetries;
   final http.Client _client;
 
   OpenRouterService({http.Client? client}) : _client = client ?? http.Client();
@@ -83,8 +84,8 @@ class OpenRouterService {
           ]
         }
       ],
-      'max_tokens': 500,
-      'temperature': 0.7
+      'max_tokens': AppConstants.maxTokens,
+      'temperature': AppConstants.temperature,
     });
 
     return await _client.post(url, headers: headers, body: body);

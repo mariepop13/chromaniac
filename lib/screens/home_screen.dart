@@ -14,6 +14,8 @@ import 'package:chromaniac/providers/theme_provider.dart';
 import 'package:chromaniac/features/color_palette/presentation/color_picker_dialog.dart';
 import 'package:chromaniac/utils/dialog/dialog_utils.dart';
 import 'package:chromaniac/widgets/color_analysis_button.dart';
+import '../core/constants.dart';
+import '../services/premium_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -25,7 +27,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final List<Color> _palette = [];
-  Color _currentColor = Colors.blue;
   ColorPaletteType? selectedColorPaletteType = ColorPaletteType.auto;
   File? _selectedImage;
   Uint8List? _imageBytes;
@@ -62,7 +63,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final paletteGenerator = await PaletteGenerator.fromImageProvider(
       FileImage(_selectedImage!),
-      maximumColorCount: 5,
+      maximumColorCount: AppConstants.defaultPaletteSize,
     );
 
     setState(() {
@@ -81,17 +82,42 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _addColorToPalette(Color color) {
     setState(() {
-      if (_palette.length < 5) {
+      final maxColors = context.read<PremiumService>().isPremium 
+          ? AppConstants.maxPaletteColors 
+          : AppConstants.defaultPaletteSize;
+          
+      if (_palette.length < maxColors) {
         _palette.add(color);
+      } else {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Palette Full'),
+            content: Text(
+              'You\'ve reached the maximum of ${AppConstants.defaultPaletteSize} colors. '
+              'Upgrade to premium to add up to ${AppConstants.maxPaletteColors} colors!'
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Maybe Later'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  Navigator.pop(context);
+                  await context.read<PremiumService>().unlockPremium();
+                  // Try adding the color again after premium is unlocked
+                  _addColorToPalette(color);
+                },
+                child: const Text('Upgrade Now'),
+              ),
+            ],
+          ),
+        );
       }
     });
   }
 
-  void _updateCurrentColor(Color color) {
-    setState(() {
-      _currentColor = color;
-    });
-  }
 
   bool isValidHexColor(String hexColor) {
     final hexRegExp = RegExp(r'^#?([0-9a-fA-F]{6}|[0-9a-fA-F]{8})$');
@@ -132,7 +158,84 @@ class _HomeScreenState extends State<HomeScreen> {
       key: _scaffoldKey,
       appBar: AppBar(
         title: const Text('Chromaniac'),
-        centerTitle: true,
+        actions: [
+          Consumer<PremiumService>(
+            builder: (context, premiumService, _) => premiumService.isPremium
+              ? const Icon(Icons.star, color: Colors.amber)
+              : TextButton.icon(
+                  onPressed: () => premiumService.unlockPremium(),
+                  icon: const Icon(Icons.star_border),
+                  label: const Text('Premium'),
+                ),
+          ),
+          IconButton(
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                builder: (context) => Container(
+                  padding: EdgeInsets.all(AppConstants.defaultPadding),
+                  child: Wrap(
+                    children: [
+                      ListTile(
+                        leading: const Icon(Icons.shuffle),
+                        title: const Text('Generate Palette'),
+                        onTap: () {
+                          Navigator.pop(context);
+                          _showPaletteOptionsDialog(context);
+                        },
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.add),
+                        title: const Text('Add Color'),
+                        onTap: () {
+                          Navigator.pop(context);
+                          _showColorPickerDialog();
+                        },
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.image),
+                        title: const Text('Import from Image'),
+                        onTap: () async {
+                          Navigator.pop(context);
+                          await _pickImage();
+                          await _generatePaletteFromImage();
+                        },
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.file_download),
+                        title: const Text('Export Palette'),
+                        onTap: () {
+                          Navigator.pop(context);
+                          _exportPalette(context);
+                        },
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.clear),
+                        title: const Text('Clear Palette'),
+                        onTap: () {
+                          Navigator.pop(context);
+                          _clearPalette();
+                        },
+                      ),
+                      ListTile(
+                        leading: Icon(themeProvider.isDarkMode
+                            ? Icons.dark_mode
+                            : Icons.light_mode),
+                        title: Text(
+                            themeProvider.isDarkMode ? 'Dark Mode' : 'Light Mode'),
+                        onTap: () {
+                          Navigator.pop(context);
+                          themeProvider.toggleTheme(!themeProvider.isDarkMode);
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+            icon: const Icon(Icons.menu),
+          ),
+        ],
       ),
       body: SafeArea(
         child: Column(
@@ -140,12 +243,12 @@ class _HomeScreenState extends State<HomeScreen> {
             if (_selectedImage != null) ...[
               Image.file(
                 _selectedImage!,
-                height: 200,
+                height: AppConstants.colorPreviewHeight,
                 width: double.infinity,
                 fit: BoxFit.cover,
               ),
               Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: EdgeInsets.all(AppConstants.defaultPadding),
                 child: ColorAnalysisButton(
                   imageBytes: _imageBytes,
                   onAnalysisComplete: (result) {
@@ -167,10 +270,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text('Suggested Colors:', style: TextStyle(fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: AppConstants.smallPadding),
                             ...result.contextDescriptions.map((desc) => 
                               Padding(
-                                padding: const EdgeInsets.only(bottom: 4),
+                                padding: EdgeInsets.only(bottom: AppConstants.tinyPadding),
                                 child: Text('• $desc'),
                               ),
                             ),
@@ -197,7 +300,7 @@ class _HomeScreenState extends State<HomeScreen> {
           showModalBottomSheet(
             context: context,
             builder: (context) => Container(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(AppConstants.defaultPadding),
               child: Wrap(
                 children: [
                   ListTile(
@@ -280,9 +383,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     constraints.maxHeight / (((_palette.length + 1) ~/ 2));
                 return ReorderableGridView.count(
                   physics: const NeverScrollableScrollPhysics(),
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 0,
-                  mainAxisSpacing: 0,
+                  crossAxisCount: AppConstants.gridColumnCount,
+                  crossAxisSpacing: AppConstants.gridSpacing,
+                  mainAxisSpacing: AppConstants.gridSpacing,
                   childAspectRatio: width / height,
                   children: _palette
                       .asMap()
@@ -298,7 +401,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             hex: hex,
                             onRemoveColor: _removeColorFromPalette,
                             onEditColor: (newColor) => _editColorInPalette(
-                                color, newColor), // Ajout du callback
+                                color, newColor), paletteSize: _palette.length, // Ajout du callback
                           ),
                         );
                       })
@@ -340,7 +443,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               }).toList(),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppConstants.defaultPadding),
             ElevatedButton(
               onPressed: _generateRandomPalette,
               child: const Text('Generate New Palette'),
@@ -370,13 +473,9 @@ class _HomeScreenState extends State<HomeScreen> {
     showDialog(
       context: context,
       builder: (context) => ColorPickerDialog(
-        initialColor: _currentColor,
-        title: 'Add Color',
-        confirmText: 'Add',
-        onColorSelected: (color) {
-          _updateCurrentColor(color);
-          _addColorToPalette(color);
-        },
+        initialColor: Colors.blue,
+        onColorSelected: _addColorToPalette,
+        currentPaletteSize: _palette.length,
       ),
     );
   }

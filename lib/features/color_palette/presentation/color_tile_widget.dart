@@ -8,6 +8,7 @@ class ColorTileWidget extends StatelessWidget {
   final String hex;
   final Function(Color) onRemoveColor;
   final Function(Color) onEditColor;
+  final int paletteSize;
 
   const ColorTileWidget({
     super.key,
@@ -15,6 +16,7 @@ class ColorTileWidget extends StatelessWidget {
     required this.hex,
     required this.onRemoveColor,
     required this.onEditColor,
+    required this.paletteSize,
   });
 
   @override
@@ -90,6 +92,8 @@ class ColorTileWidget extends StatelessWidget {
       builder: (context) => ColorPickerDialog(
         initialColor: initialColor,
         onColorSelected: onEditColor,
+        currentPaletteSize: paletteSize,
+        isEditing: true,
       ),
     );
   }

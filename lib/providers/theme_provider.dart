@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../core/constants.dart';
 
 class ThemeProvider with ChangeNotifier {
   bool _isDarkMode = false;
@@ -14,21 +15,21 @@ class ThemeProvider with ChangeNotifier {
   }
 
   static final TextTheme _baseTextTheme = TextTheme(
-    displayLarge: GoogleFonts.quicksand(fontSize: 57, fontWeight: FontWeight.w600),
-    displayMedium: GoogleFonts.quicksand(fontSize: 45, fontWeight: FontWeight.w600),
-    displaySmall: GoogleFonts.quicksand(fontSize: 36, fontWeight: FontWeight.w600),
-    headlineLarge: GoogleFonts.quicksand(fontSize: 32, fontWeight: FontWeight.w700),
-    headlineMedium: GoogleFonts.quicksand(fontSize: 28, fontWeight: FontWeight.w700),
-    headlineSmall: GoogleFonts.quicksand(fontSize: 24, fontWeight: FontWeight.w700),
-    titleLarge: GoogleFonts.dmSans(fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: 0.15),
-    titleMedium: GoogleFonts.dmSans(fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: 0.15),
-    titleSmall: GoogleFonts.dmSans(fontSize: 14, fontWeight: FontWeight.w600, letterSpacing: 0.1),
-    bodyLarge: GoogleFonts.dmSans(fontSize: 16, fontWeight: FontWeight.w400, letterSpacing: 0.5),
-    bodyMedium: GoogleFonts.dmSans(fontSize: 14, fontWeight: FontWeight.w400, letterSpacing: 0.25),
-    bodySmall: GoogleFonts.dmSans(fontSize: 12, fontWeight: FontWeight.w400, letterSpacing: 0.4),
-    labelLarge: GoogleFonts.dmSans(fontSize: 14, fontWeight: FontWeight.w500, letterSpacing: 1.25),
-    labelMedium: GoogleFonts.dmSans(fontSize: 12, fontWeight: FontWeight.w500, letterSpacing: 1.0),
-    labelSmall: GoogleFonts.dmSans(fontSize: 11, fontWeight: FontWeight.w500, letterSpacing: 1.5),
+    displayLarge: GoogleFonts.quicksand(fontSize: ThemeConstants.displayLargeSize, fontWeight: FontWeight.w600),
+    displayMedium: GoogleFonts.quicksand(fontSize: ThemeConstants.displayMediumSize, fontWeight: FontWeight.w600),
+    displaySmall: GoogleFonts.quicksand(fontSize: ThemeConstants.displaySmallSize, fontWeight: FontWeight.w600),
+    headlineLarge: GoogleFonts.quicksand(fontSize: ThemeConstants.headlineLargeSize, fontWeight: FontWeight.w700),
+    headlineMedium: GoogleFonts.quicksand(fontSize: ThemeConstants.headlineMediumSize, fontWeight: FontWeight.w700),
+    headlineSmall: GoogleFonts.quicksand(fontSize: ThemeConstants.headlineSmallSize, fontWeight: FontWeight.w700),
+    titleLarge: GoogleFonts.dmSans(fontSize: ThemeConstants.titleLargeSize, fontWeight: FontWeight.w600, letterSpacing: 0.15),
+    titleMedium: GoogleFonts.dmSans(fontSize: ThemeConstants.titleMediumSize, fontWeight: FontWeight.w600, letterSpacing: 0.15),
+    titleSmall: GoogleFonts.dmSans(fontSize: ThemeConstants.titleSmallSize, fontWeight: FontWeight.w600, letterSpacing: 0.1),
+    bodyLarge: GoogleFonts.dmSans(fontSize: ThemeConstants.bodyLargeSize, fontWeight: FontWeight.w400, letterSpacing: 0.5),
+    bodyMedium: GoogleFonts.dmSans(fontSize: ThemeConstants.bodyMediumSize, fontWeight: FontWeight.w400, letterSpacing: 0.25),
+    bodySmall: GoogleFonts.dmSans(fontSize: ThemeConstants.bodySmallSize, fontWeight: FontWeight.w400, letterSpacing: 0.4),
+    labelLarge: GoogleFonts.dmSans(fontSize: ThemeConstants.labelLargeSize, fontWeight: FontWeight.w500, letterSpacing: 1.25),
+    labelMedium: GoogleFonts.dmSans(fontSize: ThemeConstants.labelMediumSize, fontWeight: FontWeight.w500, letterSpacing: 1.0),
+    labelSmall: GoogleFonts.dmSans(fontSize: ThemeConstants.labelSmallSize, fontWeight: FontWeight.w500, letterSpacing: 1.5),
   );
 
   static final ThemeData _lightTheme = ThemeData(
@@ -46,16 +47,16 @@ class ThemeProvider with ChangeNotifier {
     ),
     cardTheme: CardTheme(
       color: Colors.white,
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: ThemeConstants.defaultElevation,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(ThemeConstants.defaultBorderRadius)),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: const Color(0xFF6B4EE8),
         foregroundColor: Colors.white,
-        elevation: 2,
+        elevation: ThemeConstants.defaultElevation,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(ThemeConstants.defaultBorderRadius)),
       ),
     ),
   );
@@ -75,16 +76,16 @@ class ThemeProvider with ChangeNotifier {
     ),
     cardTheme: CardTheme(
       color: const Color(0xFF1E1B2E),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: ThemeConstants.defaultElevation,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(ThemeConstants.defaultBorderRadius)),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: const Color(0xFF9C8AFF),
         foregroundColor: Colors.white,
-        elevation: 2,
+        elevation: ThemeConstants.defaultElevation,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(ThemeConstants.defaultBorderRadius)),
       ),
     ),
   );
