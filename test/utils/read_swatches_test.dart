@@ -1,10 +1,10 @@
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:chromaniac/utils/export_palette.dart' as export_palette;
-import 'package:chromaniac/utils/export_palette.dart';
-import 'package:chromaniac/utils/read_swatches.dart';
+import 'package:chromaniac/utils/color/export_palette.dart' as export_palette;
+import 'package:chromaniac/utils/color/export_palette.dart';
+import 'package:chromaniac/utils/color/read_swatches.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:chromaniac/utils/read_swatches.dart' as read_swatches;
+import 'package:chromaniac/utils/color/read_swatches.dart' as read_swatches;
 
 void main() {
   final sampleFilesDir = './test/sample';

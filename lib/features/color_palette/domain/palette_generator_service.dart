@@ -1,6 +1,6 @@
 import 'dart:math';
+import 'package:chromaniac/features/color_palette/domain/color_palette_type.dart';
 import 'package:flutter/material.dart';
-import '../models/color_palette_type.dart';
 
 class PaletteGeneratorService {
   static List<Color> generatePalette(ColorPaletteType type, Color color) {

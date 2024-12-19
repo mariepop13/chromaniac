@@ -19,24 +19,29 @@ void checkColorSpaceSupport(String space) {
 Future<Map<String, dynamic>> readSwatchesFile(Uint8List data, {String space = 'hsv'}) async {
   checkColorSpaceSupport(space);
   
-  if (data.isEmpty) {
-    throw ProcreateSwatchesError('Invalid .swatches file: empty data');
+  if (data.isEmpty || data.length < 4) {
+    throw ProcreateSwatchesError('Invalid .swatches file.');
+  }
+
+  // Check for ZIP file signature (PK..)
+  if (data[0] != 0x50 || data[1] != 0x4B) {
+    throw ProcreateSwatchesError('Invalid .swatches file.');
   }
 
   try {
     final Archive archive = _decodeArchive(data);
     if (archive.isEmpty) {
-      throw ProcreateSwatchesError('Invalid .swatches file: empty archive');
+      throw ProcreateSwatchesError('Invalid .swatches file.');
     }
 
     final String swatchesRawString = _extractSwatchesJson(archive);
     if (swatchesRawString.isEmpty) {
-      throw ProcreateSwatchesError('Invalid .swatches file: no Swatches.json found');
+      throw ProcreateSwatchesError('Invalid .swatches file.');
     }
 
     final Map<String, dynamic> swatchesData = _parseSwatchesData(swatchesRawString);
     if (swatchesData['name'] == null || swatchesData['swatches'] == null) {
-      throw ProcreateSwatchesError('Invalid .swatches file: missing required fields');
+      throw ProcreateSwatchesError('Invalid .swatches file.');
     }
 
     final result = _processSwatchesData(swatchesData, space);
@@ -47,11 +52,11 @@ Future<Map<String, dynamic>> readSwatchesFile(Uint8List data, {String space = 'h
 
     return result;
   } on ArchiveException catch (e) {
-    throw ProcreateSwatchesError('Invalid .swatches file: corrupted archive - ${e.message}');
+    throw ProcreateSwatchesError('Invalid .swatches file.');
   } on FormatException catch (e) {
-    throw ProcreateSwatchesError('Invalid .swatches file: invalid JSON format - ${e.message}');
+    throw ProcreateSwatchesError('Invalid .swatches file.');
   } catch (error) {
-    throw ProcreateSwatchesError('Invalid .swatches file: ${error.toString()}');
+    throw ProcreateSwatchesError('Invalid .swatches file.');
   }
 }
 

@@ -1,9 +1,9 @@
 import 'dart:io';
 import 'dart:math';
-import 'package:chromaniac/features/color_palette/models/color_palette_type.dart';
-import 'package:chromaniac/features/color_palette/utils/palette_generator_service.dart';
-import 'package:chromaniac/features/color_palette/widgets/color_tile_widget.dart';
-import 'package:chromaniac/utils/export_palette.dart';
+import 'package:chromaniac/features/color_palette/domain/color_palette_type.dart';
+import 'package:chromaniac/features/color_palette/domain/palette_generator_service.dart';
+import 'package:chromaniac/features/color_palette/presentation/color_tile_widget.dart';
+import 'package:chromaniac/utils/color/export_palette.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -11,8 +11,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:reorderable_grid/reorderable_grid.dart';
 import 'package:chromaniac/providers/theme_provider.dart';
-import 'package:chromaniac/features/color_palette/widgets/color_picker_dialog.dart';
-import 'package:chromaniac/utils/dialog_utils.dart';
+import 'package:chromaniac/features/color_palette/presentation/color_picker_dialog.dart';
+import 'package:chromaniac/utils/dialog/dialog_utils.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:chromaniac/features/color_palette/widgets/color_picker_widget.dart';
+import 'package:chromaniac/features/color_palette/presentation/color_picker_widget.dart';
 
 class ColorPickerDialog extends StatefulWidget {
   final Color initialColor;

@@ -1,0 +1,9 @@
+# Code Quality Guidelines
+
+# Code
+
+1. Source code location: Primary codebase resides in `lib` directory
+
+# Testing
+
+1. Use `flutter_test` for unit tests.

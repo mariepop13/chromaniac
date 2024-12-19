@@ -1,7 +1,7 @@
-import 'package:chromaniac/features/color_palette/widgets/color_picker_dialog.dart';
+import 'package:chromaniac/features/color_palette/presentation/color_picker_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:chromaniac/utils/dialog_utils.dart';
+import 'package:chromaniac/utils/dialog/dialog_utils.dart';
 
 class ColorTileWidget extends StatelessWidget {
   final Color color;
