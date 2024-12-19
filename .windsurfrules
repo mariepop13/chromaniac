@@ -5,7 +5,7 @@
 # Code
 
 1. Source code location: Primary codebase resides in `lib` directory
-2. Don't invoke 'print' in production code use 'logger'
+2. Don't invoke 'print' in production code use 'logger' from 'logger.dart'
 3. Try using a logging framework.dartavoid_print
 
 # Testing

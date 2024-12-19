@@ -1,6 +1,3 @@
-# Created by https://www.toptal.com/developers/gitignore/api/dotenv,flutter,visualstudiocode
-# Edit at https://www.toptal.com/developers/gitignore?templates=dotenv,flutter,visualstudiocode
-
 ### dotenv ###
 .env
 .env.test
@@ -88,4 +85,4 @@ lib/generated_plugin_registrant.dart
 .history
 .ionide
 
-# End of https://www.toptal.com/developers/gitignore/api/dotenv,flutter,visualstudiocode
+notes.txt

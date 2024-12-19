@@ -8,7 +8,7 @@ import 'package:mockito/annotations.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:chromaniac/utils/color/image_color_analyzer.dart';
 import 'package:mockito/mockito.dart';
-import 'package:chromaniac/utils/logger.dart';
+import 'package:chromaniac/utils/logger/app_logger.dart';
 
 import 'image_color_analyzer_test.mocks.dart';
 

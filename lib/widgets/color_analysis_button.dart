@@ -1,8 +1,8 @@
+import 'package:chromaniac/utils/logger/app_logger.dart';
 import 'package:flutter/material.dart';
 import 'dart:typed_data';
-import '../utils/color/image_color_analyzer.dart';
-import '../utils/logger/logger_util.dart';
-import '../core/constants.dart';
+import 'package:chromaniac/utils/color/image_color_analyzer.dart';
+import 'package:chromaniac/core/constants.dart';
 
 class ColorAnalysisButton extends StatelessWidget {
   final Uint8List? imageBytes;
@@ -19,7 +19,7 @@ class ColorAnalysisButton extends StatelessWidget {
   Future<void> _analyzeColors(BuildContext context) async {
     if (imageBytes == null) {
       const message = 'Please select an image first';
-      LoggerUtil.warning(message);
+      AppLogger.w(message);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -38,7 +38,7 @@ class ColorAnalysisButton extends StatelessWidget {
         onAnalysisComplete(result);
       }
     } catch (e, stackTrace) {
-      LoggerUtil.error('Error analyzing colors', e, stackTrace);
+      AppLogger.e('Error analyzing colors', error: e, stackTrace: stackTrace);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

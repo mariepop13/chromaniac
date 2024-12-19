@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:chromaniac/utils/color/image_color_analyzer.dart';
 import 'package:chromaniac/services/openrouter_service.dart';
-import 'package:chromaniac/utils/logger.dart';
+import 'package:chromaniac/utils/logger/app_logger.dart';
 import 'package:logger/logger.dart';
 
 void main() {

@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:chromaniac/utils/config/environment_config.dart';
 import 'package:http/http.dart' as http;
-import 'package:chromaniac/utils/logger.dart';
+import 'package:chromaniac/utils/logger/app_logger.dart';
 import '../core/constants.dart';
 
 class OpenRouterService {
