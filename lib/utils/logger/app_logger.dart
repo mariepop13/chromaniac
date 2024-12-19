@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
@@ -18,49 +20,56 @@ class AppLogger {
   
   static bool get isInitialized => _isInitialized;
   
-  // Local project directory path
-  static const String _localLogsPath = '/Users/marie/chromaniac/debug_logs';
-  static const String _testLogsPath = '/Users/marie/chromaniac/test/debug_logs';
+  static const String _localLogsPath = 'debug_logs';
+  static const String _testLogsPath = 'test/debug_logs';
 
   static void enableTestMode() {
     _isTestMode = true;
   }
 
+  static Future<Directory> get _projectDir async {
+    final currentDir = Directory.current;
+    return currentDir;
+  }
+
   static Future<void> init() async {
     if (_isInitialized) return;
-    
+
     try {
       _startTime = _fileNameFormat.format(DateTime.now());
       final logFileName = 'debug_logs_$_startTime.txt';
-      
+      final projectDir = await _projectDir;
+
       if (_isTestMode) {
-        // Use test directory for logs in test mode
-        _logsDirectory = Directory(_testLogsPath);
+        _logsDirectory = Directory('${projectDir.path}/$_testLogsPath');
         _localLogsDirectory = _logsDirectory;
       } else {
-        // Setup app documents directory logging
-        final appDir = await getApplicationDocumentsDirectory();
-        _logsDirectory = Directory('${appDir.path}/logs');
-        // Setup local project directory logging
-        _localLogsDirectory = Directory(_localLogsPath);
+        if (!kIsWeb && !Platform.isIOS && !Platform.isAndroid) {
+          // For desktop platforms, use project directory
+          _logsDirectory = Directory('${projectDir.path}/$_localLogsPath');
+          _localLogsDirectory = _logsDirectory;
+        } else {
+          // For mobile platforms, use app support directory
+          final appDir = await getApplicationSupportDirectory();
+          _logsDirectory = Directory('${appDir.path}/logs');
+          _localLogsDirectory = Directory('${projectDir.path}/$_localLogsPath');
+        }
       }
-      
-      await _logsDirectory.create(recursive: true);
-      await _localLogsDirectory.create(recursive: true);
-      
+
+      await _ensureDirectoriesExist();
+
       _logFile = File('${_logsDirectory.path}/$logFileName');
       _localLogFile = File('${_localLogsDirectory.path}/$logFileName');
-      
+
       debugPrint('📁 App logs directory: ${_logsDirectory.path}');
       debugPrint('📁 Local logs directory: ${_localLogsDirectory.path}');
-      
-      // Initialize logger
+
       _logger = Logger(
         printer: PrettyPrinter(
           methodCount: 0,
           errorMethodCount: 8,
           lineLength: 120,
-          colors: true,
+          colors: false,
           printEmojis: true,
         ),
         output: MultiOutput([
@@ -70,25 +79,45 @@ class AppLogger {
         ]),
       );
 
-      // Set initialized flag before writing initial messages
       _isInitialized = true;
 
-      // Write initial log entries
       final timestamp = _dateFormat.format(DateTime.now());
-      final initialMessage = '[$timestamp] 🚀 Log file created: $logFileName\n';
-      await _logFile.writeAsString(initialMessage);
+      final initialMessage = '[$timestamp] ✨ Log file created: $logFileName\n';
+      await _logFile.writeAsString(initialMessage, encoding: utf8, flush: true);
       if (!_isTestMode) {
-        await _localLogFile.writeAsString(initialMessage);
+        await _localLogFile.writeAsString(initialMessage, encoding: utf8, flush: true);
       }
       
-      await _writeToFiles('🚀 Application initialized at $timestamp');
+      await _writeToFiles('✨ Application initialized at $timestamp');
       debugPrint('✅ Logger initialized successfully');
-      
+
     } catch (e, stackTrace) {
-      _isInitialized = false;  // Reset flag if initialization fails
+      _isInitialized = false;
       debugPrint('❌ Error initializing logger: $e');
       debugPrint('Stack trace: $stackTrace');
       rethrow;
+    }
+  }
+
+  static Future<void> _ensureDirectoriesExist() async {
+    try {
+      if (!_logsDirectory.existsSync()) {
+        await _logsDirectory.create(recursive: true);
+      }
+      if (!_isTestMode && !_localLogsDirectory.existsSync()) {
+        await _localLogsDirectory.create(recursive: true);
+      }
+    } catch (e) {
+      debugPrint('⚠️ Failed to create primary log directories: $e');
+      debugPrint('↪️ Falling back to temporary directory');
+      
+      final tempDir = await getTemporaryDirectory();
+      final fallbackDir = Directory('${tempDir.path}/app_logs');
+      if (!fallbackDir.existsSync()) {
+        await fallbackDir.create(recursive: true);
+      }
+      _logsDirectory = fallbackDir;
+      _localLogsDirectory = fallbackDir;
     }
   }
 
@@ -103,9 +132,15 @@ class AppLogger {
     try {
       final timestamp = _dateFormat.format(DateTime.now());
       final logMessage = '[$timestamp] $message\n';
-      await _logFile.writeAsString(logMessage, mode: FileMode.append);
+      await _logFile.writeAsString(logMessage, 
+          mode: FileMode.append, 
+          encoding: utf8,
+          flush: true);
       if (!_isTestMode) {
-        await _localLogFile.writeAsString(logMessage, mode: FileMode.append);
+        await _localLogFile.writeAsString(logMessage, 
+            mode: FileMode.append, 
+            encoding: utf8,
+            flush: true);
       }
     } catch (e, stackTrace) {
       debugPrint('❌ Error writing to log files: $e');
@@ -113,28 +148,28 @@ class AppLogger {
     }
   }
 
-  static void i(String message) async {
+  static void i(String message) {
     _checkInitialized();
     _logger.i(message);
-    await _writeToFiles('ℹ️ $message');
+    unawaited(_writeToFiles('ℹ️ $message'));
   }
 
-  static void d(String message) async {
+  static void d(String message) {
     _checkInitialized();
     _logger.d(message);
-    await _writeToFiles('🔍 $message');
+    unawaited(_writeToFiles('🔍 $message'));
   }
 
-  static void w(String message) async {
+  static void w(String message) {
     _checkInitialized();
     _logger.w(message);
-    await _writeToFiles('⚠️ $message');
+    unawaited(_writeToFiles('⚠️ $message'));
   }
 
-  static void e(String message, {Object? error, StackTrace? stackTrace}) async {
+  static void e(String message, {Object? error, StackTrace? stackTrace}) {
     _checkInitialized();
     _logger.e(message, error: error, stackTrace: stackTrace);
-    await _writeToFiles('❌ $message${error != null ? '\nError: $error' : ''}${stackTrace != null ? '\nStack: $stackTrace' : ''}');
+    unawaited(_writeToFiles('❌ $message${error != null ? '\nError: $error' : ''}${stackTrace != null ? '\nStack: $stackTrace' : ''}'));
   }
 
   static String get currentLogFile => _logFile.path;
@@ -150,14 +185,11 @@ class FileOutput extends LogOutput {
 
   @override
   void output(OutputEvent event) {
-    try {
-      for (var line in event.lines) {
-        file.writeAsStringSync('$line\n', mode: FileMode.append);
-      }
-    } catch (e, stackTrace) {
-      debugPrint('❌ Error in FileOutput: $e');
-      debugPrint('Stack trace: $stackTrace');
-    }
+    final message = '${event.lines.join('\n')}\n';
+    file.writeAsStringSync(message, 
+        mode: FileMode.append, 
+        encoding: utf8,
+        flush: true);
   }
 }
 
