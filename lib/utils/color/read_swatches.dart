@@ -51,9 +51,9 @@ Future<Map<String, dynamic>> readSwatchesFile(Uint8List data, {String space = 'h
     }
 
     return result;
-  } on ArchiveException catch (e) {
+  } on ArchiveException {
     throw ProcreateSwatchesError('Invalid .swatches file.');
-  } on FormatException catch (e) {
+  } on FormatException {
     throw ProcreateSwatchesError('Invalid .swatches file.');
   } catch (error) {
     throw ProcreateSwatchesError('Invalid .swatches file.');

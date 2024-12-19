@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/theme_provider.dart';
 import 'screens/home_screen.dart';
+import 'utils/config/environment_config.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await EnvironmentConfig.initialize();
   runApp(
     ChangeNotifierProvider(
       create: (_) => ThemeProvider(),

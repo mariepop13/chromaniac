@@ -2,7 +2,11 @@
 
 # Code
 
+# Code
+
 1. Source code location: Primary codebase resides in `lib` directory
+2. Don't invoke 'print' in production code.
+3. Try using a logging framework.dartavoid_print
 
 # Testing
 
