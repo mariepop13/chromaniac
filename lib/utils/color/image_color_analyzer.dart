@@ -1,18 +1,16 @@
 import 'dart:typed_data';
 import 'package:chromaniac/services/openrouter_service.dart';
+import 'package:chromaniac/utils/logger/app_logger.dart';
 
 class ColorAnalysisResult {
-  final List<String> colors;
-  final List<String> contextDescriptions;
+  final List<Map<String, String>> colorAnalysis;
 
   ColorAnalysisResult({
-    required this.colors,
-    required this.contextDescriptions,
+    required this.colorAnalysis,
   });
 
   @override
-  String toString() =>
-      'ColorAnalysisResult(colors: $colors, descriptions: $contextDescriptions)';
+  String toString() => 'ColorAnalysisResult(colorAnalysis: $colorAnalysis)';
 }
 
 class ImageColorAnalyzer {
@@ -22,11 +20,24 @@ class ImageColorAnalyzer {
       : _service = service ?? OpenRouterService();
 
   Future<ColorAnalysisResult> analyzeColoringImage(Uint8List imageBytes) async {
-    final result = await _service.analyzeImage(imageBytes);
+    try {
+      AppLogger.d('Starting color analysis');
+      final result = await _service.analyzeImage(imageBytes);
+      AppLogger.d('Got API result: $result');
 
-    return ColorAnalysisResult(
-      colors: List<String>.from(result['colors']),
-      contextDescriptions: List<String>.from(result['descriptions']),
-    );
+      final colorAnalysis = List<Map<String, String>>.from(
+        (result['colors'] as List).map((color) => {
+          'object': color['object'] as String,
+          'colorName': color['colorName'] as String,
+          'hexCode': color['hexCode'] as String,
+        }),
+      );
+      AppLogger.d('Processed color analysis: $colorAnalysis');
+
+      return ColorAnalysisResult(colorAnalysis: colorAnalysis);
+    } catch (e, stackTrace) {
+      AppLogger.e('Error analyzing colors', error: e, stackTrace: stackTrace);
+      rethrow;
+    }
   }
 }

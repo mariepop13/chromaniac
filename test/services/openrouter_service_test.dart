@@ -37,11 +37,27 @@ void main() {
         final result = await service.analyzeImage(sampleImageBytes);
 
         // Assert
-        expect(result['colors'], ['red', 'blue', 'green']);
-        expect(result['descriptions'], ['Sky - blue', 'Tree - green', 'Flower - red']);
+        final colors = result['colors'] as List;
+        expect(colors.length, 3);
+
+        // Verify first color entry
+        expect(colors[0]['object'], 'Sky');
+        expect(colors[0]['colorName'], 'blue');
+        expect(colors[0]['hexCode'], '#0000FF');
+
+        // Verify second color entry
+        expect(colors[1]['object'], 'Tree');
+        expect(colors[1]['colorName'], 'green');
+        expect(colors[1]['hexCode'], '#00FF00');
+
+        // Verify third color entry
+        expect(colors[2]['object'], 'Flower');
+        expect(colors[2]['colorName'], 'red');
+        expect(colors[2]['hexCode'], '#FF0000');
       });
 
-      test('OpenRouter_AnalyzeImage_ShouldThrowExceptionOnEmptyImage', () async {
+      test('OpenRouter_AnalyzeImage_ShouldThrowExceptionOnEmptyImage',
+          () async {
         // Act & Assert
         await expectLater(
           () => service.analyzeImage(Uint8List(0)),
@@ -53,7 +69,8 @@ void main() {
         );
       });
 
-      test('OpenRouter_AnalyzeImage_ShouldThrowExceptionOnServerError', () async {
+      test('OpenRouter_AnalyzeImage_ShouldThrowExceptionOnServerError',
+          () async {
         // Arrange
         _mockServerErrorResponse(mockClient);
 
@@ -68,9 +85,42 @@ void main() {
         );
       });
 
-      test('OpenRouter_AnalyzeImage_ShouldThrowExceptionOnInvalidResponseFormat', () async {
+      test(
+          'OpenRouter_AnalyzeImage_ShouldThrowExceptionOnInvalidResponseFormat',
+          () async {
         // Arrange
         _mockInvalidFormatResponse(mockClient);
+
+        // Act & Assert
+        await expectLater(
+          () => service.analyzeImage(sampleImageBytes),
+          throwsA(isA<Exception>().having(
+            (e) => e.toString(),
+            'message',
+            contains('Invalid response data structure'),
+          )),
+        );
+      });
+
+      test('OpenRouter_AnalyzeImage_ShouldThrowOnEmptyResponse', () async {
+        // Arrange
+        when(mockClient.post(any,
+                headers: anyNamed('headers'), body: anyNamed('body')))
+            .thenAnswer((_) async => http.Response(
+                  jsonEncode({
+                    'choices': [
+                      {
+                        'message': {
+                          'content': jsonEncode({
+                            'colors': [],
+                            'descriptions': ['Valid description']
+                          })
+                        }
+                      }
+                    ]
+                  }),
+                  200,
+                ));
 
         // Act & Assert
         await expectLater(
@@ -103,20 +153,35 @@ void _mockSuccessfulResponse(MockClient mockClient) {
     headers: anyNamed('headers'),
     body: anyNamed('body'),
   )).thenAnswer((_) async => http.Response(
-    jsonEncode({
-      'choices': [
-        {
-          'message': {
-            'content': jsonEncode({
-              'colors': ['red', 'blue', 'green'],
-              'descriptions': ['Sky - blue', 'Tree - green', 'Flower - red']
-            })
-          }
-        }
-      ]
-    }),
-    200,
-  ));
+        jsonEncode({
+          'choices': [
+            {
+              'message': {
+                'content': jsonEncode({
+                  'colors': [
+                    {
+                      'object': 'Sky',
+                      'colorName': 'blue',
+                      'hexCode': '#0000FF'
+                    },
+                    {
+                      'object': 'Tree',
+                      'colorName': 'green',
+                      'hexCode': '#00FF00'
+                    },
+                    {
+                      'object': 'Flower',
+                      'colorName': 'red',
+                      'hexCode': '#FF0000'
+                    }
+                  ]
+                })
+              }
+            }
+          ]
+        }),
+        200,
+      ));
 }
 
 void _mockServerErrorResponse(MockClient mockClient) {
@@ -125,9 +190,9 @@ void _mockServerErrorResponse(MockClient mockClient) {
     headers: anyNamed('headers'),
     body: anyNamed('body'),
   )).thenAnswer((_) async => http.Response(
-    jsonEncode({'error': 'Internal Server Error'}),
-    500,
-  ));
+        jsonEncode({'error': 'Internal Server Error'}),
+        500,
+      ));
 }
 
 void _mockInvalidFormatResponse(MockClient mockClient) {
@@ -136,20 +201,20 @@ void _mockInvalidFormatResponse(MockClient mockClient) {
     headers: anyNamed('headers'),
     body: anyNamed('body'),
   )).thenAnswer((_) async => http.Response(
-    jsonEncode({
-      'choices': [
-        {
-          'message': {
-            'content': jsonEncode({
-              'colors': [],
-              'descriptions': ['Valid description']
-            })
-          }
-        }
-      ]
-    }),
-    200,
-  ));
+        jsonEncode({
+          'choices': [
+            {
+              'message': {
+                'content': jsonEncode({
+                  'colors': [],
+                  'descriptions': ['Valid description']
+                })
+              }
+            }
+          ]
+        }),
+        200,
+      ));
 }
 
 void _verifyRequestFormat(MockClient mockClient) {
@@ -168,7 +233,8 @@ void _verifyRequestFormat(MockClient mockClient) {
   final body = jsonDecode(captured[1] as String);
 
   expect(headers['Content-Type'], equals('application/json'));
-  expect(headers['HTTP-Referer'], equals('https://github.com/mariepop13/chromaniac'));
+  expect(headers['HTTP-Referer'],
+      equals('https://github.com/mariepop13/chromaniac'));
   expect(headers['X-Title'], equals('Chromaniac Color Analyzer'));
   expect(headers['Authorization'], startsWith('Bearer '));
 
@@ -186,5 +252,6 @@ void _verifyRequestFormat(MockClient mockClient) {
   expect(userMessage['content'].length, equals(2));
   expect(userMessage['content'][0]['type'], equals('text'));
   expect(userMessage['content'][1]['type'], equals('image_url'));
-  expect(userMessage['content'][1]['image_url'], startsWith('data:image/png;base64,'));
+  expect(userMessage['content'][1]['image_url'],
+      startsWith('data:image/png;base64,'));
 }

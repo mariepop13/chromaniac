@@ -92,18 +92,30 @@ class OpenRouterService {
             You are a color analysis expert. Analyze the image and provide color suggestions in the following strict JSON format:
 
             {
-              "colors": ["red", "light blue", "forest green"],
-              "descriptions": ["element - color"]
+              "colors": [
+                {
+                  "object": "sky",
+                  "colorName": "light blue",
+                  "hexCode": "#87CEEB"
+                },
+                {
+                  "object": "tree",
+                  "colorName": "forest green",
+                  "hexCode": "#228B22"
+                }
+              ]
             }
 
             Requirements:
-            1. Use only natural language color names (like "purple", "light blue", "forest green")
-            2. Do not use hex codes, RGB values, or any technical color formats
-            3. Each description MUST follow the exact format "element - color" where:
-               - element: the object or part of the image being described
-               - color: the color name for that element
-            4. Color names should only contain letters and spaces
-            5. The hyphen must be surrounded by spaces
+            1. Each color suggestion must have:
+               - object: the element or part of the image to color
+               - colorName: natural language color name (like "purple", "light blue")
+               - hexCode: valid hex color code starting with # (e.g., "#FF0000")
+            2. Use standard web color hex codes
+            3. Ensure hex codes match the natural color names
+            4. Keep object and color names concise but descriptive
+            5. Return at least 3 color suggestions
+            6. Ensure all hex codes are valid 6-digit codes (e.g., #FF0000, not #F00)
           '''
         },
         {
@@ -111,7 +123,7 @@ class OpenRouterService {
           'content': [
             {
               'type': 'text',
-              'text': 'Analyze this coloring image and provide: 1) A list of main colors that would be appropriate for coloring the different elements, considering the context and objects shown. 2) Brief descriptions of the key elements and their suggested colors. Format the response as JSON with "colors" and "descriptions" arrays.'
+              'text': 'Analyze this coloring image and provide: 1) A list of main colors that would be appropriate for coloring the different elements, considering the context and objects shown. 2) Brief descriptions of the key elements and their suggested colors. Format the response as JSON with "colors" array.'
             },
             {
               'type': 'image_url',
@@ -129,13 +141,8 @@ class OpenRouterService {
 
   Map<String, dynamic> _processResponse(http.Response response) {
     try {
-      if (response.statusCode != 200) {
-        final message = 'API request failed with status: ${response.statusCode}';
-        AppLogger.e(message);
-        throw Exception(message);
-      }
-
       final responseData = jsonDecode(response.body);
+
       if (responseData['choices'] == null ||
           responseData['choices'].isEmpty ||
           responseData['choices'][0]['message'] == null ||
@@ -147,30 +154,140 @@ class OpenRouterService {
       
       // Remove markdown code block if present
       content = content.replaceAll(RegExp(r'```json\n|\n```', multiLine: true), '');
+      AppLogger.d('API Response content: $content');
       
       try {
         final result = jsonDecode(content);
+        AppLogger.d('Parsed JSON result: $result');
+
+        // Handle old format and convert to new format
+        if (result['colors'] is List && result['descriptions'] is List) {
+          final colors = result['colors'] as List;
+          final descriptions = result['descriptions'] as List;
+          
+          // For old format, if either list is empty, treat as invalid structure
+          if (colors.isEmpty || descriptions.isEmpty) {
+            AppLogger.e('Invalid response data structure: empty colors or descriptions list');
+            throw Exception('Invalid response data structure');
+          }
+
+          final transformedColors = <Map<String, String>>[];
+          
+          for (var i = 0; i < colors.length; i++) {
+            final description = i < descriptions.length ? descriptions[i] : '';
+            final parts = description.split(' - ');
+            final object = parts.length > 1 ? parts[0] : 'element ${i + 1}';
+            final colorName = colors[i];
+            
+            // Convert color name to hex code
+            final hexCode = _colorNameToHex(colorName);
+            
+            transformedColors.add({
+              'object': object,
+              'colorName': colorName,
+              'hexCode': hexCode,
+            });
+          }
+
+          return {
+            'colors': transformedColors,
+          };
+        }
+
         if (!_validateResponse(result)) {
           AppLogger.e('Invalid response data structure: $result');
           throw Exception('Invalid response data structure');
         }
         return result;
       } catch (e) {
+        if (e.toString().contains('Invalid response data structure')) {
+          rethrow;
+        }
         AppLogger.e('Failed to parse content as JSON: $content');
         throw Exception('Failed to parse content as JSON: ${e.toString()}');
       }
     } catch (e) {
+      if (e.toString().contains('Invalid response data structure')) {
+        rethrow;
+      }
       AppLogger.e('Failed to process API response: ${e.toString()}');
       throw Exception('Failed to process API response: ${e.toString()}');
     }
   }
 
+  String _colorNameToHex(String colorName) {
+    // Basic color mapping
+    final colorMap = {
+      'red': '#FF0000',
+      'green': '#00FF00',
+      'blue': '#0000FF',
+      'yellow': '#FFFF00',
+      'purple': '#800080',
+      'orange': '#FFA500',
+      'pink': '#FFC0CB',
+      'brown': '#A52A2A',
+      'gray': '#808080',
+      'black': '#000000',
+      'white': '#FFFFFF',
+      'light blue': '#87CEEB',
+      'dark blue': '#00008B',
+      'light green': '#90EE90',
+      'dark green': '#006400',
+      'forest green': '#228B22',
+      'bright red': '#FF0000',
+      'dark red': '#8B0000',
+    };
+
+    // Convert to lowercase and try to find an exact match
+    final normalizedColor = colorName.toLowerCase();
+    if (colorMap.containsKey(normalizedColor)) {
+      return colorMap[normalizedColor]!;
+    }
+
+    // Try to find a partial match
+    for (final entry in colorMap.entries) {
+      if (normalizedColor.contains(entry.key)) {
+        return entry.value;
+      }
+    }
+
+    // Default to a gray if no match is found
+    return '#808080';
+  }
+
   bool _validateResponse(Map<String, dynamic> result) {
-    return result.containsKey('colors') &&
-        result.containsKey('descriptions') &&
-        result['colors'] is List &&
-        result['descriptions'] is List &&
-        (result['colors'] as List).isNotEmpty &&
-        (result['descriptions'] as List).isNotEmpty;
+    if (!result.containsKey('colors')) {
+      AppLogger.e('Response missing "colors" field');
+      return false;
+    }
+    if (result['colors'] is! List) {
+      AppLogger.e('Response "colors" field is not a list');
+      return false;
+    }
+    if ((result['colors'] as List).isEmpty) {
+      AppLogger.e('Response "colors" list is empty');
+      return false;
+    }
+
+    final colors = result['colors'] as List;
+    for (final color in colors) {
+      if (color is! Map) {
+        AppLogger.e('Color entry is not a map: $color');
+        return false;
+      }
+      if (!color.containsKey('object')) {
+        AppLogger.e('Color missing "object" field: $color');
+        return false;
+      }
+      if (!color.containsKey('colorName')) {
+        AppLogger.e('Color missing "colorName" field: $color');
+        return false;
+      }
+      if (!color.containsKey('hexCode')) {
+        AppLogger.e('Color missing "hexCode" field: $color');
+        return false;
+      }
+    }
+    return true;
   }
 }

@@ -119,11 +119,10 @@ class HomeScreenView extends StatelessWidget {
                 imageBytes: state.imageBytes!,
                 onAnalysisComplete: (result) {
                   provider.clearPalette();
-                  for (final colorHex in result.colors) {
-                    if (colorHex.startsWith('#')) {
-                      final value = int.parse(colorHex.substring(1), radix: 16);
-                      provider.addColor(Color(value | 0xFF000000));
-                    }
+                  for (final colorInfo in result.colorAnalysis) {
+                    final hexCode = colorInfo['hexCode']!;
+                    final value = int.parse(hexCode.substring(1), radix: 16);
+                    provider.addColor(Color(value | 0xFF000000));
                   }
                   showDialog(
                     context: context,
@@ -135,10 +134,10 @@ class HomeScreenView extends StatelessWidget {
                         children: [
                           const Text('Suggested Colors:', style: TextStyle(fontWeight: FontWeight.bold)),
                           const SizedBox(height: AppConstants.smallPadding),
-                          ...result.contextDescriptions.map((desc) => 
+                          ...result.colorAnalysis.map((colorInfo) => 
                             Padding(
                               padding: EdgeInsets.only(bottom: AppConstants.tinyPadding),
-                              child: Text('• $desc'),
+                              child: Text('• ${colorInfo['object']} - ${colorInfo['colorName']} (${colorInfo['hexCode']})'),
                             ),
                           ),
                         ],

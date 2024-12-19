@@ -28,7 +28,7 @@ void main() {
     });
 
     group('analyzeColoringImage', () {
-      test('ImageColorAnalyzer_Integration_ShouldAnalyzeImageAndReturnValidColorDescriptions', () async {
+      test('ImageColorAnalyzer_Integration_ShouldAnalyzeImageAndReturnValidColorAnalysis', () async {
         final imageBytes = await testImage.readAsBytes();
         
         ColorAnalysisResult? result;
@@ -44,44 +44,45 @@ void main() {
         }
 
         expect(
-          result.colors, 
+          result.colorAnalysis, 
           isNotEmpty,
-          reason: 'Color list should not be empty'
-        );
-        expect(
-          result.contextDescriptions, 
-          isNotEmpty,
-          reason: 'Description list should not be empty'
+          reason: 'Color analysis should not be empty'
         );
         
-        for (final color in result.colors) {
+        for (final colorInfo in result.colorAnalysis) {
+          // Verify object field
           expect(
-            color, 
+            colorInfo['object'], 
             allOf([
+              isNotNull,
+              isNotEmpty,
+              isA<String>(),
+            ]),
+            reason: 'Each color analysis should have a valid object field'
+          );
+
+          // Verify colorName field
+          expect(
+            colorInfo['colorName'], 
+            allOf([
+              isNotNull,
               isNotEmpty,
               isA<String>(),
               matches(RegExp(r'^[a-zA-Z\s]+$')),
             ]),
-            reason: 'Each color should be a non-empty string containing only letters and spaces'
+            reason: 'Each color analysis should have a valid color name'
           );
-        }
-        
-        for (final description in result.contextDescriptions) {
+
+          // Verify hexCode field
           expect(
-            description, 
+            colorInfo['hexCode'], 
             allOf([
+              isNotNull,
               isNotEmpty,
-              contains(' - '),
-              matches(RegExp(r'^.+ - [a-zA-Z\s]+$')),
+              isA<String>(),
+              matches(RegExp(r'^#[0-9A-Fa-f]{6}$')),
             ]),
-            reason: 'Each description should be in format "element - color"'
-          );
-          
-          final colorFromDescription = description.split(' - ').last.toLowerCase();
-          expect(
-            result.colors.map((c) => c.toLowerCase()).toList(),
-            contains(colorFromDescription),
-            reason: 'Each description should reference a color from the colors list'
+            reason: 'Each color analysis should have a valid hex code'
           );
         }
       }, timeout: const Timeout(Duration(minutes: 2)));
@@ -107,15 +108,17 @@ void main() {
         }
 
         expect(
-          result.colors, 
+          result.colorAnalysis, 
           isNotEmpty,
           reason: 'Should extract colors from large image'
         );
-        expect(
-          result.contextDescriptions, 
-          isNotEmpty,
-          reason: 'Should provide descriptions for large image'
-        );
+
+        // Verify all color entries have required fields
+        for (final colorInfo in result.colorAnalysis) {
+          expect(colorInfo['object'], isNotNull);
+          expect(colorInfo['colorName'], isNotNull);
+          expect(colorInfo['hexCode'], matches(RegExp(r'^#[0-9A-Fa-f]{6}$')));
+        }
       }, timeout: const Timeout(Duration(minutes: 2)));
 
       test('ImageColorAnalyzer_Integration_ShouldHandleImageWithLimitedColorPalette', () async {
@@ -139,15 +142,17 @@ void main() {
         }
 
         expect(
-          result.colors, 
+          result.colorAnalysis, 
           hasLength(lessThanOrEqualTo(3)),
           reason: 'Should detect limited color palette'
         );
-        expect(
-          result.contextDescriptions,
-          isNotEmpty,
-          reason: 'Should provide descriptions even for limited palette'
-        );
+
+        // Verify monochrome colors are valid
+        for (final colorInfo in result.colorAnalysis) {
+          expect(colorInfo['object'], isNotNull);
+          expect(colorInfo['colorName'], isNotNull);
+          expect(colorInfo['hexCode'], matches(RegExp(r'^#[0-9A-Fa-f]{6}$')));
+        }
       }, timeout: const Timeout(Duration(minutes: 2)));
     });
   });

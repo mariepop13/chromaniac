@@ -31,15 +31,16 @@ void main() {
     });
 
     group('analyzeColoringImage', () {
-      test('ImageColorAnalyzer_AnalyzeColoringImage_ShouldExtractColorsAndDescriptions', () async {
+      test('ImageColorAnalyzer_AnalyzeColoringImage_ShouldExtractColorAnalysis', () async {
         _setupSuccessfulResponse(mockClient);
         final result = await analyzer.analyzeColoringImage(sampleImageBytes);
 
-        expect(result.colors, containsAll(['red', 'blue', 'green']));
-        expect(
-          result.contextDescriptions, 
-          containsAll(['Sky - blue', 'Tree - green', 'Flower - red'])
-        );
+        expect(result.colorAnalysis, hasLength(3));
+        
+        final firstColor = result.colorAnalysis[0];
+        expect(firstColor['object'], equals('sky'));
+        expect(firstColor['colorName'], equals('light blue'));
+        expect(firstColor['hexCode'], equals('#87CEEB'));
       });
 
       test('ImageColorAnalyzer_AnalyzeColoringImage_ShouldThrowErrorOnUnauthorized', () async {
@@ -76,7 +77,7 @@ void main() {
           throwsA(isA<Exception>().having(
             (e) => e.toString(),
             'message',
-            contains('Failed to process API response: Exception: Invalid API response structure'),
+            contains('Failed to process API response'),
           )),
         );
       });
@@ -101,8 +102,23 @@ void _setupSuccessfulResponse(MockClient mockClient) {
         {
           'message': {
             'content': jsonEncode({
-              'colors': ['red', 'blue', 'green'],
-              'descriptions': ['Sky - blue', 'Tree - green', 'Flower - red']
+              'colors': [
+                {
+                  'object': 'sky',
+                  'colorName': 'light blue',
+                  'hexCode': '#87CEEB'
+                },
+                {
+                  'object': 'tree',
+                  'colorName': 'forest green',
+                  'hexCode': '#228B22'
+                },
+                {
+                  'object': 'flower',
+                  'colorName': 'bright red',
+                  'hexCode': '#FF0000'
+                }
+              ]
             })
           }
         }

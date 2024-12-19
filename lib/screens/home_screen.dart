@@ -317,11 +317,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   onAnalysisComplete: (result) {
                     setState(() {
                       _palette.clear();
-                      for (final colorHex in result.colors) {
-                        if (colorHex.startsWith('#')) {
-                          final value = int.parse(colorHex.substring(1), radix: 16);
-                          _palette.add(Color(value | 0xFF000000));
-                        }
+                      for (final colorInfo in result.colorAnalysis) {
+                        final hexCode = colorInfo['hexCode']!;
+                        final value = int.parse(hexCode.substring(1), radix: 16);
+                        _palette.add(Color(value | 0xFF000000));
                       }
                     });
                     showDialog(
@@ -334,10 +333,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           children: [
                             const Text('Suggested Colors:', style: TextStyle(fontWeight: FontWeight.bold)),
                             const SizedBox(height: AppConstants.smallPadding),
-                            ...result.contextDescriptions.map((desc) => 
+                            ...result.colorAnalysis.map((colorInfo) => 
                               Padding(
                                 padding: EdgeInsets.only(bottom: AppConstants.tinyPadding),
-                                child: Text('• $desc'),
+                                child: Text('• ${colorInfo['object']} - ${colorInfo['colorName']} (${colorInfo['hexCode']})'),
                               ),
                             ),
                           ],
