@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants.dart';
 import '../../../services/premium_service.dart';
@@ -26,6 +27,7 @@ class _ColorPickerDialogState extends State<ColorPickerDialog> {
   late Color _currentColor;
   int _currentPickerType = 0;
   final List<String> _pickerTypes = ['Wheel', 'Material', 'Block', 'Slider'];
+  Logger logger = Logger();
 
   @override
   void initState() {
@@ -34,21 +36,29 @@ class _ColorPickerDialogState extends State<ColorPickerDialog> {
   }
 
   void _handleAddColor() {
-    final isPremium = context.read<PremiumService>().isPremium;
-    final maxColors = isPremium 
-        ? AppConstants.maxPaletteColors 
+    final premiumService = context.read<PremiumService>();
+    final isPremium = premiumService.isPremium;
+    logger.d('Debug: Premium status is $isPremium');
+    logger.d('Debug: Current palette size is ${widget.currentPaletteSize}');
+    final maxColors = isPremium
+        ? AppConstants.maxPaletteColors
         : AppConstants.defaultPaletteSize;
+    logger.d('Debug: Max colors allowed is $maxColors');
+    logger.d('Debug: isEditing is ${widget.isEditing}');
+    logger.d('Debug: Would exceed limit: ${widget.currentPaletteSize + 1 > maxColors}');
 
+    // Check if adding one more color would exceed the limit
     if (!widget.isEditing && widget.currentPaletteSize >= maxColors) {
+      logger.d('Debug: Showing color limit dialog');
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('Palette Full'),
           content: Text(
             isPremium 
-              ? 'You\'ve reached the maximum limit of ${AppConstants.maxPaletteColors} colors.'
-              : 'You\'ve reached the maximum of ${AppConstants.defaultPaletteSize} colors. '
-                'Upgrade to premium to add up to ${AppConstants.maxPaletteColors} colors!'
+              ? 'You have ${widget.currentPaletteSize} colors in your palette (maximum ${AppConstants.maxPaletteColors}).'
+              : 'You have ${widget.currentPaletteSize} colors (maximum ${AppConstants.defaultPaletteSize}). '
+                  'Upgrade to premium to add up to ${AppConstants.maxPaletteColors} colors!'
           ),
           actions: [
             if (!isPremium) ...[
@@ -59,7 +69,7 @@ class _ColorPickerDialogState extends State<ColorPickerDialog> {
               ElevatedButton(
                 onPressed: () async {
                   Navigator.pop(context);
-                  await context.read<PremiumService>().unlockPremium();
+                  await premiumService.unlockPremium();
                 },
                 child: const Text('Upgrade Now'),
               ),
@@ -72,6 +82,7 @@ class _ColorPickerDialogState extends State<ColorPickerDialog> {
         ),
       );
     } else {
+      logger.d('Debug: Adding color to palette');
       widget.onColorSelected(_currentColor);
     }
   }
@@ -128,7 +139,8 @@ class _ColorPickerDialogState extends State<ColorPickerDialog> {
           enableAlpha: true,
           showParams: true,
           showIndicator: true,
-          indicatorBorderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+          indicatorBorderRadius:
+              const BorderRadius.vertical(top: Radius.circular(8)),
         );
       default:
         return Container();
@@ -155,7 +167,8 @@ class _ColorPickerDialogState extends State<ColorPickerDialog> {
                   children: List.generate(
                     _pickerTypes.length,
                     (index) => Padding(
-                      padding: EdgeInsets.symmetric(horizontal: AppConstants.smallPadding / 2),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: AppConstants.smallPadding / 2),
                       child: ChoiceChip(
                         label: Text(_pickerTypes[index]),
                         selected: _currentPickerType == index,

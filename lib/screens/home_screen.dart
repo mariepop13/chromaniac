@@ -91,28 +91,37 @@ class _HomeScreenState extends State<HomeScreen> {
       if (_palette.length < maxColors) {
         _palette.add(color);
       } else {
+        final isPremium = context.read<PremiumService>().isPremium;
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Palette Full'),
             content: Text(
-              'You\'ve reached the maximum of ${AppConstants.defaultPaletteSize} colors. '
-              'Upgrade to premium to add up to ${AppConstants.maxPaletteColors} colors!'
+              isPremium
+                ? 'You have reached the maximum of ${AppConstants.maxPaletteColors} colors in your palette.'
+                : 'You have reached the maximum of ${AppConstants.defaultPaletteSize} colors. '
+                  'Upgrade to premium to add up to ${AppConstants.maxPaletteColors} colors!'
             ),
             actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Maybe Later'),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  Navigator.pop(context);
-                  await context.read<PremiumService>().unlockPremium();
-                  // Try adding the color again after premium is unlocked
-                  _addColorToPalette(color);
-                },
-                child: const Text('Upgrade Now'),
-              ),
+              if (!isPremium) ...[
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Maybe Later'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    await context.read<PremiumService>().unlockPremium();
+                    // Try adding the color again after premium is unlocked
+                    _addColorToPalette(color);
+                  },
+                  child: const Text('Upgrade Now'),
+                ),
+              ] else
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('OK'),
+                ),
             ],
           ),
         );
