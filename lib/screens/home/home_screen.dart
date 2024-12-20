@@ -5,6 +5,7 @@ import 'package:chromaniac/providers/debug_provider.dart';
 import 'package:chromaniac/services/premium_service.dart';
 import 'package:chromaniac/features/color_palette/presentation/color_picker_dialog.dart';
 import 'package:chromaniac/utils/color/export_palette.dart';
+import 'package:chromaniac/screens/favorites/favorites_screen.dart';
 import 'widgets/palette_content.dart';
 import 'widgets/image_preview.dart';
 import 'widgets/palette_menu.dart';
@@ -40,6 +41,18 @@ class HomeScreenView extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Chromaniac'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.favorite),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const FavoritesScreen(),
+                ),
+              );
+            },
+            tooltip: 'Favorite Colors',
+          ),
           Consumer<PremiumService>(
             builder: (context, premiumService, _) => Row(
               mainAxisSize: MainAxisSize.min,

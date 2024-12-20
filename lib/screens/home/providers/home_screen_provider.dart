@@ -5,16 +5,17 @@ import 'package:chromaniac/features/color_palette/domain/color_palette_type.dart
 import 'package:chromaniac/features/color_palette/domain/palette_generator_service.dart';
 import 'package:chromaniac/utils/logger/app_logger.dart';
 import '../state/home_screen_state_notifier.dart';
-import 'package:chromaniac/services/image_service.dart'; // Added import statement
+import 'package:chromaniac/services/image_service.dart';
+import 'package:chromaniac/services/database_service.dart';
 
 class HomeScreenProvider extends ChangeNotifier {
-  final HomeScreenStateNotifier _stateNotifier;
+  final HomeScreenStateNotifier _stateNotifier = HomeScreenStateNotifier();
+  HomeScreenState get state => _stateNotifier.state;
+  final DatabaseService _databaseService = DatabaseService();
 
-  HomeScreenProvider() : _stateNotifier = HomeScreenStateNotifier() {
+  HomeScreenProvider() {
     AppLogger.d('HomeScreenProvider initialized');
   }
-
-  HomeScreenState get state => _stateNotifier.state;
 
   Future<void> pickImage(BuildContext context) async {
     final imageService = ImageService();
@@ -53,6 +54,11 @@ class HomeScreenProvider extends ChangeNotifier {
     _stateNotifier.updatePalette(colors);
   }
 
+  void updateColor(int index, Color newColor) {
+    _stateNotifier.updateColorAtIndex(index, newColor);
+    notifyListeners();
+  }
+
   Color _generateRandomColor() {
     return Color((DateTime.now().millisecondsSinceEpoch & 0xFFFFFF).toInt()).withOpacity(1.0);
   }
@@ -66,4 +72,31 @@ class HomeScreenProvider extends ChangeNotifier {
   void clearPalette() => _stateNotifier.clearPalette();
   void reorderPalette(int oldIndex, int newIndex) => 
       _stateNotifier.reorderPalette(oldIndex, newIndex);
+
+  Future<void> toggleFavorite(Color color) async {
+    try {
+      final favorites = await _databaseService.getFavoriteColors();
+      final isFavorite = favorites.any((f) => f.color.value == color.value);
+
+      if (isFavorite) {
+        final favorite = favorites.firstWhere((f) => f.color.value == color.value);
+        await _databaseService.removeFavoriteColor(favorite.id);
+      } else {
+        await _databaseService.addFavoriteColor(color);
+      }
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error toggling favorite: $e');
+    }
+  }
+
+  Future<bool> isFavoriteColor(Color color) async {
+    try {
+      final favorites = await _databaseService.getFavoriteColors();
+      return favorites.any((f) => f.color.value == color.value);
+    } catch (e) {
+      debugPrint('Error checking favorite status: $e');
+      return false;
+    }
+  }
 }

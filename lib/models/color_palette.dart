@@ -9,6 +9,8 @@ class ColorPalette {
   final DateTime createdAt;
   final DateTime updatedAt;
   final bool isSync;
+  final String? aiOutput;
+  final String? description;
 
   ColorPalette({
     required this.id,
@@ -18,6 +20,8 @@ class ColorPalette {
     required this.createdAt,
     required this.updatedAt,
     this.isSync = false,
+    this.aiOutput,
+    this.description,
   });
 
   Map<String, dynamic> toMap() {
@@ -29,6 +33,8 @@ class ColorPalette {
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
       'is_sync': isSync ? 1 : 0,
+      'ai_output': aiOutput,
+      'description': description,
     };
   }
 
@@ -43,6 +49,8 @@ class ColorPalette {
       createdAt: DateTime.parse(map['created_at']),
       updatedAt: DateTime.parse(map['updated_at']),
       isSync: map['is_sync'] == 1,
+      aiOutput: map['ai_output'],
+      description: map['description'],
     );
   }
 
@@ -59,6 +67,8 @@ class ColorPalette {
     DateTime? createdAt,
     DateTime? updatedAt,
     bool? isSync,
+    String? aiOutput,
+    String? description,
   }) {
     return ColorPalette(
       id: id ?? this.id,
@@ -68,6 +78,8 @@ class ColorPalette {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       isSync: isSync ?? this.isSync,
+      aiOutput: aiOutput ?? this.aiOutput,
+      description: description ?? this.description,
     );
   }
 }

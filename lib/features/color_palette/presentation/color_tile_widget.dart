@@ -10,6 +10,8 @@ class ColorTileWidget extends StatelessWidget {
   final Function(Color) onRemoveColor;
   final Function(Color) onEditColor;
   final int paletteSize;
+  final Function(Color)? onFavoriteColor;
+  final bool isFavorite;
 
   const ColorTileWidget({
     super.key,
@@ -18,6 +20,8 @@ class ColorTileWidget extends StatelessWidget {
     required this.onRemoveColor,
     required this.onEditColor,
     required this.paletteSize,
+    this.onFavoriteColor,
+    this.isFavorite = false,
   });
 
   @override
@@ -30,7 +34,7 @@ class ColorTileWidget extends StatelessWidget {
           children: [
             Center(
               child: Text(
-                hex,
+                hex.toUpperCase(),
                 style: TextStyle(
                   color: isDark ? Colors.white : Colors.black,
                   fontWeight: FontWeight.bold,
@@ -38,48 +42,61 @@ class ColorTileWidget extends StatelessWidget {
               ),
             ),
             Positioned(
-              top: 8,
-              right: 8,
-              child: GestureDetector(
-                onTapUp: (TapUpDetails details) {
-                  final RenderBox renderBox = context.findRenderObject() as RenderBox;
-                  final Offset localPosition = renderBox.localToGlobal(Offset.zero);
-                  final Size tileSize = renderBox.size;
-                  
-                  showMenu(
-                    context: context,
-                    position: RelativeRect.fromLTRB(
-                      localPosition.dx,
-                      localPosition.dy,
-                      localPosition.dx + tileSize.width,
-                      localPosition.dy + tileSize.height,
+              top: 4,
+              right: 4,
+              child: Row(
+                children: [
+                  if (onFavoriteColor != null)
+                    IconButton(
+                      icon: Icon(
+                        isFavorite ? Icons.favorite : Icons.favorite_border,
+                        color: isDark ? Colors.white : Colors.black,
+                      ),
+                      onPressed: () => onFavoriteColor?.call(color),
+                      tooltip: isFavorite ? 'Remove from favorites' : 'Add to favorites',
                     ),
-                    items: [
-                      PopupMenuItem(
-                        child: const Text('Edit Color'),
-                        onTap: () => showDelayedDialog(context, 
-                          (ctx) => _showColorPickerDialog(ctx, color)),
-                      ),
-                      PopupMenuItem(
-                        child: const Text('Copy Hex'),
-                        onTap: () {
-                          Clipboard.setData(ClipboardData(text: hex));
-                          showCopySnackBar(context, hex);
-                        },
-                      ),
-                      if (paletteSize > AppConstants.minPaletteColors)
-                        PopupMenuItem(
-                          child: const Text('Remove'),
-                          onTap: () => onRemoveColor(color),
+                  IconButton(
+                    icon: Icon(
+                      Icons.more_vert,
+                      color: isDark ? Colors.white : Colors.black,
+                    ),
+                    onPressed: () {
+                      final RenderBox renderBox = context.findRenderObject() as RenderBox;
+                      final Offset localPosition = renderBox.localToGlobal(Offset.zero);
+                      final Size tileSize = renderBox.size;
+                      
+                      showMenu(
+                        context: context,
+                        position: RelativeRect.fromLTRB(
+                          localPosition.dx,
+                          localPosition.dy,
+                          localPosition.dx + tileSize.width,
+                          localPosition.dy + tileSize.height,
                         ),
-                    ],
-                  );
-                },
-                child: Icon(
-                  Icons.more_vert,
-                  color: isDark ? Colors.white : Colors.black,
-                  size: 30,
-                ),
+                        items: [
+                          PopupMenuItem(
+                            child: const Text('Edit Color'),
+                            onTap: () => showDelayedDialog(context, 
+                              (ctx) => _showColorPickerDialog(ctx, color)),
+                          ),
+                          PopupMenuItem(
+                            child: const Text('Copy Hex'),
+                            onTap: () {
+                              Clipboard.setData(ClipboardData(text: hex));
+                              showCopySnackBar(context, hex);
+                            },
+                          ),
+                          if (paletteSize > AppConstants.minPaletteColors)
+                            PopupMenuItem(
+                              child: const Text('Remove'),
+                              onTap: () => onRemoveColor(color),
+                            ),
+                        ],
+                      );
+                    },
+                    tooltip: 'More options',
+                  ),
+                ],
               ),
             ),
           ],

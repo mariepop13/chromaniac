@@ -74,4 +74,13 @@ class HomeScreenStateNotifier extends ChangeNotifier {
     newPalette.insert(newIndex, color);
     updatePalette(newPalette);
   }
+
+  void updateColorAtIndex(int index, Color newColor) {
+    if (index < 0 || index >= _state.palette.length) return;
+    
+    final newPalette = List<Color>.from(_state.palette);
+    newPalette[index] = newColor;
+    _state = _state.copyWith(palette: newPalette);
+    notifyListeners();
+  }
 }

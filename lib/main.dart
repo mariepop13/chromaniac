@@ -9,20 +9,28 @@ import 'utils/logger/app_logger.dart';
 import 'config/supabase_config.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await AppLogger.init();
-  await EnvironmentConfig.initialize();
-  await SupabaseConfig.initialize();
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => PremiumService()),
-        ChangeNotifierProvider(create: (_) => DebugProvider()),
-      ],
-      child: const ChromaniacApp(),
-    ),
-  );
+  try {
+    // Initialize Flutter bindings
+    WidgetsFlutterBinding.ensureInitialized();
+    
+    // Initialize core services
+    await AppLogger.init();
+    await EnvironmentConfig.initialize();
+    await SupabaseConfig.initialize();
+    
+    runApp(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => ThemeProvider()),
+          ChangeNotifierProvider(create: (_) => PremiumService()),
+          ChangeNotifierProvider(create: (_) => DebugProvider()),
+        ],
+        child: const ChromaniacApp(),
+      ),
+    );
+  } catch (e) {
+    // Handle any exceptions that occur during initialization
+  }
 }
 
 class ChromaniacApp extends StatelessWidget {
