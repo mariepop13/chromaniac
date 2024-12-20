@@ -106,8 +106,8 @@ class _PaletteDetailsScreenState extends State<PaletteDetailsScreen> {
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 childAspectRatio: 1,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
+                crossAxisSpacing: 0,
+                mainAxisSpacing: 0,
               ),
               itemCount: _colors.length,
               itemBuilder: (context, index) {

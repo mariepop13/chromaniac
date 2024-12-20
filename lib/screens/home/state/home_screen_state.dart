@@ -141,23 +141,28 @@ class HomeScreenState extends State<HomeScreen> {
   Future<void> addToFavorites([String? name]) async {
     try {
       final now = DateTime.now();
+      AppLogger.d('Creating new palette with ${palette.length} colors');
+      
       final colorPalette = ColorPalette(
         id: const Uuid().v4(),
         name: name ?? 'Palette ${now.toIso8601String()}',
-        colors: palette,
+        colors: List<Color>.from(palette), // Create a new list to avoid reference issues
         createdAt: now,
         updatedAt: now,
       );
+      
+      AppLogger.d('Saving palette: ${colorPalette.name}');
+      AppLogger.d('Colors: ${colorPalette.colors.map((c) => c.value.toRadixString(16)).join(', ')}');
       
       await DatabaseService().savePalette(colorPalette);
       
       if (mounted) {
         showSnackBar(context, 'Palette saved successfully');
       }
-    } catch (e) {
-      AppLogger.e('Error saving palette', error: e);
+    } catch (e, stackTrace) {
+      AppLogger.e('Error saving palette', error: e, stackTrace: stackTrace);
       if (mounted) {
-        showSnackBar(context, 'Error saving palette');
+        showSnackBar(context, 'Error saving palette: ${e.toString()}');
       }
     }
   }

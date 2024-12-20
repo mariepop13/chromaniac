@@ -48,6 +48,35 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Saved Palettes'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () async {
+              try {
+                AppLogger.d('Resetting database');
+                await DatabaseService().resetDatabase();
+                if (mounted) {
+                  setState(() {
+                    _loadPalettes();
+                  });
+                }
+              } catch (e) {
+                AppLogger.e('Error resetting database', error: e);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Error resetting database')),
+                  );
+                }
+                return;
+              }
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Database reset successfully')),
+                );
+              }
+            },
+          ),
+        ],
       ),
       body: FutureBuilder<List<ColorPalette>>(
         future: _palettesFuture,

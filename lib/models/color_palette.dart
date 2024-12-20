@@ -29,7 +29,7 @@ class ColorPalette {
     return {
       'id': id,
       'name': name,
-      'colors': colors.map((c) => c.value.toRadixString(16)).toList(),
+      'colors': colors.map((c) => c.value.toRadixString(16).padLeft(8, '0')).toList(),
       'user_id': userId,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
@@ -46,9 +46,12 @@ class ColorPalette {
       name: map['name'] ?? '',
       colors: colorsList.map((c) {
         if (c is String) {
-          return Color(int.parse(c, radix: 16));
+          // Ensure we have 8 digits for ARGB
+          final colorStr = c.padLeft(8, '0');
+          return Color(int.parse(colorStr, radix: 16));
         } else if (c is int) {
-          return Color(c);
+          // Add full opacity if alpha is 0
+          return Color(c | 0xFF000000);
         } else {
           throw FormatException('Invalid color format: $c');
         }

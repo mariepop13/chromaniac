@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'dart:math';
-import 'package:chromaniac/screens/home/state/home_screen_state.dart';
+import 'package:chromaniac/models/color_palette.dart';
 import 'package:flutter/foundation.dart';
 import 'package:chromaniac/features/color_palette/domain/color_palette_type.dart';
 import 'package:chromaniac/features/color_palette/domain/palette_generator_service.dart';
@@ -20,6 +20,8 @@ import '../core/constants.dart';
 import '../services/premium_service.dart';
 import '../providers/debug_provider.dart';
 import '../utils/logger/app_logger.dart';
+import 'package:uuid/uuid.dart';
+import '../services/database_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -160,45 +162,76 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void _savePalette() {
+
+  void _showSavePaletteDialog() {
     final textController = TextEditingController();
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Save Palette'),
-        content: TextField(
-          controller: textController,
-          decoration: const InputDecoration(
-            labelText: 'Palette Name (Optional)',
-            hintText: 'Enter a name for this palette',
-          ),
-          onSubmitted: (name) {
-            Navigator.pop(context, name);
-          },
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('${_palette.length} colors selected'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: textController,
+              decoration: const InputDecoration(
+                labelText: 'Palette Name',
+                hintText: 'Enter a name for this palette',
+                border: OutlineInputBorder(),
+              ),
+              onSubmitted: (value) {
+                Navigator.pop(dialogContext, value);
+              },
+            ),
+          ],
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () {
-              Navigator.pop(context, textController.text);
+            onPressed: () async {
+              // Pop the dialog first
+              Navigator.pop(dialogContext);
+              
+              try {
+                AppLogger.d('Saving palette with name: ${textController.text}');
+                final now = DateTime.now();
+                final colorPalette = ColorPalette(
+                  id: const Uuid().v4(),
+                  name: textController.text.isEmpty 
+                    ? 'Palette ${now.toIso8601String()}'
+                    : textController.text,
+                  colors: List<Color>.from(_palette),
+                  createdAt: now,
+                  updatedAt: now,
+                );
+                
+                AppLogger.d('Created palette object: ${colorPalette.name}');
+                await DatabaseService().savePalette(colorPalette);
+                
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Palette saved successfully')),
+                  );
+                }
+              } catch (e, stackTrace) {
+                AppLogger.e('Error saving palette', error: e, stackTrace: stackTrace);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error saving palette: ${e.toString()}')),
+                  );
+                }
+              }
             },
             child: const Text('Save'),
           ),
         ],
       ),
-    ).then((name) {
-      if (name != null) {
-            final nameToSave = name.isEmpty ? null : name;
-
-    if (mounted) {
-      final state = context.findAncestorStateOfType<HomeScreenState>();
-      state?.addToFavorites(nameToSave);
-    }
-      }
-    });
+    );
   }
 
   @override
@@ -218,7 +251,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               );
             },
-            tooltip: 'Favorite Colors',
+            tooltip: 'Saved Palettes',
           ),
           Consumer<PremiumService>(
             builder: (context, premiumService, _) => Row(
@@ -430,7 +463,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           FloatingActionButton(
             heroTag: 'save',
-            onPressed: _savePalette,
+            onPressed: _showSavePaletteDialog,
             child: const Icon(Icons.save),
           ),
           const SizedBox(height: 16),
