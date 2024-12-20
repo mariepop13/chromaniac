@@ -6,11 +6,13 @@ import 'screens/home_screen.dart';
 import 'utils/config/environment_config.dart';
 import 'providers/debug_provider.dart';
 import 'utils/logger/app_logger.dart';
+import 'config/supabase_config.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AppLogger.init();
   await EnvironmentConfig.initialize();
+  await SupabaseConfig.initialize();
   runApp(
     MultiProvider(
       providers: [
