@@ -22,6 +22,8 @@ import '../providers/debug_provider.dart';
 import '../utils/logger/app_logger.dart';
 import 'package:uuid/uuid.dart';
 import '../services/database_service.dart';
+import 'package:chromaniac/widgets/app_bottom_nav.dart';
+import 'package:chromaniac/widgets/speed_dial_fab.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -153,7 +155,6 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-
   void _showSavePaletteDialog() {
     final textController = TextEditingController();
     showDialog(
@@ -230,141 +231,66 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
+        leading: PopupMenuButton<String>(
+          icon: const Icon(Icons.menu),
+          onSelected: (value) async {
+            switch (value) {
+              case 'theme':
+                Provider.of<ThemeProvider>(context, listen: false)
+                    .toggleTheme(!Provider.of<ThemeProvider>(context, listen: false).isDarkMode);
+                break;
+            }
+          },
+          itemBuilder: (context) => [
+            PopupMenuItem(
+              value: 'theme',
+              child: Consumer<ThemeProvider>(
+                builder: (context, themeProvider, _) => Row(
+                  children: [
+                    Icon(themeProvider.isDarkMode
+                        ? Icons.dark_mode
+                        : Icons.light_mode),
+                    const SizedBox(width: 8),
+                    Text(themeProvider.isDarkMode
+                        ? 'Dark Mode'
+                        : 'Light Mode'),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
         title: const Text('Chromaniac'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.favorite),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const FavoritesScreen(),
-                ),
-              );
-            },
-            tooltip: 'Saved Palettes',
-          ),
           Consumer<PremiumService>(
-            builder: (context, premiumService, _) => Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Consumer<DebugProvider>(
-                  builder: (context, debugProvider, _) => IconButton(
-                    onPressed: () => debugProvider.isDebugEnabled 
-                      ? premiumService.togglePremium()
-                      : premiumService.unlockPremium(),
-                    icon: Icon(
-                      premiumService.isPremium ? Icons.star : Icons.star_border,
-                      color: premiumService.isPremium ? Colors.amber : null,
-                    ),
-                  ),
-                ),
-                Consumer<DebugProvider>(
-                  builder: (context, debugProvider, _) => IconButton(
-                    onPressed: () {
-                      debugProvider.toggleDebug();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(debugProvider.isDebugEnabled ? 'Debug mode enabled' : 'Debug mode disabled'),
-                          duration: const Duration(seconds: 1),
-                        ),
-                      );
-                    },
-                    icon: Icon(
-                      debugProvider.isDebugEnabled ? Icons.bug_report : Icons.bug_report_outlined,
-                      color: debugProvider.isDebugEnabled ? Colors.red : null,
-                    ),
-                  ),
-                ),
-              ],
+            builder: (context, premiumService, _) => IconButton(
+              onPressed: () => context.read<DebugProvider>().isDebugEnabled 
+                ? premiumService.togglePremium()
+                : premiumService.unlockPremium(),
+              icon: Icon(
+                premiumService.isPremium ? Icons.star : Icons.star_border,
+                color: premiumService.isPremium ? Colors.amber : null,
+              ),
             ),
           ),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.menu),
-            onSelected: (value) async {
-              switch (value) {
-                case 'generate':
-                  _showPaletteOptionsDialog(context);
-                  break;
-                case 'add':
-                  _showColorPickerDialog();
-                  break;
-                case 'import':
-                  await _pickImage();
-                  await _generatePaletteFromImage();
-                  break;
-                case 'export':
-                  _exportPalette(context);
-                  break;
-                case 'clear':
-                  _clearPalette();
-                  break;
-                case 'theme':
-                  Provider.of<ThemeProvider>(context, listen: false)
-                      .toggleTheme(!Provider.of<ThemeProvider>(context, listen: false).isDarkMode);
-                  break;
-              }
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'generate',
-                child: Row(
-                  children: [
-                    Icon(Icons.shuffle),
-                    SizedBox(width: 8),
-                    Text('Generate Palette'),
-                  ],
+          if (kDebugMode)
+            Consumer<DebugProvider>(
+              builder: (context, debugProvider, _) => IconButton(
+                onPressed: () {
+                  debugProvider.toggleDebug();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(debugProvider.isDebugEnabled ? 'Debug mode enabled' : 'Debug mode disabled'),
+                      duration: const Duration(seconds: 1),
+                    ),
+                  );
+                },
+                icon: Icon(
+                  debugProvider.isDebugEnabled ? Icons.bug_report : Icons.bug_report_outlined,
+                  color: debugProvider.isDebugEnabled ? Colors.red : null,
                 ),
               ),
-              const PopupMenuItem(
-                value: 'import',
-                child: Row(
-                  children: [
-                    Icon(Icons.image),
-                    SizedBox(width: 8),
-                    Text('Import from Image'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'export',
-                child: Row(
-                  children: [
-                    Icon(Icons.file_download),
-                    SizedBox(width: 8),
-                    Text('Export Palette'),
-                  ],
-                ),
-              ),
-              if (Provider.of<DebugProvider>(context, listen: false).isDebugEnabled)
-                const PopupMenuItem(
-                  value: 'clear',
-                  child: Row(
-                    children: [
-                      Icon(Icons.clear),
-                      SizedBox(width: 8),
-                      Text('Clear Palette'),
-                    ],
-                  ),
-                ),
-              PopupMenuItem(
-                value: 'theme',
-                child: Consumer<ThemeProvider>(
-                  builder: (context, themeProvider, _) => Row(
-                    children: [
-                      Icon(themeProvider.isDarkMode
-                          ? Icons.dark_mode
-                          : Icons.light_mode),
-                      const SizedBox(width: 8),
-                      Text(themeProvider.isDarkMode
-                          ? 'Dark Mode'
-                          : 'Light Mode'),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ),
         ],
       ),
       body: SafeArea(
@@ -398,62 +324,61 @@ class _HomeScreenState extends State<HomeScreen> {
                   imageBytes: _imageBytes,
                   onAnalysisComplete: (result) {
                     setState(() {
-                      _palette.clear();
-                      for (final colorInfo in result.colorAnalysis) {
-                        final hexCode = colorInfo['hexCode']!;
-                        final value = int.parse(hexCode.substring(1), radix: 16);
-                        _palette.add(Color(value | 0xFF000000));
+                      if (context.read<DebugProvider>().isDebugEnabled) {
+                        _palette.clear();
                       }
+                      _palette.addAll(
+                        result.colorAnalysis.map((colorData) {
+                          final hexCode = colorData['hexCode'] as String;
+                          final hex = hexCode.startsWith('#') ? hexCode.substring(1) : hexCode;
+                          return Color(int.parse('FF$hex', radix: 16));
+                        }),
+                      );
                     });
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text('Color Analysis Results'),
-                        content: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('Suggested Colors:', style: TextStyle(fontWeight: FontWeight.bold)),
-                            const SizedBox(height: AppConstants.smallPadding),
-                            ...result.colorAnalysis.map((colorInfo) => 
-                              Padding(
-                                padding: EdgeInsets.only(bottom: AppConstants.tinyPadding),
-                                child: Text('• ${colorInfo['object']} - ${colorInfo['colorName']} (${colorInfo['hexCode']})'),
-                              ),
-                            ),
-                          ],
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: const Text('Close'),
-                          ),
-                        ],
-                      ),
-                    );
                   },
                 ),
               ),
             ],
-            Expanded(child: _buildPaletteContent()),
+            _buildPaletteContent(),
           ],
         ),
       ),
-      floatingActionButton: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          FloatingActionButton(
-            heroTag: 'save',
-            onPressed: _showSavePaletteDialog,
-            child: const Icon(Icons.save),
-          ),
-          const SizedBox(height: 16),
-          FloatingActionButton(
-            heroTag: 'add',
-            onPressed: _showColorPickerDialog,
-            child: const Icon(Icons.add),
-          ),
-        ],
+      bottomNavigationBar: AppBottomNav(
+        currentIndex: 0,
+        onTap: (index) {
+          switch (index) {
+            case 1:
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const FavoritesScreen(),
+                ),
+              );
+              break;
+            case 2:
+              _showPaletteOptionsDialog(context);
+              break;
+            case 3:
+              // TODO: Implement settings screen
+              break;
+          }
+        },
+      ),
+      floatingActionButton: Consumer<DebugProvider>(
+        builder: (context, debugProvider, child) => SpeedDialFab(
+          onAddColor: _showColorPickerDialog,
+          onGeneratePalette: () => _showPaletteOptionsDialog(context),
+          onImportImage: () async {
+            await _pickImage();
+            if (_selectedImage != null) {
+              await _generatePaletteFromImage();
+            }
+          },
+          onClearAll: _clearPalette,
+          onSavePalette: _showSavePaletteDialog,
+          onExportPalette: () => _exportPalette(context),
+          isDebugEnabled: debugProvider.isDebugEnabled,
+        ),
       ),
     );
   }
@@ -565,5 +490,4 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
 }
