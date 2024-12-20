@@ -1,15 +1,15 @@
 import 'dart:ui';
+import 'dart:convert'; // Import json library
 
 import 'package:chromaniac/models/favorite_color.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:chromaniac/models/color_palette.dart';
-import 'package:logger/logger.dart';
+import 'package:chromaniac/utils/logger/app_logger.dart';
 import 'package:uuid/uuid.dart';
 
 class DatabaseService {
   static final DatabaseService _instance = DatabaseService._internal();
   static Database? _database;
-  final logger = Logger();
 
   factory DatabaseService() {
     return _instance;
@@ -84,13 +84,18 @@ class DatabaseService {
   Future<void> savePalette(ColorPalette palette) async {
     try {
       final db = await database;
+      final map = palette.toMap();
+      // Convert colors list to a proper JSON array string
+      map['colors'] = jsonEncode(map['colors']);
+      
       await db.insert(
         'palettes',
-        palette.toMap(),
+        map,
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
+      AppLogger.d('Saved palette: ${map['name']} with colors: ${map['colors']}');
     } catch (e) {
-      logger.e('Error saving palette: $e');
+      AppLogger.e('Error saving palette', error: e);
       rethrow;
     }
   }
@@ -104,9 +109,30 @@ class DatabaseService {
         whereArgs: userId != null ? [userId] : null,
       );
 
-      return List.generate(maps.length, (i) => ColorPalette.fromMap(maps[i]));
+      return List.generate(maps.length, (i) {
+        try {
+          final map = Map<String, dynamic>.from(maps[i]);
+          final colorStr = map['colors'] as String;
+          
+          // Handle both JSON array and comma-separated formats for backward compatibility
+          List<dynamic> colorsList;
+          try {
+            colorsList = jsonDecode(colorStr);
+          } catch (e) {
+            // If JSON decode fails, try parsing as comma-separated string
+            colorsList = colorStr.split(',').map((s) => s.trim()).toList();
+          }
+          
+          map['colors'] = colorsList;
+          AppLogger.d('Loading palette: ${map['name']} with colors: ${map['colors']}');
+          return ColorPalette.fromMap(map);
+        } catch (e) {
+          AppLogger.e('Error parsing palette', error: e);
+          rethrow;
+        }
+      });
     } catch (e) {
-      logger.e('Error getting palettes: $e');
+      AppLogger.e('Error getting palettes', error: e);
       rethrow;
     }
   }
@@ -122,7 +148,7 @@ class DatabaseService {
 
       return List.generate(maps.length, (i) => ColorPalette.fromMap(maps[i]));
     } catch (e) {
-      logger.e('Error getting unsynced palettes: $e');
+      AppLogger.e('Error getting unsynced palettes', error: e);
       rethrow;
     }
   }
@@ -137,7 +163,7 @@ class DatabaseService {
         whereArgs: [id],
       );
     } catch (e) {
-      logger.e('Error marking palette as synced: $e');
+      AppLogger.e('Error marking palette as synced', error: e);
       rethrow;
     }
   }
@@ -150,8 +176,9 @@ class DatabaseService {
         where: 'id = ?',
         whereArgs: [id],
       );
+      AppLogger.i('Palette deleted successfully');
     } catch (e) {
-      logger.e('Error deleting palette: $e');
+      AppLogger.e('Error deleting palette', error: e);
       rethrow;
     }
   }
@@ -172,9 +199,9 @@ class DatabaseService {
         },
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
-      logger.i('Color added to favorites successfully');
+      AppLogger.i('Color added to favorites successfully');
     } catch (e) {
-      logger.e('Error adding color to favorites: $e');
+      AppLogger.e('Error adding color to favorites', error: e);
       rethrow;
     }
   }
@@ -187,9 +214,9 @@ class DatabaseService {
         where: 'id = ?',
         whereArgs: [id],
       );
-      logger.i('Color removed from favorites successfully');
+      AppLogger.i('Color removed from favorites successfully');
     } catch (e) {
-      logger.e('Error removing color from favorites: $e');
+      AppLogger.e('Error removing color from favorites', error: e);
       rethrow;
     }
   }
@@ -205,7 +232,7 @@ class DatabaseService {
       );
       return List.generate(maps.length, (i) => FavoriteColor.fromMap(maps[i]));
     } catch (e) {
-      logger.e('Error getting favorite colors: $e');
+      AppLogger.e('Error getting favorite colors', error: e);
       rethrow;
     }
   }

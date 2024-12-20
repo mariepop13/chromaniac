@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:math';
+import 'package:chromaniac/models/color_palette.dart';
 import 'package:chromaniac/utils/logger/app_logger.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +13,8 @@ import 'package:chromaniac/features/color_palette/domain/palette_generator_servi
 import 'package:chromaniac/services/premium_service.dart';
 import 'package:chromaniac/utils/dialog/dialog_utils.dart';
 import 'package:chromaniac/screens/home_screen.dart';
+import 'package:chromaniac/services/database_service.dart';
+import 'package:uuid/uuid.dart';
 
 class HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
@@ -133,6 +136,30 @@ class HomeScreenState extends State<HomeScreen> {
         palette[index] = newColor;
       }
     });
+  }
+
+  Future<void> addToFavorites([String? name]) async {
+    try {
+      final now = DateTime.now();
+      final colorPalette = ColorPalette(
+        id: const Uuid().v4(),
+        name: name ?? 'Palette ${now.toIso8601String()}',
+        colors: palette,
+        createdAt: now,
+        updatedAt: now,
+      );
+      
+      await DatabaseService().savePalette(colorPalette);
+      
+      if (mounted) {
+        showSnackBar(context, 'Palette saved successfully');
+      }
+    } catch (e) {
+      AppLogger.e('Error saving palette', error: e);
+      if (mounted) {
+        showSnackBar(context, 'Error saving palette');
+      }
+    }
   }
 
   @override

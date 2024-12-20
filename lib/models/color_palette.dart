@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
+import 'package:uuid/uuid.dart';
 
 class ColorPalette {
   final String id;
@@ -39,12 +40,19 @@ class ColorPalette {
   }
 
   factory ColorPalette.fromMap(Map<String, dynamic> map) {
+    final colorsList = map['colors'] as List;
     return ColorPalette(
-      id: map['id'],
-      name: map['name'],
-      colors: (map['colors'] as List)
-          .map((c) => Color(int.parse(c, radix: 16)))
-          .toList(),
+      id: map['id'] ?? const Uuid().v4(),
+      name: map['name'] ?? '',
+      colors: colorsList.map((c) {
+        if (c is String) {
+          return Color(int.parse(c, radix: 16));
+        } else if (c is int) {
+          return Color(c);
+        } else {
+          throw FormatException('Invalid color format: $c');
+        }
+      }).toList(),
       userId: map['user_id'],
       createdAt: DateTime.parse(map['created_at']),
       updatedAt: DateTime.parse(map['updated_at']),

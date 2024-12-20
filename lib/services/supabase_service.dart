@@ -1,13 +1,12 @@
+import 'package:chromaniac/utils/logger/app_logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/color_palette.dart';
 import 'database_service.dart';
 import '../config/supabase_config.dart';
-import 'package:logger/logger.dart';
 
 class SupabaseService {
   static final SupabaseService _instance = SupabaseService._internal();
   late final DatabaseService _dbService = DatabaseService();
-  final logger = Logger();
 
   factory SupabaseService() {
     return _instance;
@@ -28,7 +27,7 @@ class SupabaseService {
         password: password,
       );
     } catch (e) {
-      logger.e('Error signing up: $e');
+      AppLogger.e('Error signing up: $e');
       rethrow;
     }
   }
@@ -40,7 +39,7 @@ class SupabaseService {
         password: password,
       );
     } catch (e) {
-      logger.e('Error signing in: $e');
+      AppLogger.e('Error signing in: $e');
       rethrow;
     }
   }
@@ -49,7 +48,7 @@ class SupabaseService {
     try {
       await _supabase.auth.signOut();
     } catch (e) {
-      logger.e('Error signing out: $e');
+      AppLogger.e('Error signing out: $e');
       rethrow;
     }
   }
@@ -84,7 +83,7 @@ class SupabaseService {
         await _dbService.savePalette(palette);
       }
     } catch (e) {
-      logger.e('Error syncing palettes: $e');
+      AppLogger.e('Error syncing palettes: $e');
       rethrow;
     }
   }
@@ -109,7 +108,7 @@ class SupabaseService {
       await _dbService.savePalette(palette);
       await _dbService.markAsSynced(palette.id);
     } catch (e) {
-      logger.e('Error saving palette: $e');
+      AppLogger.e('Error saving palette: $e');
       // Save locally if offline
       await _dbService.savePalette(palette);
       rethrow;
@@ -125,7 +124,7 @@ class SupabaseService {
       
       await _dbService.deletePalette(id);
     } catch (e) {
-      logger.e('Error deleting palette: $e');
+      AppLogger.e('Error deleting palette: $e');
       rethrow;
     }
   }
@@ -146,7 +145,7 @@ class SupabaseService {
 
       return response.map((item) => ColorPalette.fromMap(item)).toList();
     } catch (e) {
-      logger.e('Error searching palettes: $e');
+      AppLogger.e('Error searching palettes: $e');
       rethrow;
     }
   }

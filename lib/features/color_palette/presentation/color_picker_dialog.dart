@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
+import 'package:chromaniac/utils/logger/app_logger.dart';
 import '../../../core/constants.dart';
 import '../../../services/premium_service.dart';
 
 class ColorPickerDialog extends StatefulWidget {
   final Color initialColor;
-  final ValueChanged<Color> onColorSelected;
+  final Function(Color) onColorSelected;
   final int currentPaletteSize;
   final bool isEditing;
 
@@ -27,7 +27,6 @@ class _ColorPickerDialogState extends State<ColorPickerDialog> {
   late Color _currentColor;
   int _currentPickerType = 0;
   final List<String> _pickerTypes = ['Wheel', 'Material', 'Block', 'Slider'];
-  Logger logger = Logger();
 
   @override
   void initState() {
@@ -38,18 +37,18 @@ class _ColorPickerDialogState extends State<ColorPickerDialog> {
   void _handleAddColor() {
     final premiumService = context.read<PremiumService>();
     final isPremium = premiumService.isPremium;
-    logger.d('Debug: Premium status is $isPremium');
-    logger.d('Debug: Current palette size is ${widget.currentPaletteSize}');
+    AppLogger.d('Debug: Premium status is $isPremium');
+    AppLogger.d('Debug: Current palette size is ${widget.currentPaletteSize}');
     final maxColors = isPremium
         ? AppConstants.maxPaletteColors
         : AppConstants.defaultPaletteSize;
-    logger.d('Debug: Max colors allowed is $maxColors');
-    logger.d('Debug: isEditing is ${widget.isEditing}');
-    logger.d('Debug: Would exceed limit: ${widget.currentPaletteSize + 1 > maxColors}');
+    AppLogger.d('Debug: Max colors allowed is $maxColors');
+    AppLogger.d('Debug: isEditing is ${widget.isEditing}');
+    AppLogger.d('Debug: Would exceed limit: ${widget.currentPaletteSize + 1 > maxColors}');
 
     // Check if adding one more color would exceed the limit
     if (!widget.isEditing && widget.currentPaletteSize >= maxColors) {
-      logger.d('Debug: Showing color limit dialog');
+      AppLogger.d('Debug: Showing color limit dialog');
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -82,7 +81,7 @@ class _ColorPickerDialogState extends State<ColorPickerDialog> {
         ),
       );
     } else {
-      logger.d('Debug: Adding color to palette');
+      AppLogger.d('Debug: Adding color to palette');
       widget.onColorSelected(_currentColor);
     }
   }

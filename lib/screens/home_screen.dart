@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:math';
+import 'package:chromaniac/screens/home/state/home_screen_state.dart';
 import 'package:flutter/foundation.dart';
 import 'package:chromaniac/features/color_palette/domain/color_palette_type.dart';
 import 'package:chromaniac/features/color_palette/domain/palette_generator_service.dart';
@@ -156,6 +157,47 @@ class _HomeScreenState extends State<HomeScreen> {
   void _clearPalette() {
     setState(() {
       _palette.clear();
+    });
+  }
+
+  void _savePalette() {
+    final textController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Save Palette'),
+        content: TextField(
+          controller: textController,
+          decoration: const InputDecoration(
+            labelText: 'Palette Name (Optional)',
+            hintText: 'Enter a name for this palette',
+          ),
+          onSubmitted: (name) {
+            Navigator.pop(context, name);
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context, textController.text);
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    ).then((name) {
+      if (name != null) {
+            final nameToSave = name.isEmpty ? null : name;
+
+    if (mounted) {
+      final state = context.findAncestorStateOfType<HomeScreenState>();
+      state?.addToFavorites(nameToSave);
+    }
+      }
     });
   }
 
@@ -383,6 +425,22 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          FloatingActionButton(
+            heroTag: 'save',
+            onPressed: _savePalette,
+            child: const Icon(Icons.save),
+          ),
+          const SizedBox(height: 16),
+          FloatingActionButton(
+            heroTag: 'add',
+            onPressed: _showColorPickerDialog,
+            child: const Icon(Icons.add),
+          ),
+        ],
+      ),
     );
   }
 
@@ -412,17 +470,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       .asMap()
                       .map((index, color) {
                         final hex =
-                            '#${color.value.toRadixString(16).padLeft(8, '0').substring(2)}';
+                            color.value.toRadixString(16).padLeft(8, '0').substring(2);
                         return MapEntry(
                           index,
                           ColorTileWidget(
-                            key: ValueKey(
-                                '$hex-$index-${DateTime.now().millisecondsSinceEpoch}'),
+                            key: ValueKey(color.value),
                             color: color,
                             hex: hex,
-                            onRemoveColor: _removeColorFromPalette,
-                            onEditColor: (newColor) => _editColorInPalette(
-                                color, newColor),
+                            onRemoveColor: (color) => _removeColorFromPalette(color),
+                            onEditColor: (newColor) => _editColorInPalette(color, newColor),
                             paletteSize: _palette.length,
                           ),
                         );
@@ -501,4 +557,5 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
 }

@@ -1,15 +1,14 @@
+import 'package:chromaniac/utils/logger/app_logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/color_palette.dart';
 import 'database_service.dart';
 import 'auth_service.dart';
-import 'package:logger/logger.dart';
 
 class CloudSyncService {
   static final CloudSyncService _instance = CloudSyncService._internal();
   late final SupabaseClient _supabase;
   final DatabaseService _dbService = DatabaseService();
   final AuthService _authService = AuthService();
-  final logger = Logger();
 
   factory CloudSyncService() {
     return _instance;
@@ -49,7 +48,7 @@ class CloudSyncService {
         await _dbService.savePalette(palette);
       }
     } catch (e) {
-      logger.e('Error syncing palettes: $e');
+      AppLogger.e('Error syncing palettes: $e');
       rethrow;
     }
   }
@@ -74,7 +73,7 @@ class CloudSyncService {
       await _dbService.savePalette(palette);
       await _dbService.markAsSynced(palette.id);
     } catch (e) {
-      logger.e('Error saving palette: $e');
+      AppLogger.e('Error saving palette: $e');
       // Save locally if offline
       await _dbService.savePalette(palette);
       rethrow;
@@ -90,7 +89,7 @@ class CloudSyncService {
       
       await _dbService.deletePalette(id);
     } catch (e) {
-      logger.e('Error deleting palette: $e');
+      AppLogger.e('Error deleting palette: $e');
       rethrow;
     }
   }
@@ -111,7 +110,7 @@ class CloudSyncService {
 
       return response.map((item) => ColorPalette.fromMap(item)).toList();
     } catch (e) {
-      logger.e('Error searching palettes: $e');
+      AppLogger.e('Error searching palettes: $e');
       rethrow;
     }
   }

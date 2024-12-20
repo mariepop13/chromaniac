@@ -1,10 +1,10 @@
 import 'dart:async';
+import 'package:chromaniac/utils/logger/app_logger.dart';
 import 'package:flutter/foundation.dart';
 import '../models/color_palette.dart';
 import 'supabase_service.dart';
 import 'database_service.dart';
 import 'auth_service.dart';
-import 'package:logger/logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class PaletteSyncManager extends ChangeNotifier {
@@ -12,7 +12,6 @@ class PaletteSyncManager extends ChangeNotifier {
   final SupabaseService _supabaseService = SupabaseService();
   final DatabaseService _dbService = DatabaseService();
   final AuthService _authService = AuthService();
-  final logger = Logger();
 
   Timer? _syncTimer;
   bool _isSyncing = false;
@@ -63,7 +62,7 @@ class PaletteSyncManager extends ChangeNotifier {
       
       _lastSyncTime = DateTime.now();
     } catch (e) {
-      logger.e('Error during palette synchronization: $e');
+      AppLogger.e('Error during palette synchronization: $e');
     } finally {
       _isSyncing = false;
       notifyListeners();
@@ -81,7 +80,7 @@ class PaletteSyncManager extends ChangeNotifier {
         await _dbService.markAsSynced(palette.id);
       }
     } catch (e) {
-      logger.e('Error saving palette: $e');
+      AppLogger.e('Error saving palette: $e');
       rethrow;
     }
   }
@@ -96,7 +95,7 @@ class PaletteSyncManager extends ChangeNotifier {
         await _supabaseService.deletePalette(id);
       }
     } catch (e) {
-      logger.e('Error deleting palette: $e');
+      AppLogger.e('Error deleting palette: $e');
       rethrow;
     }
   }
@@ -107,7 +106,7 @@ class PaletteSyncManager extends ChangeNotifier {
         userId: _authService.currentUser?.id,
       );
     } catch (e) {
-      logger.e('Error getting palettes: $e');
+      AppLogger.e('Error getting palettes: $e');
       rethrow;
     }
   }
@@ -125,7 +124,7 @@ class PaletteSyncManager extends ChangeNotifier {
             .toList();
       }
     } catch (e) {
-      logger.e('Error searching palettes: $e');
+      AppLogger.e('Error searching palettes: $e');
       rethrow;
     }
   }

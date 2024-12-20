@@ -1,10 +1,9 @@
+import 'package:chromaniac/utils/logger/app_logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../config/supabase_config.dart';
-import 'package:logger/logger.dart';
 
 class AuthService {
   static final AuthService _instance = AuthService._internal();
-  final logger = Logger();
 
   factory AuthService() {
     return _instance;
@@ -25,7 +24,7 @@ class AuthService {
         password: password,
       );
     } catch (e) {
-      logger.e('Error signing up: $e');
+      AppLogger.e('Error signing up: $e');
       rethrow;
     }
   }
@@ -37,7 +36,7 @@ class AuthService {
         password: password,
       );
     } catch (e) {
-      logger.e('Error signing in: $e');
+      AppLogger.e('Error signing in: $e');
       rethrow;
     }
   }
@@ -49,7 +48,7 @@ class AuthService {
         redirectTo: 'io.supabase.chromaniac://login-callback',
       );
     } catch (e) {
-      logger.e('Error signing in with Google: $e');
+      AppLogger.e('Error signing in with Google: $e');
       rethrow;
     }
   }
@@ -61,7 +60,7 @@ class AuthService {
         redirectTo: 'io.supabase.chromaniac://login-callback',
       );
     } catch (e) {
-      logger.e('Error signing in with Apple: $e');
+      AppLogger.e('Error signing in with Apple: $e');
       rethrow;
     }
   }
@@ -70,7 +69,7 @@ class AuthService {
     try {
       await _supabase.auth.resetPasswordForEmail(email);
     } catch (e) {
-      logger.e('Error resetting password: $e');
+      AppLogger.e('Error resetting password: $e');
       rethrow;
     }
   }
@@ -79,7 +78,7 @@ class AuthService {
     try {
       await _supabase.auth.signOut();
     } catch (e) {
-      logger.e('Error signing out: $e');
+      AppLogger.e('Error signing out: $e');
       rethrow;
     }
   }
