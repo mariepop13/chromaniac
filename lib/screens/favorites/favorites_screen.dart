@@ -1,8 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:chromaniac/models/color_palette.dart';
 import 'package:chromaniac/services/database_service.dart';
 import 'package:chromaniac/utils/logger/app_logger.dart';
 import 'package:chromaniac/screens/favorites/palette_details_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:chromaniac/providers/debug_provider.dart';
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
@@ -49,33 +52,34 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       appBar: AppBar(
         title: const Text('Saved Palettes'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () async {
-              try {
-                AppLogger.d('Resetting database');
-                await DatabaseService().resetDatabase();
-                if (mounted) {
-                  setState(() {
-                    _loadPalettes();
-                  });
+          if (kDebugMode && context.watch<DebugProvider>().isDebugEnabled)
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: () async {
+                try {
+                  AppLogger.d('Resetting database');
+                  await DatabaseService().resetDatabase();
+                  if (mounted) {
+                    setState(() {
+                      _loadPalettes();
+                    });
+                  }
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Database reset successfully')),
+                    );
+                  }
+                } catch (e) {
+                  AppLogger.e('Error resetting database', error: e);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Error resetting database')),
+                    );
+                  }
                 }
-              } catch (e) {
-                AppLogger.e('Error resetting database', error: e);
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Error resetting database')),
-                  );
-                }
-                return;
-              }
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Database reset successfully')),
-                );
-              }
-            },
-          ),
+              },
+              tooltip: 'Reset Database (Debug)',
+            ),
         ],
       ),
       body: FutureBuilder<List<ColorPalette>>(

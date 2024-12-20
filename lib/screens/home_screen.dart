@@ -94,36 +94,27 @@ class _HomeScreenState extends State<HomeScreen> {
       if (_palette.length < maxColors) {
         _palette.add(color);
       } else {
-        final isPremium = context.read<PremiumService>().isPremium;
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Palette Full'),
             content: Text(
-              isPremium
-                ? 'You have reached the maximum of ${AppConstants.maxPaletteColors} colors in your palette.'
-                : 'You have reached the maximum of ${AppConstants.defaultPaletteSize} colors. '
-                  'Upgrade to premium to add up to ${AppConstants.maxPaletteColors} colors!'
+              'You\'ve reached the maximum of ${AppConstants.defaultPaletteSize} colors. '
+              'Upgrade to premium to add up to ${AppConstants.maxPaletteColors} colors!'
             ),
             actions: [
-              if (!isPremium) ...[
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Maybe Later'),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    Navigator.pop(context);
-                    await context.read<PremiumService>().unlockPremium();
-                    _addColorToPalette(color);
-                  },
-                  child: const Text('Upgrade Now'),
-                ),
-              ] else
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('OK'),
-                ),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Maybe Later'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  Navigator.pop(context);
+                  await context.read<PremiumService>().unlockPremium();
+                  _addColorToPalette(color);
+                },
+                child: const Text('Upgrade Now'),
+              ),
             ],
           ),
         );
@@ -326,16 +317,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               const PopupMenuItem(
-                value: 'add',
-                child: Row(
-                  children: [
-                    Icon(Icons.add),
-                    SizedBox(width: 8),
-                    Text('Add Color'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
                 value: 'import',
                 child: Row(
                   children: [
@@ -484,51 +465,34 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    return Column(
-      children: [
-        if (_palette.isNotEmpty)
-          Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final width = constraints.maxWidth / 2;
-                final height =
-                    constraints.maxHeight / (((_palette.length + 1) ~/ 2));
-                return ReorderableGridView.count(
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisCount: AppConstants.gridColumnCount,
-                  crossAxisSpacing: AppConstants.gridSpacing,
-                  mainAxisSpacing: AppConstants.gridSpacing,
-                  childAspectRatio: width / height,
-                  children: _palette
-                      .asMap()
-                      .map((index, color) {
-                        final hex =
-                            color.value.toRadixString(16).padLeft(8, '0').substring(2);
-                        return MapEntry(
-                          index,
-                          ColorTileWidget(
-                            key: ValueKey(color.value),
-                            color: color,
-                            hex: hex,
-                            onRemoveColor: (color) => _removeColorFromPalette(color),
-                            onEditColor: (newColor) => _editColorInPalette(color, newColor),
-                            paletteSize: _palette.length,
-                          ),
-                        );
-                      })
-                      .values
-                      .toList(),
-                  onReorder: (oldIndex, newIndex) {
-                    setState(() {
-                      final color = _palette.removeAt(oldIndex);
-                      _palette.insert(newIndex, color);
-                    });
-                  },
-                );
-              },
-            ),
-          ),
-      ],
+    return ReorderableGridView.builder(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 1,
+        crossAxisSpacing: 0,
+        mainAxisSpacing: 0,
+      ),
+      itemCount: _palette.length,
+      itemBuilder: (context, index) {
+        final color = _palette[index];
+        return ColorTileWidget(
+          key: ValueKey('${color.value}_$index'),
+          color: color,
+          hex: color.value.toRadixString(16).padLeft(8, '0').substring(2),
+          onRemoveColor: _removeColorFromPalette,
+          onEditColor: (newColor) => _editColorInPalette(color, newColor),
+          paletteSize: _palette.length,
+        );
+      },
+      onReorder: (oldIndex, newIndex) {
+        setState(() {
+          if (oldIndex < newIndex) {
+            newIndex -= 1;
+          }
+          final color = _palette.removeAt(oldIndex);
+          _palette.insert(newIndex, color);
+        });
+      },
     );
   }
 

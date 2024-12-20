@@ -16,60 +16,67 @@ class AppLogger {
   static late Directory _logsDirectory;
   static late Directory _localLogsDirectory;
   static bool _isInitialized = false;
-  static bool _isTestMode = false;
   
   static bool get isInitialized => _isInitialized;
   
-  static const String _localLogsPath = 'debug_logs';
-  static const String _testLogsPath = 'test/debug_logs';
 
   static void enableTestMode() {
-    _isTestMode = true;
   }
 
-  static Future<Directory> get _projectDir async {
-    final currentDir = Directory.current;
-    return currentDir;
+  static Future<String> _getAppLogsDirectory() async {
+    if (Platform.environment.containsKey('FLUTTER_TEST')) {
+      return Directory.systemTemp.path;
+    }
+    
+    try {
+      final appDir = await getApplicationDocumentsDirectory();
+      final logsDir = Directory('${appDir.path}/debug_logs');
+      if (!await logsDir.exists()) {
+        await logsDir.create(recursive: true);
+      }
+      return logsDir.path;
+    } catch (e) {
+      _logger.w('Failed to create primary log directories: $e');
+      return Directory.systemTemp.path;
+    }
+  }
+
+  static Future<String> _getLocalLogsDirectory() async {
+    if (Platform.environment.containsKey('FLUTTER_TEST')) {
+      return Directory.systemTemp.path;
+    }
+    
+    try {
+      final cacheDir = await getTemporaryDirectory();
+      final logsDir = Directory('${cacheDir.path}/app_logs');
+      if (!await logsDir.exists()) {
+        await logsDir.create(recursive: true);
+      }
+      return logsDir.path;
+    } catch (e) {
+      _logger.w('Failed to create local log directories: $e');
+      return Directory.systemTemp.path;
+    }
   }
 
   static Future<void> init() async {
     if (_isInitialized) return;
 
     try {
+      final appLogsDirectory = await _getAppLogsDirectory();
+      final localLogsDirectory = await _getLocalLogsDirectory();
+      
       _startTime = _fileNameFormat.format(DateTime.now());
       final logFileName = 'debug_logs_$_startTime.txt';
-      final projectDir = await _projectDir;
-
-      if (_isTestMode) {
-        _logsDirectory = Directory('${projectDir.path}/$_testLogsPath');
-        _localLogsDirectory = _logsDirectory;
-      } else {
-        if (!kIsWeb && !Platform.isIOS && !Platform.isAndroid) {
-          // For desktop platforms, use project directory
-          _logsDirectory = Directory('${projectDir.path}/$_localLogsPath');
-          _localLogsDirectory = _logsDirectory;
-        } else {
-          // For mobile platforms, use app support directory
-          final appDir = await getApplicationSupportDirectory();
-          _logsDirectory = Directory('${appDir.path}/logs');
-          _localLogsDirectory = Directory('${projectDir.path}/$_localLogsPath');
-        }
-      }
-
-      await _ensureDirectoriesExist();
-
-      _logFile = File('${_logsDirectory.path}/$logFileName');
-      _localLogFile = File('${_localLogsDirectory.path}/$logFileName');
-
-      debugPrint('📁 App logs directory: ${_logsDirectory.path}');
-      debugPrint('📁 Local logs directory: ${_localLogsDirectory.path}');
+      _logFile = File('$appLogsDirectory/$logFileName');
+      _localLogFile = File('$localLogsDirectory/$logFileName');
 
       _logger = Logger(
         printer: SimpleLogPrinter(),
         output: MultiOutput([
           ConsoleOutput(),
           FileOutput(_logFile),
-          if (!_isTestMode) FileOutput(_localLogFile),
+          FileOutput(_localLogFile),
         ]),
       );
 
@@ -78,13 +85,13 @@ class AppLogger {
       final timestamp = _dateFormat.format(DateTime.now());
       final initialMessage = '[$timestamp] ✨ Log file created: $logFileName\n';
       await _logFile.writeAsString(initialMessage, encoding: utf8, flush: true);
-      if (!_isTestMode) {
-        await _localLogFile.writeAsString(initialMessage, encoding: utf8, flush: true);
-      }
+      await _localLogFile.writeAsString(initialMessage, encoding: utf8, flush: true);
       
       await _writeToFiles('✨ Application initialized at $timestamp');
       debugPrint('✅ Logger initialized successfully');
 
+      debugPrint('📁 App logs directory: $appLogsDirectory');
+      debugPrint('📁 Local logs directory: $localLogsDirectory');
     } catch (e, stackTrace) {
       _isInitialized = false;
       debugPrint('❌ Error initializing logger: $e');
@@ -93,27 +100,6 @@ class AppLogger {
     }
   }
 
-  static Future<void> _ensureDirectoriesExist() async {
-    try {
-      if (!_logsDirectory.existsSync()) {
-        await _logsDirectory.create(recursive: true);
-      }
-      if (!_isTestMode && !_localLogsDirectory.existsSync()) {
-        await _localLogsDirectory.create(recursive: true);
-      }
-    } catch (e) {
-      debugPrint('⚠️ Failed to create primary log directories: $e');
-      debugPrint('↪️ Falling back to temporary directory');
-      
-      final tempDir = await getTemporaryDirectory();
-      final fallbackDir = Directory('${tempDir.path}/app_logs');
-      if (!fallbackDir.existsSync()) {
-        await fallbackDir.create(recursive: true);
-      }
-      _logsDirectory = fallbackDir;
-      _localLogsDirectory = fallbackDir;
-    }
-  }
 
   static void _checkInitialized() {
     if (!_isInitialized) {
@@ -130,12 +116,10 @@ class AppLogger {
           mode: FileMode.append, 
           encoding: utf8,
           flush: true);
-      if (!_isTestMode) {
-        await _localLogFile.writeAsString(logMessage, 
-            mode: FileMode.append, 
-            encoding: utf8,
-            flush: true);
-      }
+      await _localLogFile.writeAsString(logMessage, 
+          mode: FileMode.append, 
+          encoding: utf8,
+          flush: true);
     } catch (e, stackTrace) {
       debugPrint('❌ Error writing to log files: $e');
       debugPrint('Stack trace: $stackTrace');

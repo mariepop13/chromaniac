@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'dart:convert';
 import 'dart:io';
+import 'package:chromaniac/utils/logger/app_logger.dart';
 
 void main() {
   late DatabaseService databaseService;
@@ -13,6 +14,9 @@ void main() {
   final dbPath = '.dart_tool/sqflite_common_ffi/databases/color_palettes.db';
 
   setUpAll(() async {
+    // Initialize logger for tests
+    await AppLogger.init();
+    
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
     
