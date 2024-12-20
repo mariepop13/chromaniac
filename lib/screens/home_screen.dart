@@ -465,34 +465,45 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    return ReorderableGridView.builder(
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 1,
-        crossAxisSpacing: 0,
-        mainAxisSpacing: 0,
+    return Expanded(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth / 2;
+          final height = constraints.maxHeight / (((_palette.length + 1) ~/ 2));
+          final aspectRatio = width / height;
+
+          return ReorderableGridView.builder(
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: aspectRatio,
+              crossAxisSpacing: 0,
+              mainAxisSpacing: 0,
+            ),
+            itemCount: _palette.length,
+            itemBuilder: (context, index) {
+              final color = _palette[index];
+              return ColorTileWidget(
+                key: ValueKey('${color.value}_$index'),
+                color: color,
+                hex: color.value.toRadixString(16).padLeft(8, '0').substring(2),
+                onRemoveColor: _removeColorFromPalette,
+                onEditColor: (newColor) => _editColorInPalette(color, newColor),
+                paletteSize: _palette.length,
+              );
+            },
+            onReorder: (oldIndex, newIndex) {
+              setState(() {
+                if (oldIndex < newIndex) {
+                  newIndex -= 1;
+                }
+                final color = _palette.removeAt(oldIndex);
+                _palette.insert(newIndex, color);
+              });
+            },
+          );
+        },
       ),
-      itemCount: _palette.length,
-      itemBuilder: (context, index) {
-        final color = _palette[index];
-        return ColorTileWidget(
-          key: ValueKey('${color.value}_$index'),
-          color: color,
-          hex: color.value.toRadixString(16).padLeft(8, '0').substring(2),
-          onRemoveColor: _removeColorFromPalette,
-          onEditColor: (newColor) => _editColorInPalette(color, newColor),
-          paletteSize: _palette.length,
-        );
-      },
-      onReorder: (oldIndex, newIndex) {
-        setState(() {
-          if (oldIndex < newIndex) {
-            newIndex -= 1;
-          }
-          final color = _palette.removeAt(oldIndex);
-          _palette.insert(newIndex, color);
-        });
-      },
     );
   }
 
