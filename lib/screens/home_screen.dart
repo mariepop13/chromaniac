@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'dart:math';
-import 'package:flutter/foundation.dart';// Add this line
+import 'package:flutter/foundation.dart';
 import 'package:chromaniac/features/color_palette/domain/color_palette_type.dart';
 import 'package:chromaniac/features/color_palette/domain/palette_generator_service.dart';
 import 'package:chromaniac/features/color_palette/presentation/color_tile_widget.dart';
@@ -14,10 +14,11 @@ import 'package:chromaniac/providers/theme_provider.dart';
 import 'package:chromaniac/features/color_palette/presentation/color_picker_dialog.dart';
 import 'package:chromaniac/utils/dialog/dialog_utils.dart';
 import 'package:chromaniac/widgets/color_analysis_button.dart';
+import 'package:chromaniac/screens/favorites/favorites_screen.dart';
 import '../core/constants.dart';
 import '../services/premium_service.dart';
 import '../providers/debug_provider.dart';
-import '../utils/logger/app_logger.dart'; // Import AppLogger
+import '../utils/logger/app_logger.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -52,7 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
         });
       }
     } catch (e) {
-      AppLogger.e('Error picking image', error: e); // Replaced print with AppLogger
+      AppLogger.e('Error picking image', error: e);
       if (mounted) {
         showSnackBar(context, 'Error picking image: $e');
       }
@@ -111,7 +112,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   onPressed: () async {
                     Navigator.pop(context);
                     await context.read<PremiumService>().unlockPremium();
-                    // Try adding the color again after premium is unlocked
                     _addColorToPalette(color);
                   },
                   child: const Text('Upgrade Now'),
@@ -127,7 +127,6 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     });
   }
-
 
   bool isValidHexColor(String hexColor) {
     final hexRegExp = RegExp(r'^#?([0-9a-fA-F]{6}|[0-9a-fA-F]{8})$');
@@ -167,6 +166,18 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('Chromaniac'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.favorite),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const FavoritesScreen(),
+                ),
+              );
+            },
+            tooltip: 'Favorite Colors',
+          ),
           Consumer<PremiumService>(
             builder: (context, premiumService, _) => Row(
               mainAxisSize: MainAxisSize.min,
@@ -304,11 +315,26 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           children: [
             if (_selectedImage != null) ...[
-              Image.file(
-                _selectedImage!,
-                height: AppConstants.colorPreviewHeight,
-                width: double.infinity,
-                fit: BoxFit.cover,
+              Stack(
+                children: [
+                  Image.file(
+                    _selectedImage!,
+                    height: AppConstants.colorPreviewHeight,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
+                  Positioned(
+                    top: AppConstants.smallPadding,
+                    right: AppConstants.smallPadding,
+                    child: IconButton(
+                      icon: const Icon(Icons.close, color: Colors.white),
+                      onPressed: () => setState(() {
+                        _selectedImage = null;
+                        _imageBytes = null;
+                      }),
+                    ),
+                  ),
+                ],
               ),
               Padding(
                 padding: EdgeInsets.all(AppConstants.defaultPadding),
@@ -396,7 +422,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             hex: hex,
                             onRemoveColor: _removeColorFromPalette,
                             onEditColor: (newColor) => _editColorInPalette(
-                                color, newColor), paletteSize: _palette.length, // Ajout du callback
+                                color, newColor),
+                            paletteSize: _palette.length,
                           ),
                         );
                       })

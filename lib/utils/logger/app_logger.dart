@@ -65,13 +65,7 @@ class AppLogger {
       debugPrint('📁 Local logs directory: ${_localLogsDirectory.path}');
 
       _logger = Logger(
-        printer: PrettyPrinter(
-          methodCount: 0,
-          errorMethodCount: 8,
-          lineLength: 120,
-          colors: false,
-          printEmojis: true,
-        ),
+        printer: SimpleLogPrinter(),
         output: MultiOutput([
           ConsoleOutput(),
           FileOutput(_logFile),
@@ -176,6 +170,32 @@ class AppLogger {
   static String get localLogFile => _localLogFile.path;
   static String get logsDirectory => _logsDirectory.path;
   static String get localLogsDirectory => _localLogsDirectory.path;
+}
+
+class SimpleLogPrinter extends LogPrinter {
+  @override
+  List<String> log(LogEvent event) {
+    final List<String> lines = [];
+    
+    // Add the main message
+    lines.add(event.message);
+    
+    // Add error if present
+    if (event.error != null) {
+      lines.add(event.error.toString());
+    }
+    
+    // Add stack trace if present
+    if (event.stackTrace != null) {
+      final frames = event.stackTrace.toString().trim().split('\n')
+        .map((line) => line.replaceAll(RegExp(r'\x1B\[[0-9;]*m'), '')) // Remove ANSI color codes
+        .map((line) => line.trim())
+        .where((line) => line.isNotEmpty);
+      lines.addAll(frames);
+    }
+    
+    return lines;
+  }
 }
 
 class FileOutput extends LogOutput {

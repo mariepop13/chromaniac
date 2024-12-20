@@ -11,7 +11,7 @@ import 'package:chromaniac/features/color_palette/domain/color_palette_type.dart
 import 'package:chromaniac/features/color_palette/domain/palette_generator_service.dart';
 import 'package:chromaniac/services/premium_service.dart';
 import 'package:chromaniac/utils/dialog/dialog_utils.dart';
-import '../home_screen.dart';
+import 'package:chromaniac/screens/home_screen.dart';
 
 class HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
