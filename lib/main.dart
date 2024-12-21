@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'providers/theme_provider.dart';
+import 'providers/settings_provider.dart';
 import 'services/premium_service.dart';
 import 'screens/home_screen.dart';
 import 'utils/config/environment_config.dart';
@@ -18,12 +20,15 @@ Future<void> main() async {
     await EnvironmentConfig.initialize();
     await SupabaseConfig.initialize();
     
+    final prefs = await SharedPreferences.getInstance();
+    
     runApp(
       MultiProvider(
         providers: [
-          ChangeNotifierProvider(create: (_) => ThemeProvider()),
+          ChangeNotifierProvider(create: (_) => ThemeProvider(prefs)),
           ChangeNotifierProvider(create: (_) => PremiumService()),
           ChangeNotifierProvider(create: (_) => DebugProvider()),
+          ChangeNotifierProvider(create: (_) => SettingsProvider(prefs)),
         ],
         child: const ChromaniacApp(),
       ),

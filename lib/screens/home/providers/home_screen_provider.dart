@@ -45,9 +45,10 @@ class HomeScreenProvider extends ChangeNotifier {
     }
   }
 
-  void generateRandomPalette() {
+  void generateRandomPalette(BuildContext context) {
     final baseColor = _generateRandomColor();
     final colors = PaletteGeneratorService.generatePalette(
+      context,
       state.selectedColorPaletteType ?? ColorPaletteType.auto,
       baseColor,
     );

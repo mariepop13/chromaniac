@@ -29,10 +29,6 @@ class AppBottomNav extends StatelessWidget {
           icon: Icon(Icons.shuffle),
           label: 'Generate',
         ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.settings),
-          label: 'Settings',
-        ),
       ],
     );
   }
