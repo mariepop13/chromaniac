@@ -3,7 +3,6 @@ import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 
 class SpeedDialFab extends StatelessWidget {
   final VoidCallback onAddColor;
-  final VoidCallback onGeneratePalette;
   final VoidCallback onImportImage;
   final VoidCallback onClearAll;
   final VoidCallback onSavePalette;
@@ -13,7 +12,6 @@ class SpeedDialFab extends StatelessWidget {
   const SpeedDialFab({
     super.key,
     required this.onAddColor,
-    required this.onGeneratePalette,
     required this.onImportImage,
     required this.onClearAll,
     required this.onSavePalette,
@@ -36,13 +34,6 @@ class SpeedDialFab extends StatelessWidget {
           foregroundColor: Colors.white,
           label: 'Add Color',
           onTap: onAddColor,
-        ),
-        SpeedDialChild(
-          child: const Icon(Icons.shuffle),
-          backgroundColor: Colors.green,
-          foregroundColor: Colors.white,
-          label: 'Generate Palette',
-          onTap: onGeneratePalette,
         ),
         SpeedDialChild(
           child: const Icon(Icons.image),

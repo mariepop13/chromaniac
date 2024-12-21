@@ -24,6 +24,8 @@ import 'package:uuid/uuid.dart';
 import '../services/database_service.dart';
 import 'package:chromaniac/widgets/app_bottom_nav.dart';
 import 'package:chromaniac/widgets/speed_dial_fab.dart';
+import '../providers/settings_provider.dart';
+import 'home/dialogs/palette_size_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -70,7 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final paletteGenerator = await PaletteGenerator.fromImageProvider(
       FileImage(_selectedImage!),
-      maximumColorCount: AppConstants.defaultPaletteSize,
+      maximumColorCount: context.read<SettingsProvider>().defaultPaletteSize,
     );
 
     setState(() {
@@ -91,7 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       final maxColors = context.read<PremiumService>().isPremium 
           ? AppConstants.maxPaletteColors 
-          : AppConstants.defaultPaletteSize;
+          : context.read<SettingsProvider>().defaultPaletteSize;
           
       if (_palette.length < maxColors) {
         _palette.add(color);
@@ -101,7 +103,7 @@ class _HomeScreenState extends State<HomeScreen> {
           builder: (context) => AlertDialog(
             title: const Text('Palette Full'),
             content: Text(
-              'You\'ve reached the maximum of ${AppConstants.defaultPaletteSize} colors. '
+              'You\'ve reached the maximum of ${context.read<SettingsProvider>().defaultPaletteSize} colors. '
               'Upgrade to premium to add up to ${AppConstants.maxPaletteColors} colors!'
             ),
             actions: [
@@ -138,6 +140,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _palette.clear();
       _palette.addAll(PaletteGeneratorService.generatePalette(
+        context,
         selectedColorPaletteType ?? ColorPaletteType.auto,
         _generateRandomColor(),
       ));
@@ -236,8 +239,11 @@ class _HomeScreenState extends State<HomeScreen> {
           onSelected: (value) async {
             switch (value) {
               case 'theme':
-                Provider.of<ThemeProvider>(context, listen: false)
+                await Provider.of<ThemeProvider>(context, listen: false)
                     .toggleTheme(!Provider.of<ThemeProvider>(context, listen: false).isDarkMode);
+                break;
+              case 'settings':
+                _showSettingsDialog(context);
                 break;
             }
           },
@@ -256,6 +262,16 @@ class _HomeScreenState extends State<HomeScreen> {
                         : 'Light Mode'),
                   ],
                 ),
+              ),
+            ),
+            const PopupMenuItem(
+              value: 'settings',
+              child: Row(
+                children: [
+                  Icon(Icons.settings),
+                  SizedBox(width: 8),
+                  Text('Settings'),
+                ],
               ),
             ),
           ],
@@ -356,10 +372,7 @@ class _HomeScreenState extends State<HomeScreen> {
               );
               break;
             case 2:
-              _showPaletteOptionsDialog(context);
-              break;
-            case 3:
-              // TODO: Implement settings screen
+              _generateRandomPalette();
               break;
           }
         },
@@ -367,7 +380,6 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButton: Consumer<DebugProvider>(
         builder: (context, debugProvider, child) => SpeedDialFab(
           onAddColor: _showColorPickerDialog,
-          onGeneratePalette: () => _showPaletteOptionsDialog(context),
           onImportImage: () async {
             await _pickImage();
             if (_selectedImage != null) {
@@ -487,6 +499,47 @@ class _HomeScreenState extends State<HomeScreen> {
         initialColor: Colors.blue,
         onColorSelected: _addColorToPalette,
         currentPaletteSize: _palette.length,
+      ),
+    );
+  }
+
+  void _showSettingsDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Settings'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.palette),
+              title: const Text('Default Palette Size'),
+              subtitle: Text('${context.watch<SettingsProvider>().defaultPaletteSize} colors'),
+              onTap: () {
+                Navigator.pop(context);
+                showDialog(
+                  context: context,
+                  builder: (context) => const PaletteSizeDialog(),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.color_lens),
+              title: const Text('Default Palette Type'),
+              subtitle: Text(selectedColorPaletteType?.toString().split('.').last ?? 'Auto'),
+              onTap: () {
+                Navigator.pop(context);
+                _showPaletteOptionsDialog(context);
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
       ),
     );
   }

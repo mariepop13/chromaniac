@@ -43,7 +43,7 @@ class PaletteMenu extends StatelessWidget {
             onClear();
             break;
           case 'theme':
-            Provider.of<ThemeProvider>(context, listen: false)
+            await Provider.of<ThemeProvider>(context, listen: false)
                 .toggleTheme(!Provider.of<ThemeProvider>(context, listen: false).isDarkMode);
             break;
         }

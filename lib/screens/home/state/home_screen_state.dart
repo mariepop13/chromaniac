@@ -26,7 +26,7 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    generateRandomPalette();
+    generateRandomPalette(context);
   }
 
   Future<void> pickImage() async {
@@ -113,10 +113,11 @@ class HomeScreenState extends State<HomeScreen> {
     return Color((random.nextDouble() * 0xFFFFFF).toInt()).withOpacity(1.0);
   }
 
-  void generateRandomPalette() {
+  void generateRandomPalette(BuildContext context) {
     setState(() {
       palette.clear();
       palette.addAll(PaletteGeneratorService.generatePalette(
+        context,
         selectedColorPaletteType ?? ColorPaletteType.auto,
         generateRandomColor(),
       ));

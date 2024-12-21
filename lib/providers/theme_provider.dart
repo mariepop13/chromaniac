@@ -1,16 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../core/constants.dart';
 
 class ThemeProvider with ChangeNotifier {
-  bool _isDarkMode = false;
+  static const String themeKey = 'isDarkMode';
+  final SharedPreferences _prefs;
+  late bool _isDarkMode;
+
+  ThemeProvider(this._prefs) {
+    _isDarkMode = _prefs.getBool(themeKey) ?? false;
+  }
 
   bool get isDarkMode => _isDarkMode;
 
   ThemeData get themeData => _isDarkMode ? _darkTheme : _lightTheme;
 
-  void toggleTheme(bool isDarkMode) {
+  Future<void> toggleTheme(bool isDarkMode) async {
     _isDarkMode = isDarkMode;
+    await _prefs.setBool(themeKey, isDarkMode);
     notifyListeners();
   }
 
