@@ -84,7 +84,7 @@ class OpenRouterService {
     };
 
     final body = jsonEncode({
-      'model': 'google/gemini-flash-1.5',
+      'model': 'google/gemini-2.0-flash-exp:free',
       'messages': [
         {
           'role': 'system',
