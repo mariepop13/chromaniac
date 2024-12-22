@@ -15,6 +15,15 @@ class AppConstants {
   static const double buttonVerticalPadding = 12.0;
   static const double buttonHorizontalPadding = 16.0;
 
+  // Dialog related
+  static const double dialogBorderRadius = 12.0;
+  static const double dialogPadding = 16.0;
+  static const double dialogMaxHeight = 400.0;
+  static const double colorPreviewSize = 40.0;
+  static const double colorPreviewBorderRadius = 8.0;
+  static const double spacingSmall = 8.0;
+  static const double spacingMedium = 16.0;
+
   // Grid layout
   static const int gridColumnCount = 2;
   static const double gridSpacing = 0.0;
