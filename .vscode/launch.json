@@ -28,6 +28,13 @@
             "deviceId": "00008101-001544420104001E"
         },
         {
+            "name": "chromaniac (iPhone release)",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "00008101-001544420104001E",
+            "flutterMode": "release"
+        },
+        {
             "name": "chromaniac (iPad)",
             "request": "launch",
             "type": "dart",
