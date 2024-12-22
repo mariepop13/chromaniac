@@ -324,12 +324,18 @@ class _HomeScreenState extends State<HomeScreen> {
                   Positioned(
                     top: AppConstants.smallPadding,
                     right: AppConstants.smallPadding,
-                    child: IconButton(
-                      icon: const Icon(Icons.close, color: Colors.white),
-                      onPressed: () => setState(() {
-                        _selectedImage = null;
-                        _imageBytes = null;
-                      }),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.3),
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.close, color: Colors.white),
+                        onPressed: () => setState(() {
+                          _selectedImage = null;
+                          _imageBytes = null;
+                        }),
+                      ),
                     ),
                   ),
                 ],
@@ -340,9 +346,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   imageBytes: _imageBytes,
                   onAnalysisComplete: (result) {
                     setState(() {
-                      if (context.read<DebugProvider>().isDebugEnabled) {
-                        _palette.clear();
-                      }
+                      _palette.clear();
                       _palette.addAll(
                         result.colorAnalysis.map((colorData) {
                           final hexCode = colorData['hexCode'] as String;
