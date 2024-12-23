@@ -29,9 +29,9 @@ class AppConstants {
   static const double gridSpacing = 0.0;
 
   // API related
-  static const int maxApiRetries = 2;
-  static const int maxTokens = 500;
-  static const double temperature = 0.7;
+  static const int maxApiRetries = 3;
+  static const int maxTokens = 1000;
+  static const double temperature = 0.3;
 }
 
 /// Theme-related constants

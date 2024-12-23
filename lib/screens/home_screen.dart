@@ -80,7 +80,6 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-
   void _addColorToPalette(Color color) {
     _addColorsToPalette([color]);
   }
@@ -201,9 +200,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           TextButton(
             onPressed: () async {
-              // Pop the dialog first
               Navigator.pop(dialogContext);
-              
               try {
                 AppLogger.d('Saving palette with name: ${textController.text}');
                 final now = DateTime.now();
@@ -258,16 +255,40 @@ class _HomeScreenState extends State<HomeScreen> {
                 image: _state.selectedImage!,
                 imageBytes: _state.imageBytes!,
                 onAnalysisComplete: (result) {
-                  setState(() {
-                    _state.clearPalette();
-                    _state.addColors(
-                      result.colorAnalysis.map((colorData) {
-                        final hexCode = colorData['hexCode'] as String;
-                        final hex = hexCode.startsWith('#') ? hexCode.substring(1) : hexCode;
-                        return Color(int.parse('FF$hex', radix: 16));
-                      }).toList(),
-                    );
-                  });
+                  try {
+                    setState(() {
+                      _state.clearPalette();
+                      final colors = result.colorAnalysis.map((colorData) {
+                        try {
+                          final hexCode = colorData['hexCode'] as String;
+                          if (!isValidHexColor(hexCode)) {
+                            AppLogger.w('Invalid hex color: $hexCode');
+                            return Colors.grey;
+                          }
+                          final hex = hexCode.replaceAll('#', '');
+                          return Color(int.parse('FF$hex', radix: 16));
+                        } catch (e) {
+                          AppLogger.e('Error parsing color: $colorData', error: e);
+                          return Colors.grey;
+                        }
+                      }).toList();
+                      
+                      AppLogger.d('Converting colors: ${result.colorAnalysis}');
+                      AppLogger.d('Converted to Flutter colors: $colors');
+                      
+                      _state.addColors(colors);
+                    });
+                  } catch (e, stackTrace) {
+                    AppLogger.e('Error processing color analysis', error: e, stackTrace: stackTrace);
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Error processing colors. Please try again.'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  }
                 },
               ),
             HomeContent(

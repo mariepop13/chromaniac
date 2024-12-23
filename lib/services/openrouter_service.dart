@@ -84,7 +84,7 @@ class OpenRouterService {
     };
 
     final body = jsonEncode({
-      'model': 'google/gemini-2.0-flash-exp:free',
+      'model': 'openai/gpt-4o-mini',
       'messages': [
         {
           'role': 'system',
@@ -210,8 +210,9 @@ class OpenRouterService {
       if (e.toString().contains('Invalid response data structure')) {
         rethrow;
       }
-      AppLogger.e('Failed to process API response: ${e.toString()}');
-      throw Exception('Failed to process API response: ${e.toString()}');
+      final errorMsg = 'Failed to process API response: ${e.toString()}';
+      AppLogger.e(errorMsg, error: e, stackTrace: StackTrace.current);
+      throw Exception('$errorMsg. Please check debug logs for details.');
     }
   }
 

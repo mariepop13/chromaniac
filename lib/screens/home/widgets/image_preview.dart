@@ -3,11 +3,12 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:chromaniac/core/constants.dart';
 import 'package:chromaniac/widgets/color_analysis_button.dart';
+import 'package:chromaniac/utils/color/image_color_analyzer.dart';
 
 class ImagePreview extends StatelessWidget {
   final File image;
   final Uint8List imageBytes;
-  final Function(dynamic) onAnalysisComplete;
+  final Function(ColorAnalysisResult) onAnalysisComplete;
 
   const ImagePreview({
     super.key,

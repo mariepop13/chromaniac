@@ -30,8 +30,12 @@ class HomeScreenState {
     palette.clear();
   }
   
-  void addColors(List<Color> colors) {
-    palette.addAll(colors);
+  void addColors(List<dynamic> colors) {
+    final List<Color> colorList = colors.map((c) {
+      if (c is Color) return c;
+      throw ArgumentError('Invalid color type: ${c.runtimeType}');
+    }).toList();
+    palette.addAll(colorList);
   }
   
   void removeColor(Color color) {
