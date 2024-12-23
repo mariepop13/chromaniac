@@ -29,7 +29,11 @@ class ColorPalette {
     return {
       'id': id,
       'name': name,
-      'colors': colors.map((c) => c.value.toRadixString(16).padLeft(8, '0')).toList(),
+      'colors': colors.map((c) => 
+        ((((c.a * 255).round() << 24) |
+          ((c.r * 255).round() << 16) |
+          ((c.g * 255).round() << 8) |
+          (c.b * 255).round())).toRadixString(16).padLeft(8, '0')).toList(),
       'user_id': userId,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),

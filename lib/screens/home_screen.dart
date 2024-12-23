@@ -133,7 +133,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Color _generateRandomColor() {
     final random = Random();
-    return Color((random.nextDouble() * 0xFFFFFF).toInt()).withOpacity(1.0);
+    return Color.from(
+      alpha: 1.0,
+      red: random.nextDouble(),
+      green: random.nextDouble(),
+      blue: random.nextDouble(),
+    );
   }
 
   void _generateRandomPalette() {
@@ -326,7 +331,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     right: AppConstants.smallPadding,
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.3),
+                        color: Colors.black.withValues(alpha: 0.3),
                         shape: BoxShape.circle,
                       ),
                       child: IconButton(
@@ -425,9 +430,9 @@ class _HomeScreenState extends State<HomeScreen> {
             itemBuilder: (context, index) {
               final color = _palette[index];
               return ColorTileWidget(
-                key: ValueKey('${color.value}_$index'),
+                key: ValueKey('${((color.a * 255).round() << 24) | ((color.r * 255).round() << 16) | ((color.g * 255).round() << 8) | (color.b * 255).round()}_$index'),
                 color: color,
-                hex: color.value.toRadixString(16).padLeft(8, '0').substring(2),
+                hex: ((((color.r * 255).round() << 16) | ((color.g * 255).round() << 8) | (color.b * 255).round())).toRadixString(16).padLeft(6, '0'),
                 onRemoveColor: _removeColorFromPalette,
                 onEditColor: (newColor) => _editColorInPalette(color, newColor),
                 paletteSize: _palette.length,

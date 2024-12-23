@@ -61,7 +61,13 @@ class HomeScreenProvider extends ChangeNotifier {
   }
 
   Color _generateRandomColor() {
-    return Color((DateTime.now().millisecondsSinceEpoch & 0xFFFFFF).toInt()).withOpacity(1.0);
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    return Color.from(
+      alpha: 1.0,
+      red: ((timestamp >> 16) & 0xFF) / 255.0,
+      green: ((timestamp >> 8) & 0xFF) / 255.0,
+      blue: (timestamp & 0xFF) / 255.0,
+    );
   }
 
   void setColorPaletteType(ColorPaletteType type) {
@@ -77,10 +83,28 @@ class HomeScreenProvider extends ChangeNotifier {
   Future<void> toggleFavorite(Color color) async {
     try {
       final favorites = await _databaseService.getFavoriteColors();
-      final isFavorite = favorites.any((f) => f.color.value == color.value);
+      final colorInt = ((color.a * 255).round() << 24) |
+                      ((color.r * 255).round() << 16) |
+                      ((color.g * 255).round() << 8) |
+                      (color.b * 255).round();
+      final isFavorite = favorites.any((f) => 
+        ((f.color.a * 255).round() << 24) |
+        ((f.color.r * 255).round() << 16) |
+        ((f.color.g * 255).round() << 8) |
+        (f.color.b * 255).round() == colorInt
+      );
 
       if (isFavorite) {
-        final favorite = favorites.firstWhere((f) => f.color.value == color.value);
+        final colorInt = ((color.a * 255).round() << 24) |
+                        ((color.r * 255).round() << 16) |
+                        ((color.g * 255).round() << 8) |
+                        (color.b * 255).round();
+        final favorite = favorites.firstWhere((f) => 
+          ((f.color.a * 255).round() << 24) |
+          ((f.color.r * 255).round() << 16) |
+          ((f.color.g * 255).round() << 8) |
+          (f.color.b * 255).round() == colorInt
+        );
         await _databaseService.removeFavoriteColor(favorite.id);
       } else {
         await _databaseService.addFavoriteColor(color);
@@ -94,7 +118,16 @@ class HomeScreenProvider extends ChangeNotifier {
   Future<bool> isFavoriteColor(Color color) async {
     try {
       final favorites = await _databaseService.getFavoriteColors();
-      return favorites.any((f) => f.color.value == color.value);
+      final colorInt = ((color.a * 255).round() << 24) |
+                      ((color.r * 255).round() << 16) |
+                      ((color.g * 255).round() << 8) |
+                      (color.b * 255).round();
+      return favorites.any((f) => 
+        ((f.color.a * 255).round() << 24) |
+        ((f.color.r * 255).round() << 16) |
+        ((f.color.g * 255).round() << 8) |
+        (f.color.b * 255).round() == colorInt
+      );
     } catch (e) {
       debugPrint('Error checking favorite status: $e');
       return false;

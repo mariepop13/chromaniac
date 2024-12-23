@@ -70,6 +70,21 @@ class _PaletteDetailsScreenState extends State<PaletteDetailsScreen> {
     });
   }
 
+  String _getColorKey(Color color, int index) {
+    final colorInt = ((color.a * 255).round() << 24) |
+                    ((color.r * 255).round() << 16) |
+                    ((color.g * 255).round() << 8) |
+                    (color.b * 255).round();
+    return 'color_${colorInt}_$index';
+  }
+
+  String _getHexString(Color color) {
+    final rgbInt = ((color.r * 255).round() << 16) |
+                  ((color.g * 255).round() << 8) |
+                  (color.b * 255).round();
+    return rgbInt.toRadixString(16).padLeft(6, '0');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -113,9 +128,9 @@ class _PaletteDetailsScreenState extends State<PaletteDetailsScreen> {
               itemBuilder: (context, index) {
                 final color = _colors[index];
                 return ColorTileWidget(
-                  key: ValueKey('${color.value}-$index'),
+                  key: ValueKey(_getColorKey(color, index)),
                   color: color,
-                  hex: color.value.toRadixString(16).padLeft(8, '0').substring(2),
+                  hex: _getHexString(color),
                   onRemoveColor: (_) => _removeColor(index),
                   onEditColor: (newColor) => _editColor(index, newColor),
                   paletteSize: _colors.length,
