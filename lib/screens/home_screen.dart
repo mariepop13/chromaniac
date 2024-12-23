@@ -5,6 +5,8 @@ import 'package:flutter/foundation.dart';
 import 'package:chromaniac/features/color_palette/domain/color_palette_type.dart';
 import 'package:chromaniac/features/color_palette/domain/palette_generator_service.dart';
 import 'package:chromaniac/features/color_palette/presentation/color_tile_widget.dart';
+import 'package:chromaniac/features/color_palette/presentation/harmony_preview_widget.dart';
+import 'package:chromaniac/utils/color/harmony_generator.dart';
 import 'package:chromaniac/utils/color/export_palette.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -90,40 +92,55 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _addColorToPalette(Color color) {
+    _addColorsToPalette([color]);
+  }
+
+  void _addColorsToPalette(List<Color> colors) {
     setState(() {
-      final maxColors = context.read<PremiumService>().isPremium 
-          ? AppConstants.maxPaletteColors 
+      final maxColors = context.read<PremiumService>().isPremium
+          ? AppConstants.maxPaletteColors
           : context.read<SettingsProvider>().defaultPaletteSize;
-          
-      if (_palette.length < maxColors) {
-        _palette.add(color);
+      
+      final remainingSpace = maxColors - _palette.length;
+      
+      if (remainingSpace > 0) {
+        final colorsToAdd = colors.take(remainingSpace).toList();
+        _palette.addAll(colorsToAdd);
+        
+        if (colors.length > remainingSpace) {
+          _showPaletteLimitDialog();
+        }
       } else {
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Palette Full'),
-            content: Text(
-              'You\'ve reached the maximum of ${context.read<SettingsProvider>().defaultPaletteSize} colors. '
-              'Upgrade to premium to add up to ${AppConstants.maxPaletteColors} colors!'
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Maybe Later'),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  Navigator.pop(context);
-                  await context.read<PremiumService>().unlockPremium();
-                  _addColorToPalette(color);
-                },
-                child: const Text('Upgrade Now'),
-              ),
-            ],
-          ),
-        );
+        _showPaletteLimitDialog();
       }
     });
+  }
+
+  void _showPaletteLimitDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Palette Full'),
+        content: Text(
+          'You\'ve reached the maximum of ${context.read<SettingsProvider>().defaultPaletteSize} colors. '
+          'Upgrade to premium to add up to ${AppConstants.maxPaletteColors} colors!'
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Maybe Later'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await context.read<PremiumService>().unlockPremium();
+              _generateRandomPalette();
+            },
+            child: const Text('Upgrade Now'),
+          ),
+        ],
+      ),
+    );
   }
 
   bool isValidHexColor(String hexColor) {
@@ -437,6 +454,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 onRemoveColor: _removeColorFromPalette,
                 onEditColor: (newColor) => _editColorInPalette(color, newColor),
                 paletteSize: _palette.length,
+                onAddHarmonyColors: _addColorsToPalette,
               );
             },
             onReorder: (oldIndex, newIndex) {
@@ -455,40 +473,77 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showPaletteOptionsDialog(BuildContext context) {
+    Color previewBaseColor = _generateRandomColor();
+    List<Color> previewColors = [];
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Palette Options'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            DropdownButton<ColorPaletteType>(
-              value: selectedColorPaletteType,
-              onChanged: (newValue) {
-                if (newValue != null) {
-                  setState(() => selectedColorPaletteType = newValue);
-                }
-              },
-              items: ColorPaletteType.values.map((type) {
-                return DropdownMenuItem(
-                  value: type,
-                  child: Text(type.toString().split('.').last),
-                );
-              }).toList(),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          HarmonyType selectedHarmonyType = HarmonyType.values.firstWhere(
+            (type) => type.toString().split('.').last == selectedColorPaletteType.toString().split('.').last,
+            orElse: () => HarmonyType.monochromatic,
+          );
+          previewColors = HarmonyGenerator.generateHarmony(previewBaseColor, selectedHarmonyType);
+
+          return AlertDialog(
+            title: const Text('Palette Options'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                DropdownButton<ColorPaletteType>(
+                  value: selectedColorPaletteType,
+                  onChanged: (newValue) {
+                    if (newValue != null) {
+                      setState(() {
+                        selectedColorPaletteType = newValue;
+                        previewBaseColor = _generateRandomColor();
+                      });
+                    }
+                  },
+                  items: ColorPaletteType.values.map((type) {
+                    return DropdownMenuItem(
+                      value: type,
+                      child: Text(type.toString().split('.').last),
+                    );
+                  }).toList(),
+                ),
+                if (selectedColorPaletteType != ColorPaletteType.auto) ...[
+                  const SizedBox(height: AppConstants.defaultPadding),
+                  HarmonyPreviewWidget(colors: previewColors),
+                  const SizedBox(height: AppConstants.defaultPadding),
+                ],
+                Wrap(
+                  alignment: WrapAlignment.spaceEvenly,
+                  spacing: 8,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          previewBaseColor = _generateRandomColor();
+                        });
+                      },
+                      child: const Text('New Colors'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        _generateRandomPalette();
+                      },
+                      child: const Text('Generate'),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            const SizedBox(height: AppConstants.defaultPadding),
-            ElevatedButton(
-              onPressed: _generateRandomPalette,
-              child: const Text('Generate New Palette'),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Done'),
-          ),
-        ],
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

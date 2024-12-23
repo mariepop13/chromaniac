@@ -1,5 +1,6 @@
 import 'package:chromaniac/core/constants.dart';
 import 'package:chromaniac/features/color_palette/presentation/color_picker_dialog.dart';
+import 'package:chromaniac/features/color_palette/presentation/harmony_picker_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:chromaniac/utils/dialog/dialog_utils.dart';
@@ -12,6 +13,7 @@ class ColorTileWidget extends StatelessWidget {
   final int paletteSize;
   final Function(Color)? onFavoriteColor;
   final bool isFavorite;
+  final Function(List<Color>)? onAddHarmonyColors;
 
   const ColorTileWidget({
     super.key,
@@ -22,6 +24,7 @@ class ColorTileWidget extends StatelessWidget {
     required this.paletteSize,
     this.onFavoriteColor,
     this.isFavorite = false,
+    this.onAddHarmonyColors,
   });
 
   @override
@@ -79,6 +82,12 @@ class ColorTileWidget extends StatelessWidget {
                             onTap: () => showDelayedDialog(context, 
                               (ctx) => _showColorPickerDialog(ctx, color)),
                           ),
+                          if (onAddHarmonyColors != null)
+                            PopupMenuItem(
+                              child: const Text('Generate Harmony'),
+                              onTap: () => showDelayedDialog(context,
+                                (ctx) => _showHarmonyPickerDialog(ctx)),
+                            ),
                           PopupMenuItem(
                             child: const Text('Copy Hex'),
                             onTap: () {
@@ -113,6 +122,18 @@ class ColorTileWidget extends StatelessWidget {
         onColorSelected: onEditColor,
         currentPaletteSize: paletteSize,
         isEditing: true,
+      ),
+    );
+  }
+
+  void _showHarmonyPickerDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => HarmonyPickerDialog(
+        baseColor: color,
+        onHarmonySelected: onAddHarmonyColors!,
+        showAutoOption: false,
+        currentPaletteSize: paletteSize,
       ),
     );
   }
