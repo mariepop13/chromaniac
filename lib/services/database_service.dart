@@ -309,7 +309,10 @@ class DatabaseService {
         'favorites',
         {
           'id': id,
-          'color': color.value,
+          'color': ((((color.a * 255).round() << 24) |
+                    ((color.r * 255).round() << 16) |
+                    ((color.g * 255).round() << 8) |
+                    (color.b * 255).round())),
           'user_id': userId,
           'created_at': DateTime.now().toIso8601String(),
           'name': name,

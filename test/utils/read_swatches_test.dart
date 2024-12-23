@@ -8,9 +8,9 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('ReadSwatches', () {
     final standardTestPalette = [
-      const Color(0xFFFF0000),
-      const Color(0xFF00FF00),
-      const Color(0xFF0000FF),
+      Color.from(alpha: 1.0, red: 1.0, green: 0.0, blue: 0.0), // Red
+      Color.from(alpha: 1.0, red: 0.0, green: 1.0, blue: 0.0), // Green
+      Color.from(alpha: 1.0, red: 0.0, green: 0.0, blue: 1.0), // Blue
     ];
 
     group('ReadSwatchesFile', () {
@@ -86,9 +86,9 @@ void main() {
           final exportedColor = result['colors'][i][0];
           final colorSpace = result['colors'][i][1];
           
-          expect(exportedColor[0], equals(originalColor.red.toDouble()));
-          expect(exportedColor[1], equals(originalColor.green.toDouble()));
-          expect(exportedColor[2], equals(originalColor.blue.toDouble()));
+          expect(exportedColor[0], equals(originalColor.r * 255));
+          expect(exportedColor[1], equals(originalColor.g * 255));
+          expect(exportedColor[2], equals(originalColor.b * 255));
           expect(colorSpace, equals('rgb'));
         }
       });

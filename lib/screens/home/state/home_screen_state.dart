@@ -110,7 +110,12 @@ class HomeScreenState extends State<HomeScreen> {
 
   Color generateRandomColor() {
     final random = Random();
-    return Color((random.nextDouble() * 0xFFFFFF).toInt()).withOpacity(1.0);
+    return Color.from(
+      alpha: 1.0,
+      red: random.nextDouble(),
+      green: random.nextDouble(),
+      blue: random.nextDouble(),
+    );
   }
 
   void generateRandomPalette(BuildContext context) {
@@ -153,7 +158,11 @@ class HomeScreenState extends State<HomeScreen> {
       );
       
       AppLogger.d('Saving palette: ${colorPalette.name}');
-      AppLogger.d('Colors: ${colorPalette.colors.map((c) => c.value.toRadixString(16)).join(', ')}');
+      AppLogger.d('Colors: ${colorPalette.colors.map((c) => 
+        ((((c.r * 255).round() << 16) | 
+          ((c.g * 255).round() << 8) | 
+          (c.b * 255).round())).toRadixString(16).padLeft(6, '0')
+      ).join(', ')}');
       
       await DatabaseService().savePalette(colorPalette);
       

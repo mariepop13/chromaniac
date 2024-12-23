@@ -24,8 +24,7 @@ class PaletteGeneratorService {
       case ColorPaletteType.square:
         return _generateSquarePalette(color, defaultSize);
       case ColorPaletteType.auto:
-      default:
-        return _generateAutoPalette(color, defaultSize);
+      return _generateAutoPalette(color, defaultSize);
     }
   }
 
@@ -33,7 +32,12 @@ class PaletteGeneratorService {
     final step = 1.0 / size;
     return List.generate(
       size,
-      (index) => color.withOpacity(1.0 - (index * step)),
+      (index) => Color.from(
+        alpha: 1.0 - (index * step),
+        red: color.r,
+        green: color.g,
+        blue: color.b,
+      ),
     );
   }
 
@@ -125,7 +129,12 @@ class PaletteGeneratorService {
     final random = Random();
     return List.generate(
       size,
-      (_) => Color((random.nextDouble() * 0xFFFFFF).toInt()).withOpacity(1.0),
+      (_) => Color.from(
+        alpha: 1.0,
+        red: random.nextDouble(),
+        green: random.nextDouble(),
+        blue: random.nextDouble(),
+      ),
     );
   }
 
