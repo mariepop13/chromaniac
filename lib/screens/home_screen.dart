@@ -331,7 +331,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     right: AppConstants.smallPadding,
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.3),
+                        color: Colors.black.withOpacity(0.3),
                         shape: BoxShape.circle,
                       ),
                       child: IconButton(
@@ -351,6 +351,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   imageBytes: _imageBytes,
                   onAnalysisComplete: (result) {
                     setState(() {
+                      _palette.clear();
                       _palette.clear();
                       _palette.addAll(
                         result.colorAnalysis.map((colorData) {
