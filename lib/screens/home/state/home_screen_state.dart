@@ -12,16 +12,58 @@ import 'package:chromaniac/features/color_palette/domain/color_palette_type.dart
 import 'package:chromaniac/features/color_palette/domain/palette_generator_service.dart';
 import 'package:chromaniac/services/premium_service.dart';
 import 'package:chromaniac/utils/dialog/dialog_utils.dart';
-import 'package:chromaniac/screens/home_screen.dart';
 import 'package:chromaniac/services/database_service.dart';
 import 'package:uuid/uuid.dart';
 
-class HomeScreenState extends State<HomeScreen> {
-  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
-  final List<Color> palette = [];
+class HomeScreenState {
+  List<Color> palette = [];
   ColorPaletteType? selectedColorPaletteType = ColorPaletteType.auto;
   File? selectedImage;
   Uint8List? imageBytes;
+  
+  void clearImage() {
+    selectedImage = null;
+    imageBytes = null;
+  }
+  
+  void clearPalette() {
+    palette.clear();
+  }
+  
+  void addColors(List<Color> colors) {
+    palette.addAll(colors);
+  }
+  
+  void removeColor(Color color) {
+    palette.remove(color);
+  }
+  
+  void reorderColors(int oldIndex, int newIndex) {
+    if (oldIndex < newIndex) {
+      newIndex -= 1;
+    }
+    final color = palette.removeAt(oldIndex);
+    palette.insert(newIndex, color);
+  }
+  
+  void updateColor(Color oldColor, Color newColor) {
+    final index = palette.indexOf(oldColor);
+    if (index != -1) {
+      palette[index] = newColor;
+    }
+  }
+}
+
+class HomeScreenStateWidget extends StatefulWidget {
+  const HomeScreenStateWidget({super.key});
+
+  @override
+  State<HomeScreenStateWidget> createState() => HomeScreenStateWidgetState();
+}
+
+class HomeScreenStateWidgetState extends State<HomeScreenStateWidget> {
+  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+  final HomeScreenState homeScreenState = HomeScreenState();
 
   @override
   void initState() {
@@ -37,8 +79,8 @@ class HomeScreenState extends State<HomeScreen> {
       if (pickedFile != null) {
         final bytes = await pickedFile.readAsBytes();
         setState(() {
-          selectedImage = File(pickedFile.path);
-          imageBytes = bytes;
+          homeScreenState.selectedImage = File(pickedFile.path);
+          homeScreenState.imageBytes = bytes;
         });
       }
     } catch (e) {
@@ -50,23 +92,23 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> generatePaletteFromImage() async {
-    if (selectedImage == null) return;
+    if (homeScreenState.selectedImage == null) return;
 
     final paletteGenerator = await PaletteGenerator.fromImageProvider(
-      FileImage(selectedImage!),
+      FileImage(homeScreenState.selectedImage!),
       maximumColorCount: AppConstants.defaultPaletteSize,
     );
 
     setState(() {
-      palette.clear();
-      palette.addAll(paletteGenerator.colors);
+      homeScreenState.clearPalette();
+      homeScreenState.addColors(paletteGenerator.colors.toList());
     });
   }
 
   void removeColorFromPalette(Color color) {
-    if (palette.contains(color)) {
+    if (homeScreenState.palette.contains(color)) {
       setState(() {
-        palette.remove(color);
+        homeScreenState.removeColor(color);
       });
     }
   }
@@ -77,8 +119,8 @@ class HomeScreenState extends State<HomeScreen> {
           ? AppConstants.maxPaletteColors 
           : AppConstants.defaultPaletteSize;
           
-      if (palette.length < maxColors) {
-        palette.add(color);
+      if (homeScreenState.palette.length < maxColors) {
+        homeScreenState.addColors([color]);
       } else {
         showDialog(
           context: context,
@@ -120,10 +162,10 @@ class HomeScreenState extends State<HomeScreen> {
 
   void generateRandomPalette(BuildContext context) {
     setState(() {
-      palette.clear();
-      palette.addAll(PaletteGeneratorService.generatePalette(
+      homeScreenState.clearPalette();
+      homeScreenState.addColors(PaletteGeneratorService.generatePalette(
         context,
-        selectedColorPaletteType ?? ColorPaletteType.auto,
+        homeScreenState.selectedColorPaletteType ?? ColorPaletteType.auto,
         generateRandomColor(),
       ));
     });
@@ -131,28 +173,25 @@ class HomeScreenState extends State<HomeScreen> {
 
   void clearPalette() {
     setState(() {
-      palette.clear();
+      homeScreenState.clearPalette();
     });
   }
 
   void editColorInPalette(Color oldColor, Color newColor) {
     setState(() {
-      final index = palette.indexOf(oldColor);
-      if (index != -1) {
-        palette[index] = newColor;
-      }
+      homeScreenState.updateColor(oldColor, newColor);
     });
   }
 
   Future<void> addToFavorites([String? name]) async {
     try {
       final now = DateTime.now();
-      AppLogger.d('Creating new palette with ${palette.length} colors');
+      AppLogger.d('Creating new palette with ${homeScreenState.palette.length} colors');
       
       final colorPalette = ColorPalette(
         id: const Uuid().v4(),
         name: name ?? 'Palette ${now.toIso8601String()}',
-        colors: List<Color>.from(palette), // Create a new list to avoid reference issues
+        colors: List<Color>.from(homeScreenState.palette), // Create a new list to avoid reference issues
         createdAt: now,
         updatedAt: now,
       );

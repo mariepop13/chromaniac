@@ -106,21 +106,6 @@ class PaletteGeneratorService {
     return palette;
   }
 
-  static List<Color> _generateTriadicPalette(Color color, int size) {
-    if (size < 3) return _generateComplementaryPalette(color, size);
-
-    final hslColor = HSLColor.fromColor(color);
-    final colors = [
-      color,
-      hslColor.withHue((hslColor.hue + 120) % 360).toColor(),
-      hslColor.withHue((hslColor.hue + 240) % 360).toColor(),
-    ];
-
-    if (size <= 3) return colors;
-
-    return _interpolateColors(colors, size);
-  }
-
   static List<Color> _generateAutoPalette(Color color, int size) {
     final random = Random();
     return List.generate(
@@ -136,8 +121,9 @@ class PaletteGeneratorService {
 
   static List<Color> _interpolateColors(
       List<Color> baseColors, int targetSize) {
-    if (targetSize <= baseColors.length)
+    if (targetSize <= baseColors.length) {
       return baseColors.take(targetSize).toList();
+    }
 
     final List<Color> result = [];
     final segmentSize =

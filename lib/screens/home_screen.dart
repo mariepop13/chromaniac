@@ -1,10 +1,8 @@
 import 'dart:io';
 import 'dart:math';
 import 'package:chromaniac/models/color_palette.dart';
-import 'package:flutter/foundation.dart';
 import 'package:chromaniac/features/color_palette/domain/color_palette_type.dart';
 import 'package:chromaniac/features/color_palette/domain/palette_generator_service.dart';
-import 'package:chromaniac/features/color_palette/presentation/color_tile_widget.dart';
 import 'package:chromaniac/features/color_palette/presentation/harmony_preview_widget.dart';
 import 'package:chromaniac/utils/color/harmony_generator.dart';
 import 'package:chromaniac/utils/color/export_palette.dart';
@@ -12,11 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:palette_generator/palette_generator.dart';
-import 'package:reorderable_grid/reorderable_grid.dart';
-import 'package:chromaniac/providers/theme_provider.dart';
 import 'package:chromaniac/features/color_palette/presentation/color_picker_dialog.dart';
 import 'package:chromaniac/utils/dialog/dialog_utils.dart';
-import 'package:chromaniac/widgets/color_analysis_button.dart';
 import 'package:chromaniac/screens/favorites/favorites_screen.dart';
 import '../core/constants.dart';
 import '../services/premium_service.dart';
@@ -28,6 +23,11 @@ import 'package:chromaniac/widgets/app_bottom_nav.dart';
 import 'package:chromaniac/widgets/speed_dial_fab.dart';
 import '../providers/settings_provider.dart';
 import 'home/dialogs/palette_size_dialog.dart';
+import 'package:chromaniac/screens/home/home_content.dart';
+import 'package:chromaniac/screens/home/widgets/app_bar_actions.dart';
+import 'package:chromaniac/screens/home/widgets/settings_menu.dart';
+import 'package:chromaniac/screens/home/widgets/image_preview.dart';
+import 'package:chromaniac/screens/home/state/home_screen_state.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -37,11 +37,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  final List<Color> _palette = [];
-  ColorPaletteType? selectedColorPaletteType = ColorPaletteType.auto;
-  File? _selectedImage;
-  Uint8List? _imageBytes;
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+  final _state = HomeScreenState();
 
   @override
   void initState() {
@@ -57,8 +54,8 @@ class _HomeScreenState extends State<HomeScreen> {
       if (pickedFile != null) {
         final bytes = await pickedFile.readAsBytes();
         setState(() {
-          _selectedImage = File(pickedFile.path);
-          _imageBytes = bytes;
+          _state.selectedImage = File(pickedFile.path);
+          _state.imageBytes = bytes;
         });
       }
     } catch (e) {
@@ -70,26 +67,19 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _generatePaletteFromImage() async {
-    if (_selectedImage == null) return;
+    if (_state.selectedImage == null) return;
 
     final paletteGenerator = await PaletteGenerator.fromImageProvider(
-      FileImage(_selectedImage!),
+      FileImage(_state.selectedImage!),
       maximumColorCount: context.read<SettingsProvider>().defaultPaletteSize,
     );
 
     setState(() {
-      _palette.clear();
-      _palette.addAll(paletteGenerator.colors);
+      _state.clearPalette();
+      _state.addColors(paletteGenerator.colors.toList());
     });
   }
 
-  void _removeColorFromPalette(Color color) {
-    if (_palette.contains(color)) {
-      setState(() {
-        _palette.remove(color);
-      });
-    }
-  }
 
   void _addColorToPalette(Color color) {
     _addColorsToPalette([color]);
@@ -101,11 +91,11 @@ class _HomeScreenState extends State<HomeScreen> {
           ? AppConstants.maxPaletteColors
           : context.read<SettingsProvider>().defaultPaletteSize;
       
-      final remainingSpace = maxColors - _palette.length;
+      final remainingSpace = maxColors - _state.palette.length;
       
       if (remainingSpace > 0) {
         final colorsToAdd = colors.take(remainingSpace).toList();
-        _palette.addAll(colorsToAdd);
+        _state.addColors(colorsToAdd);
         
         if (colors.length > remainingSpace) {
           _showPaletteLimitDialog();
@@ -160,10 +150,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _generateRandomPalette() {
     setState(() {
-      _palette.clear();
-      _palette.addAll(PaletteGeneratorService.generatePalette(
+      _state.clearPalette();
+      _state.addColors(PaletteGeneratorService.generatePalette(
         context,
-        selectedColorPaletteType ?? ColorPaletteType.auto,
+        _state.selectedColorPaletteType ?? ColorPaletteType.auto,
         _generateRandomColor(),
       ));
     });
@@ -171,12 +161,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _exportPalette(BuildContext context) async {
     final box = context.findRenderObject() as RenderBox?;
-    await exportPalette(context, _palette, originBox: box);
+    await exportPalette(context, _state.palette, originBox: box);
   }
 
   void _clearPalette() {
     setState(() {
-      _palette.clear();
+      _state.clearPalette();
     });
   }
 
@@ -189,7 +179,7 @@ class _HomeScreenState extends State<HomeScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('${_palette.length} colors selected'),
+            Text('${_state.palette.length} colors selected'),
             const SizedBox(height: 16),
             TextField(
               controller: textController,
@@ -222,7 +212,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   name: textController.text.isEmpty 
                     ? 'Palette ${now.toIso8601String()}'
                     : textController.text,
-                  colors: List<Color>.from(_palette),
+                  colors: List<Color>.from(_state.palette),
                   createdAt: now,
                   updatedAt: now,
                 );
@@ -256,133 +246,37 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        leading: PopupMenuButton<String>(
-          icon: const Icon(Icons.menu),
-          onSelected: (value) async {
-            switch (value) {
-              case 'theme':
-                await Provider.of<ThemeProvider>(context, listen: false)
-                    .toggleTheme(!Provider.of<ThemeProvider>(context, listen: false).isDarkMode);
-                break;
-              case 'settings':
-                _showSettingsDialog(context);
-                break;
-            }
-          },
-          itemBuilder: (context) => [
-            PopupMenuItem(
-              value: 'theme',
-              child: Consumer<ThemeProvider>(
-                builder: (context, themeProvider, _) => Row(
-                  children: [
-                    Icon(themeProvider.isDarkMode
-                        ? Icons.dark_mode
-                        : Icons.light_mode),
-                    const SizedBox(width: 8),
-                    Text(themeProvider.isDarkMode
-                        ? 'Dark Mode'
-                        : 'Light Mode'),
-                  ],
-                ),
-              ),
-            ),
-            const PopupMenuItem(
-              value: 'settings',
-              child: Row(
-                children: [
-                  Icon(Icons.settings),
-                  SizedBox(width: 8),
-                  Text('Settings'),
-                ],
-              ),
-            ),
-          ],
-        ),
+        leading: SettingsMenu(onSettingsTap: () => _showSettingsDialog(context)),
         title: const Text('Chromaniac'),
-        actions: [
-          Consumer<PremiumService>(
-            builder: (context, premiumService, _) => IconButton(
-              onPressed: () => context.read<DebugProvider>().isDebugEnabled 
-                ? premiumService.togglePremium()
-                : premiumService.unlockPremium(),
-              icon: Icon(
-                premiumService.isPremium ? Icons.star : Icons.star_border,
-                color: premiumService.isPremium ? Colors.amber : null,
-              ),
-            ),
-          ),
-          if (kDebugMode)
-            Consumer<DebugProvider>(
-              builder: (context, debugProvider, _) => IconButton(
-                onPressed: () {
-                  debugProvider.toggleDebug();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(debugProvider.isDebugEnabled ? 'Debug mode enabled' : 'Debug mode disabled'),
-                      duration: const Duration(seconds: 1),
-                    ),
-                  );
-                },
-                icon: Icon(
-                  debugProvider.isDebugEnabled ? Icons.bug_report : Icons.bug_report_outlined,
-                  color: debugProvider.isDebugEnabled ? Colors.red : null,
-                ),
-              ),
-            ),
-        ],
+        actions: const [AppBarActions()],
       ),
       body: SafeArea(
         child: Column(
           children: [
-            if (_selectedImage != null) ...[
-              Stack(
-                children: [
-                  Image.file(
-                    _selectedImage!,
-                    height: AppConstants.colorPreviewHeight,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                  ),
-                  Positioned(
-                    top: AppConstants.smallPadding,
-                    right: AppConstants.smallPadding,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.black,
-                        shape: BoxShape.circle,
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.close, color: Colors.white),
-                        onPressed: () => setState(() {
-                          _selectedImage = null;
-                          _imageBytes = null;
-                        }),
-                      ),
-                    ),
-                  ),
-                ],
+            if (_state.selectedImage != null)
+              ImagePreview(
+                image: _state.selectedImage!,
+                imageBytes: _state.imageBytes!,
+                onAnalysisComplete: (result) {
+                  setState(() {
+                    _state.clearPalette();
+                    _state.addColors(
+                      result.colorAnalysis.map((colorData) {
+                        final hexCode = colorData['hexCode'] as String;
+                        final hex = hexCode.startsWith('#') ? hexCode.substring(1) : hexCode;
+                        return Color(int.parse('FF$hex', radix: 16));
+                      }).toList(),
+                    );
+                  });
+                },
               ),
-              Padding(
-                padding: EdgeInsets.all(AppConstants.defaultPadding),
-                child: ColorAnalysisButton(
-                  imageBytes: _imageBytes,
-                  onAnalysisComplete: (result) {
-                    setState(() {
-                      _palette.clear();
-                      _palette.clear();
-                      _palette.addAll(
-                        result.colorAnalysis.map((colorData) {
-                          final hexCode = colorData['hexCode'] as String;
-                          final hex = hexCode.startsWith('#') ? hexCode.substring(1) : hexCode;
-                          return Color(int.parse('FF$hex', radix: 16));
-                        }),
-                      );
-                    });
-                  },
-                ),
-              ),
-            ],
-            _buildPaletteContent(),
+            HomeContent(
+              palette: _state.palette,
+              onRemoveColor: (color) => setState(() => _state.removeColor(color)),
+              onEditColor: (oldColor, newColor) => setState(() => _state.updateColor(oldColor, newColor)),
+              onAddHarmonyColors: _addColorsToPalette,
+              onReorder: (oldIndex, newIndex) => setState(() => _state.reorderColors(oldIndex, newIndex)),
+            ),
           ],
         ),
       ),
@@ -409,7 +303,7 @@ class _HomeScreenState extends State<HomeScreen> {
           onAddColor: _showColorPickerDialog,
           onImportImage: () async {
             await _pickImage();
-            if (_selectedImage != null) {
+            if (_state.selectedImage != null) {
               await _generatePaletteFromImage();
             }
           },
@@ -418,56 +312,6 @@ class _HomeScreenState extends State<HomeScreen> {
           onExportPalette: () => _exportPalette(context),
           isDebugEnabled: debugProvider.isDebugEnabled,
         ),
-      ),
-    );
-  }
-
-  Widget _buildPaletteContent() {
-    if (_palette.isEmpty) {
-      return const Center(
-        child: Text('Generate a palette or add colors'),
-      );
-    }
-
-    return Expanded(
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final width = constraints.maxWidth / 2;
-          final height = constraints.maxHeight / (((_palette.length + 1) ~/ 2));
-          final aspectRatio = width / height;
-
-          return ReorderableGridView.builder(
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: aspectRatio,
-              crossAxisSpacing: 0,
-              mainAxisSpacing: 0,
-            ),
-            itemCount: _palette.length,
-            itemBuilder: (context, index) {
-              final color = _palette[index];
-              return ColorTileWidget(
-                key: ValueKey('${((color.a * 255).round() << 24) | ((color.r * 255).round() << 16) | ((color.g * 255).round() << 8) | (color.b * 255).round()}_$index'),
-                color: color,
-                hex: ((((color.r * 255).round() << 16) | ((color.g * 255).round() << 8) | (color.b * 255).round())).toRadixString(16).padLeft(6, '0'),
-                onRemoveColor: _removeColorFromPalette,
-                onEditColor: (newColor) => _editColorInPalette(color, newColor),
-                paletteSize: _palette.length,
-                onAddHarmonyColors: _addColorsToPalette,
-              );
-            },
-            onReorder: (oldIndex, newIndex) {
-              setState(() {
-                if (oldIndex < newIndex) {
-                  newIndex -= 1;
-                }
-                final color = _palette.removeAt(oldIndex);
-                _palette.insert(newIndex, color);
-              });
-            },
-          );
-        },
       ),
     );
   }
@@ -481,7 +325,7 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (context) => StatefulBuilder(
         builder: (context, setState) {
           HarmonyType selectedHarmonyType = HarmonyType.values.firstWhere(
-            (type) => type.toString().split('.').last == selectedColorPaletteType.toString().split('.').last,
+            (type) => type.toString().split('.').last == _state.selectedColorPaletteType.toString().split('.').last,
             orElse: () => HarmonyType.monochromatic,
           );
           previewColors = HarmonyGenerator.generateHarmony(previewBaseColor, selectedHarmonyType);
@@ -492,11 +336,11 @@ class _HomeScreenState extends State<HomeScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 DropdownButton<ColorPaletteType>(
-                  value: selectedColorPaletteType,
+                  value: _state.selectedColorPaletteType,
                   onChanged: (newValue) {
                     if (newValue != null) {
                       setState(() {
-                        selectedColorPaletteType = newValue;
+                        _state.selectedColorPaletteType = newValue;
                         previewBaseColor = _generateRandomColor();
                       });
                     }
@@ -508,7 +352,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                   }).toList(),
                 ),
-                if (selectedColorPaletteType != ColorPaletteType.auto) ...[
+                if (_state.selectedColorPaletteType != ColorPaletteType.auto) ...[
                   const SizedBox(height: AppConstants.defaultPadding),
                   HarmonyPreviewWidget(colors: previewColors),
                   const SizedBox(height: AppConstants.defaultPadding),
@@ -548,22 +392,13 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _editColorInPalette(Color oldColor, Color newColor) {
-    setState(() {
-      final index = _palette.indexOf(oldColor);
-      if (index != -1) {
-        _palette[index] = newColor;
-      }
-    });
-  }
-
   void _showColorPickerDialog() {
     showDialog(
       context: context,
       builder: (context) => ColorPickerDialog(
         initialColor: Colors.blue,
         onColorSelected: _addColorToPalette,
-        currentPaletteSize: _palette.length,
+        currentPaletteSize: _state.palette.length,
       ),
     );
   }
@@ -591,7 +426,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ListTile(
               leading: const Icon(Icons.color_lens),
               title: const Text('Default Palette Type'),
-              subtitle: Text(selectedColorPaletteType?.toString().split('.').last ?? 'Auto'),
+              subtitle: Text(_state.selectedColorPaletteType?.toString().split('.').last ?? 'Auto'),
               onTap: () {
                 Navigator.pop(context);
                 _showPaletteOptionsDialog(context);
