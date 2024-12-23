@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:chromaniac/utils/logger/app_logger.dart';
 import '../../../core/constants.dart';
 import '../../../services/premium_service.dart';
+import '../../../widgets/custom_material_picker.dart';
 
 class ColorPickerDialog extends StatefulWidget {
   final Color initialColor;
@@ -99,7 +100,7 @@ class _ColorPickerDialogState extends State<ColorPickerDialog> {
           portraitOnly: true,
         );
       case 1:
-        return MaterialPicker(
+        return CustomMaterialPicker(
           pickerColor: _currentColor,
           onColorChanged: (color) => setState(() => _currentColor = color),
           enableLabel: true,
