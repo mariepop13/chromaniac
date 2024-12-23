@@ -331,7 +331,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     right: AppConstants.smallPadding,
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.3),
+                        color: Colors.black,
                         shape: BoxShape.circle,
                       ),
                       child: IconButton(
