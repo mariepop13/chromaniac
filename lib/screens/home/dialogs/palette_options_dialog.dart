@@ -13,81 +13,106 @@ void showPaletteOptionsDialog(
 ) {
   Color previewBaseColor = _generateRandomColor();
   List<Color> previewColors = [];
+  ColorPaletteType currentType = selectedColorPaletteType ?? ColorPaletteType.auto;
 
   showDialog(
     context: context,
     builder: (context) => StatefulBuilder(
       builder: (context, setState) {
         HarmonyType selectedHarmonyType = HarmonyType.values.firstWhere(
-          (type) => type.toString().split('.').last == selectedColorPaletteType.toString().split('.').last,
+          (type) => type.toString().split('.').last == currentType.toString().split('.').last,
           orElse: () => HarmonyType.monochromatic,
         );
         previewColors = HarmonyGenerator.generateHarmony(previewBaseColor, selectedHarmonyType);
 
         return AlertDialog(
           title: const Text('Palette Generator'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Choose a palette type to preview and generate color combinations.',
-                textAlign: TextAlign.center,
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.7,
               ),
-              const SizedBox(height: 16),
-              DropdownButton<ColorPaletteType>(
-                value: selectedColorPaletteType,
-                onChanged: (newValue) {
-                  if (newValue != null) {
-                    setState(() {
-                      onTypeChanged(newValue);
-                      previewBaseColor = _generateRandomColor();
-                    });
-                  }
-                },
-                items: ColorPaletteType.values.map((type) {
-                  return DropdownMenuItem(
-                    value: type,
-                    child: Text(type.toString().split('.').last),
-                  );
-                }).toList(),
-              ),
-              if (selectedColorPaletteType != ColorPaletteType.auto) ...[
-                const SizedBox(height: AppConstants.defaultPadding),
-                HarmonyPreviewWidget(colors: previewColors),
-                const SizedBox(height: AppConstants.defaultPadding),
-              ],
-              Wrap(
-                alignment: WrapAlignment.spaceEvenly,
-                spacing: 8,
-                children: [
-                  Column(
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'Choose a palette type to preview and generate color combinations.',
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButton<ColorPaletteType>(
+                      value: currentType,
+                      isExpanded: true,
+                      icon: const Icon(Icons.arrow_drop_down),
+                      elevation: 16,
+                      underline: Container(
+                        height: 2,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      onChanged: (newValue) {
+                        if (newValue != null) {
                           setState(() {
+                            currentType = newValue;
+                            onTypeChanged(newValue);
                             previewBaseColor = _generateRandomColor();
                           });
-                        },
-                        child: const Text('Preview New Colors'),
-                      ),
-                      const SizedBox(height: 8),
-                      ElevatedButton(
-                        onPressed: () {
-                          onColorsApplied(previewColors);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Colors applied to palette'),
-                              duration: Duration(seconds: 1),
+                        }
+                      },
+                      items: ColorPaletteType.values.map((type) {
+                        return DropdownMenuItem(
+                          value: type,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                            child: Text(
+                              type.toString().split('.').last,
+                              style: Theme.of(context).textTheme.bodyMedium,
                             ),
-                          );
-                        },
-                        child: const Text('Apply to Palette'),
-                      ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    if (currentType != ColorPaletteType.auto) ...[
+                      const SizedBox(height: AppConstants.defaultPadding),
+                      HarmonyPreviewWidget(colors: previewColors),
+                      const SizedBox(height: AppConstants.defaultPadding),
                     ],
-                  ),
-                ],
+                    Wrap(
+                      alignment: WrapAlignment.spaceEvenly,
+                      spacing: 8,
+                      children: [
+                        Column(
+                          children: [
+                            ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  previewBaseColor = _generateRandomColor();
+                                });
+                              },
+                              child: const Text('Preview New Colors'),
+                            ),
+                            const SizedBox(height: 8),
+                            ElevatedButton(
+                              onPressed: () {
+                                onColorsApplied(previewColors);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Colors applied to palette'),
+                                    duration: Duration(seconds: 1),
+                                  ),
+                                );
+                              },
+                              child: const Text('Apply to Palette'),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ],
+            ),
           ),
           actions: [
             TextButton(
