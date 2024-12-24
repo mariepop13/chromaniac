@@ -84,7 +84,7 @@ class ColorTileWidget extends StatelessWidget {
                           ),
                           if (onAddHarmonyColors != null)
                             PopupMenuItem(
-                              child: const Text('Generate Harmony'),
+                              child: const Text('Apply Harmony'),
                               onTap: () => showDelayedDialog(context,
                                 (ctx) => _showHarmonyPickerDialog(ctx)),
                             ),

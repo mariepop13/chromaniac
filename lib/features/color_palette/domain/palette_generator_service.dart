@@ -15,7 +15,7 @@ class PaletteGeneratorService {
       case ColorPaletteType.analogous:
         return _generateAnalogousPalette(color, defaultSize);
       case ColorPaletteType.complementary:
-        return [color, _getComplementary(color)];
+        return _generateComplementaryPalette(color, defaultSize);
       case ColorPaletteType.splitComplementary:
         return [
           color,
@@ -47,38 +47,28 @@ class PaletteGeneratorService {
     }
   }
 
-  static Color _getComplementary(Color color) {
-    final hslColor = HSLColor.fromColor(color);
-    return hslColor.withHue((hslColor.hue + 180) % 360).toColor();
-  }
-
   static Color _getHueShifted(Color color, double shift) {
     final hslColor = HSLColor.fromColor(color);
     return hslColor.withHue((hslColor.hue + shift) % 360).toColor();
   }
 
   static List<Color> _generateMonochromaticPalette(Color color, int size) {
-    final step = 1.0 / size;
-    return List.generate(
-      size,
-      (index) => Color.from(
-        alpha: 1.0 - (index * step),
-        red: color.r,
-        green: color.g,
-        blue: color.b,
-      ),
-    );
+    final baseColors = [
+      color,
+      Color.from(alpha: 0.75, red: color.r, green: color.g, blue: color.b),
+      Color.from(alpha: 0.5, red: color.r, green: color.g, blue: color.b),
+      Color.from(alpha: 0.25, red: color.r, green: color.g, blue: color.b),
+    ];
+    return _interpolateColors(baseColors, size);
   }
 
   static List<Color> _generateAnalogousPalette(Color color, int size) {
-    final hslColor = HSLColor.fromColor(color);
-    final step = 60.0 / (size - 1);
-    return List.generate(
-      size,
-      (index) => hslColor
-          .withHue((hslColor.hue + (30 - step * index)) % 360)
-          .toColor(),
-    );
+    final baseColors = [
+      _getHueShifted(color, -30),
+      color,
+      _getHueShifted(color, 30),
+    ];
+    return _interpolateColors(baseColors, size);
   }
 
   static List<Color> _generateComplementaryPalette(Color color, int size) {

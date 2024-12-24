@@ -91,7 +91,7 @@ class _HarmonyPickerDialogState extends State<HarmonyPickerDialog> {
             widget.onHarmonySelected(previewColors);
             Navigator.pop(context);
           },
-          child: const Text('Add Colors'),
+          child: const Text('Apply Harmony'),
         ),
       ],
     );

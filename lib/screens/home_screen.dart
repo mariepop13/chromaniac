@@ -105,6 +105,22 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  void _applyHarmonyColors(List<Color> colors) {
+    setState(() {
+      final maxColors = context.read<PremiumService>().isPremium
+          ? AppConstants.maxPaletteColors
+          : context.read<SettingsProvider>().defaultPaletteSize;
+      
+      if (colors.length > maxColors) {
+        _showPaletteLimitDialog();
+        colors = colors.take(maxColors).toList();
+      }
+      
+      _state.clearPalette();
+      _state.addColors(colors);
+    });
+  }
+
   void _showPaletteLimitDialog() {
     showDialog(
       context: context,
@@ -295,7 +311,7 @@ class _HomeScreenState extends State<HomeScreen> {
               palette: _state.palette,
               onRemoveColor: (color) => setState(() => _state.removeColor(color)),
               onEditColor: (oldColor, newColor) => setState(() => _state.updateColor(oldColor, newColor)),
-              onAddHarmonyColors: _addColorsToPalette,
+              onAddHarmonyColors: _applyHarmonyColors,
               onReorder: (oldIndex, newIndex) => setState(() => _state.reorderColors(oldIndex, newIndex)),
             ),
           ],
@@ -352,10 +368,15 @@ class _HomeScreenState extends State<HomeScreen> {
           previewColors = HarmonyGenerator.generateHarmony(previewBaseColor, selectedHarmonyType);
 
           return AlertDialog(
-            title: const Text('Palette Options'),
+            title: const Text('Palette Generator'),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                const Text(
+                    'Choose a palette type to preview and generate color combinations.',
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
                 DropdownButton<ColorPaletteType>(
                   value: _state.selectedColorPaletteType,
                   onChanged: (newValue) {
@@ -382,20 +403,33 @@ class _HomeScreenState extends State<HomeScreen> {
                   alignment: WrapAlignment.spaceEvenly,
                   spacing: 8,
                   children: [
-                    TextButton(
-                      onPressed: () {
-                        setState(() {
-                          previewBaseColor = _generateRandomColor();
-                        });
-                      },
-                      child: const Text('New Colors'),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        _generateRandomPalette();
-                      },
-                      child: const Text('Generate'),
+                    Column(
+                      children: [
+                        ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              previewBaseColor = _generateRandomColor();
+                            });
+                          },
+                          child: const Text('Preview New Colors'),
+                        ),
+                        const SizedBox(height: 8),
+                        ElevatedButton(
+                          onPressed: () {
+                            this.setState(() {
+                              _state.clearPalette();
+                              _state.addColors(previewColors);
+                            });
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Colors applied to palette'),
+                                duration: Duration(seconds: 1),
+                              ),
+                            );
+                          },
+                          child: const Text('Apply to Palette'),
+                        ),
+                      ],
                     ),
                   ],
                 ),
