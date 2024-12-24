@@ -7,10 +7,16 @@ import '../utils/logger/app_logger.dart';
 class SettingsProvider extends ChangeNotifier {
   static const String defaultPaletteSizeKey = 'defaultPaletteSize';
   static const String gridColumnsKey = 'gridColumns';
+  static const String gridColumnsPaletteSizeThreeKey = 'gridColumnsPaletteSizeThree';
 
   final SharedPreferences _prefs;
 
-  SettingsProvider(this._prefs);
+  SettingsProvider(this._prefs) {
+    // Ensure default value for palette size 3 columns
+    if (_prefs.getInt(gridColumnsPaletteSizeThreeKey) == null) {
+      _prefs.setInt(gridColumnsPaletteSizeThreeKey, 2);
+    }
+  }
 
   int get defaultPaletteSize =>
       _prefs.getInt(defaultPaletteSizeKey) ?? AppConstants.defaultPaletteSize;
@@ -22,13 +28,20 @@ class SettingsProvider extends ChangeNotifier {
     
     await _prefs.setInt(defaultPaletteSizeKey, size);
     
-
-
+    // Special handling for palette size 3
+    if (size == 3) {
+      await setGridColumns(2);
+    } else {
+      await regenerateGridColumnsForDefaultPaletteSize();
+    }
     
     notifyListeners();
   }
 
   int get gridColumns {
+    if (defaultPaletteSize == 3) {
+      return _prefs.getInt(gridColumnsPaletteSizeThreeKey) ?? 2;
+    }
     return _prefs.getInt(gridColumnsKey) ?? 1;
   }
 
@@ -36,9 +49,19 @@ class SettingsProvider extends ChangeNotifier {
     int validColumns = validateGridColumns(columns);
     
     AppLogger.d('Setting grid columns: requested = $columns, validated = $validColumns');
+    AppLogger.d('Current palette size: ${getCurrentPaletteSize()}');
     
+    // Prevent switching to 4 columns when palette size is 3
+    if (getCurrentPaletteSize() == 3 && validColumns > 2) {
+      AppLogger.d('Preventing column change for palette size 3');
+      validColumns = 2;
+    }
 
-    await _prefs.setInt(gridColumnsKey, validColumns);
+    if (defaultPaletteSize == 3) {
+      await _prefs.setInt(gridColumnsPaletteSizeThreeKey, validColumns);
+    } else {
+      await _prefs.setInt(gridColumnsKey, validColumns);
+    }
     notifyListeners();
   }
 
@@ -152,12 +175,22 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   int calculateOptimalColumns(int paletteSize) {
+    AppLogger.d('Calculating Optimal Columns - Diagnostic:');
+    AppLogger.d('- Input Palette Size: $paletteSize');
 
-    if (paletteSize <= 2) return 1;
-    if (paletteSize <= 4) return 2;
-    
+    int columns;
+    if (paletteSize <= 4) {
+      columns = (paletteSize / 2).ceil();
+      AppLogger.d('- Case: Palette Size <= 4');
+      AppLogger.d('- Columns Set: $columns');
+    } else {
+      columns = (paletteSize / 2).ceil().clamp(1, paletteSize);
+      AppLogger.d('- Case: Palette Size > 4');
+      AppLogger.d('- Calculated Columns: $columns');
+    }
 
-    return (paletteSize / 2).ceil().clamp(1, paletteSize);
+    AppLogger.d('- Final Optimal Columns: $columns');
+    return columns;
   }
 
   bool isUsingTemporaryPalette() {
@@ -168,13 +201,15 @@ class SettingsProvider extends ChangeNotifier {
 
   Future<void> regenerateGridColumnsForDefaultPaletteSize() async {
     int currentDefaultSize = defaultPaletteSize;
+    int currentGridColumns = gridColumns;
     
-
+    AppLogger.d('Regenerating grid columns for default palette size:');
+    AppLogger.d('- Default Palette Size: $currentDefaultSize');
+    AppLogger.d('- Current Grid Columns: $currentGridColumns');
+    
     if (_temporaryPaletteSize == null) {
       final optimalColumns = calculateOptimalColumns(currentDefaultSize);
       
-      AppLogger.d('Regenerating grid columns for default palette size:');
-      AppLogger.d('- Default Palette Size: $currentDefaultSize');
       AppLogger.d('- Optimal Columns: $optimalColumns');
       
       await setGridColumns(optimalColumns);

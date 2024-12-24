@@ -73,13 +73,15 @@ class SettingsMenu extends StatelessWidget {
     final currentPaletteSize = settingsProvider.getCurrentPaletteSize();
     final defaultPaletteSize = settingsProvider.defaultPaletteSize;
     
-    final paletteSize = currentPaletteSize == 3 ? defaultPaletteSize : currentPaletteSize;
+    final paletteSize = currentPaletteSize;
     
     final optimalColumns = settingsProvider.calculateOptimalColumns(paletteSize);
     
     settingsProvider.clearTemporaryPaletteSize();
     
-    settingsProvider.setGridColumns(optimalColumns);
+    // Force 2 columns for palette size 3
+    final columnsToSet = paletteSize == 3 ? 2 : optimalColumns;
+    settingsProvider.setGridColumns(columnsToSet);
 
     showDialog(
       context: context,
@@ -125,9 +127,7 @@ class SettingsMenu extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      currentPaletteSize == 3 
-                        ? 'Adjust columns based on default palette size ($defaultPaletteSize colors)'
-                        : 'Adjust columns based on current palette size ($currentPaletteSize colors)',
+                      'Adjust columns based on current palette size ($currentPaletteSize colors)',
                       style: Theme.of(context).textTheme.bodySmall,
                       textAlign: TextAlign.center,
                     ),
