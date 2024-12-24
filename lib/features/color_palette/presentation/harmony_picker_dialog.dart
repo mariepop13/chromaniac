@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../utils/color/harmony_generator.dart';
+import '../domain/color_palette_type.dart';
+import '../../../providers/settings_provider.dart';
 
 class HarmonyPickerDialog extends StatefulWidget {
   final Color baseColor;
-  final Function(List<Color>) onHarmonySelected;
+  final Function(List<Color>, ColorPaletteType) onHarmonySelected;
   final bool showAutoOption;
   final int currentPaletteSize;
 
@@ -27,18 +30,35 @@ class _HarmonyPickerDialogState extends State<HarmonyPickerDialog> {
   void initState() {
     super.initState();
     selectedHarmony = widget.showAutoOption ? HarmonyType.auto : HarmonyType.monochromatic;
-    previewColors = HarmonyGenerator.generateHarmony(widget.baseColor, selectedHarmony)
-        .take(widget.currentPaletteSize)
-        .toList();
+    _updatePreview(selectedHarmony);
   }
 
   void _updatePreview(HarmonyType type) {
     setState(() {
       selectedHarmony = type;
-      previewColors = HarmonyGenerator.generateHarmony(widget.baseColor, type)
-          .take(widget.currentPaletteSize)
-          .toList();
+      final paletteType = _harmonyTypeToColorPaletteType(type);
+      final defaultSize = context.read<SettingsProvider>().defaultPaletteSize;
+      
+      // Generate harmony colors
+      final colors = HarmonyGenerator.generateHarmony(widget.baseColor, type);
+      
+      // For auto, analogous, and monochromatic, use default size
+      // For others, use their natural size unless it exceeds the default size
+      if (paletteType == ColorPaletteType.auto || 
+          paletteType == ColorPaletteType.analogous || 
+          paletteType == ColorPaletteType.monochromatic) {
+        previewColors = colors.take(defaultSize).toList();
+      } else {
+        previewColors = colors;
+      }
     });
+  }
+
+  ColorPaletteType _harmonyTypeToColorPaletteType(HarmonyType type) {
+    return ColorPaletteType.values.firstWhere(
+      (paletteType) => paletteType.toString().split('.').last == type.toString().split('.').last,
+      orElse: () => ColorPaletteType.monochromatic,
+    );
   }
 
   @override
@@ -92,7 +112,10 @@ class _HarmonyPickerDialogState extends State<HarmonyPickerDialog> {
         ),
         ElevatedButton(
           onPressed: () {
-            widget.onHarmonySelected(previewColors);
+            widget.onHarmonySelected(
+              previewColors,
+              _harmonyTypeToColorPaletteType(selectedHarmony),
+            );
             Navigator.pop(context);
           },
           child: const Text('Apply Harmony'),

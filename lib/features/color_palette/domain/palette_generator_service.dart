@@ -43,7 +43,7 @@ class PaletteGeneratorService {
           _getHueShifted(color, 270),
         ];
       case ColorPaletteType.auto:
-        return _generateAutoPalette(color, defaultSize);
+        return _generateAutoPalette(null, defaultSize);
     }
   }
 
@@ -96,15 +96,15 @@ class PaletteGeneratorService {
     return palette;
   }
 
-  static List<Color> _generateAutoPalette(Color color, int size) {
+  static List<Color> _generateAutoPalette(Color? color, int size) {
     final random = Random();
     return List.generate(
       size,
-      (_) => Color.from(
-        alpha: 1.0,
-        red: random.nextDouble(),
-        green: random.nextDouble(),
-        blue: random.nextDouble(),
+      (_) => Color.fromRGBO(
+        random.nextInt(256),
+        random.nextInt(256),
+        random.nextInt(256),
+        1.0,
       ),
     );
   }

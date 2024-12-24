@@ -1,19 +1,20 @@
-import 'package:chromaniac/core/constants.dart';
-import 'package:chromaniac/features/color_palette/presentation/color_picker_dialog.dart';
-import 'package:chromaniac/features/color_palette/presentation/harmony_picker_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:chromaniac/utils/dialog/dialog_utils.dart';
+import '../../../core/constants.dart';
+import '../../../utils/dialog/dialog_utils.dart';
+import '../domain/color_palette_type.dart';
+import 'color_picker_dialog.dart';
+import 'harmony_picker_dialog.dart';
 
 class ColorTileWidget extends StatelessWidget {
   final Color color;
   final String hex;
   final Function(Color) onRemoveColor;
   final Function(Color) onEditColor;
+  final Function(List<Color>, ColorPaletteType)? onAddHarmonyColors;
   final int paletteSize;
   final Function(Color)? onFavoriteColor;
   final bool isFavorite;
-  final Function(List<Color>)? onAddHarmonyColors;
 
   const ColorTileWidget({
     super.key,
@@ -21,10 +22,10 @@ class ColorTileWidget extends StatelessWidget {
     required this.hex,
     required this.onRemoveColor,
     required this.onEditColor,
+    this.onAddHarmonyColors,
     required this.paletteSize,
     this.onFavoriteColor,
     this.isFavorite = false,
-    this.onAddHarmonyColors,
   });
 
   @override

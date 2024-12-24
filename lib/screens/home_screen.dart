@@ -134,13 +134,14 @@ class _HomeScreenState extends State<HomeScreen> {
               palette: _state.palette,
               onRemoveColor: (color) => setState(() => _state.removeColor(color)),
               onEditColor: (oldColor, newColor) => setState(() => _state.updateColor(oldColor, newColor)),
-              onAddHarmonyColors: (colors) => PaletteManager.applyHarmonyColors(
+              onAddHarmonyColors: (colors, paletteType) => PaletteManager.applyHarmonyColors(
                 context,
                 colors,
                 (newColors) => setState(() {
                   _state.clearPalette();
                   _state.addColors(newColors);
                 }),
+                paletteType,
               ),
               onReorder: (oldIndex, newIndex) => setState(() => _state.reorderColors(oldIndex, newIndex)),
             ),
@@ -166,13 +167,14 @@ class _HomeScreenState extends State<HomeScreen> {
             palette: _state.palette,
             onRemoveColor: (color) => setState(() => _state.removeColor(color)),
             onEditColor: (oldColor, newColor) => setState(() => _state.updateColor(oldColor, newColor)),
-            onAddHarmonyColors: (colors) => PaletteManager.applyHarmonyColors(
+            onAddHarmonyColors: (colors, paletteType) => PaletteManager.applyHarmonyColors(
               context,
               colors,
               (newColors) => setState(() {
                 _state.clearPalette();
                 _state.addColors(newColors);
               }),
+              paletteType,
             ),
             onReorder: (oldIndex, newIndex) => setState(() => _state.reorderColors(oldIndex, newIndex)),
           ),
