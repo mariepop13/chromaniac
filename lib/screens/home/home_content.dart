@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:reorderable_grid/reorderable_grid.dart';
-import 'package:chromaniac/features/color_palette/presentation/color_tile_widget.dart';
-import 'package:chromaniac/providers/settings_provider.dart';
+import '../../features/color_palette/domain/color_palette_type.dart';
+import '../../features/color_palette/presentation/color_tile_widget.dart';
+import '../../providers/settings_provider.dart';
 
 class HomeContent extends StatelessWidget {
   final List<Color> palette;
   final Function(Color) onRemoveColor;
   final Function(Color, Color) onEditColor;
-  final Function(List<Color>) onAddHarmonyColors;
+  final Function(List<Color>, ColorPaletteType) onAddHarmonyColors;
   final Function(int, int) onReorder;
 
   const HomeContent({

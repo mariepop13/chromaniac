@@ -63,13 +63,23 @@ class PaletteManager {
     BuildContext context,
     List<Color> colors,
     Function(List<Color>) onColorsApplied,
+    ColorPaletteType paletteType,
   ) {
     final settingsProvider = context.read<SettingsProvider>();
     final maxColors = context.read<PremiumService>().isPremium
         ? AppConstants.maxPaletteColors
         : settingsProvider.defaultPaletteSize;
     
-    settingsProvider.setTemporaryPaletteSize(colors.length);
+    // For auto, analogous, and monochromatic, use default size
+    if (paletteType == ColorPaletteType.auto || 
+        paletteType == ColorPaletteType.analogous || 
+        paletteType == ColorPaletteType.monochromatic) {
+      settingsProvider.setTemporaryPaletteSize(settingsProvider.defaultPaletteSize);
+      colors = colors.take(settingsProvider.defaultPaletteSize).toList();
+    } else {
+      // For other harmony types, use their natural size
+      settingsProvider.setTemporaryPaletteSize(colors.length);
+    }
     
     if (colors.length > maxColors) {
       showPaletteLimitDialog(context, () {});
