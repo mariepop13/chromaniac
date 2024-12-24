@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:chromaniac/features/color_palette/domain/color_palette_type.dart';
 import 'package:chromaniac/features/color_palette/presentation/harmony_preview_widget.dart';
 import 'package:chromaniac/utils/color/harmony_generator.dart';
+import 'package:chromaniac/features/color_palette/domain/palette_generator_service.dart';
 import '../../../core/constants.dart';
 import '../../../providers/settings_provider.dart';
 
@@ -26,9 +27,19 @@ void showPaletteOptionsDialog(
           (type) => type.toString().split('.').last == currentType.toString().split('.').last,
           orElse: () => HarmonyType.monochromatic,
         );
-        previewColors = HarmonyGenerator.generateHarmony(previewBaseColor, selectedHarmonyType)
-            .take(defaultPaletteSize)
-            .toList();
+        previewColors = currentType == ColorPaletteType.auto
+            ? PaletteGeneratorService.generatePalette(
+                context, 
+                ColorPaletteType.auto, 
+                _generateRandomColor()
+              )
+            : HarmonyGenerator.generateHarmony(previewBaseColor, 
+                HarmonyType.values.firstWhere(
+                  (type) => type.toString().split('.').last == currentType.toString().split('.').last,
+                  orElse: () => HarmonyType.monochromatic,
+                ))
+                .take(defaultPaletteSize)
+                .toList();
 
         return AlertDialog(
           title: const Text('Palette Generator'),
@@ -62,13 +73,19 @@ void showPaletteOptionsDialog(
                             currentType = newValue;
                             onTypeChanged(newValue);
                             previewBaseColor = _generateRandomColor();
-                            previewColors = HarmonyGenerator.generateHarmony(previewBaseColor, 
-                                HarmonyType.values.firstWhere(
-                                  (type) => type.toString().split('.').last == currentType.toString().split('.').last,
-                                  orElse: () => HarmonyType.monochromatic,
-                                ))
-                                .take(defaultPaletteSize)
-                                .toList();
+                            previewColors = currentType == ColorPaletteType.auto
+                                ? PaletteGeneratorService.generatePalette(
+                                    context, 
+                                    ColorPaletteType.auto, 
+                                    _generateRandomColor()
+                                  )
+                                : HarmonyGenerator.generateHarmony(previewBaseColor, 
+                                    HarmonyType.values.firstWhere(
+                                      (type) => type.toString().split('.').last == currentType.toString().split('.').last,
+                                      orElse: () => HarmonyType.monochromatic,
+                                    ))
+                                    .take(defaultPaletteSize)
+                                    .toList();
                           });
                         }
                       },
@@ -86,6 +103,10 @@ void showPaletteOptionsDialog(
                       }).toList(),
                     ),
                     if (currentType != ColorPaletteType.auto) ...[
+                      const SizedBox(height: AppConstants.defaultPadding),
+                      HarmonyPreviewWidget(colors: previewColors),
+                      const SizedBox(height: AppConstants.defaultPadding),
+                    ] else ...[
                       const SizedBox(height: AppConstants.defaultPadding),
                       HarmonyPreviewWidget(colors: previewColors),
                       const SizedBox(height: AppConstants.defaultPadding),
