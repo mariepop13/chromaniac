@@ -21,6 +21,14 @@ class AppLogger {
   
 
   static void enableTestMode() {
+    if (_isInitialized) return;
+    
+    _logger = Logger(
+      printer: SimpleLogPrinter(),
+      output: ConsoleOutput(),
+    );
+    
+    _isInitialized = true;
   }
 
   static Future<String> _getAppLogsDirectory() async {

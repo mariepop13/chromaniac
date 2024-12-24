@@ -68,73 +68,73 @@ class SettingsMenu extends StatelessWidget {
   }
 
   void _showGridLayoutDialog(BuildContext context) {
-    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
-    
-    final temporarySize = settingsProvider.getCurrentPaletteSize();
-    final isTemporary = settingsProvider.isUsingTemporaryPalette();
-    
-    if (isTemporary) {
-      settingsProvider.setTemporaryPaletteSize(temporarySize);
-    }
-    
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) {
-          int maxColumns = settingsProvider.getMaxGridColumns();
-          int currentColumns = settingsProvider.gridColumns;
+          return Consumer<SettingsProvider>(
+            builder: (context, settingsProvider, _) {
+              final temporarySize = settingsProvider.getCurrentPaletteSize();
+              final isTemporary = settingsProvider.isUsingTemporaryPalette();
+              
+              // Dynamically calculate optimal columns based on current palette size
+              final optimalColumns = (temporarySize / 2).ceil();
+              int maxColumns = settingsProvider.getMaxGridColumns();
+              
+              // Ensure we don't exceed maxColumns
+              int currentColumns = optimalColumns <= maxColumns ? optimalColumns : maxColumns;
+              settingsProvider.setGridColumns(currentColumns);
 
-          AppLogger.d('Grid Layout Dialog - Current Palette Size: ${settingsProvider.getCurrentPaletteSize()}');
-          AppLogger.d('Grid Layout Dialog - Max Columns: $maxColumns');
-          AppLogger.d('Grid Layout Dialog - Current Columns: $currentColumns');
+              AppLogger.d('Grid Layout Dialog - Current Palette Size: $temporarySize');
+              AppLogger.d('Grid Layout Dialog - Max Columns: $maxColumns');
+              AppLogger.d('Grid Layout Dialog - Current Columns: $currentColumns');
 
-          return AlertDialog(
-            title: const Text('Grid Layout'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('Number of Columns: $currentColumns'),
-                Slider(
-                  value: currentColumns.toDouble(),
-                  min: 1,
-                  max: maxColumns.toDouble(),
-                  divisions: maxColumns > 1 ? maxColumns - 1 : null,
-                  label: currentColumns.toString(),
-                  onChanged: (double value) {
-                    int newColumns = value.toInt();
-                    AppLogger.d('Dialog - Max columns: $maxColumns');
-                    AppLogger.d('Dialog - Attempting to set columns: $newColumns');
-                    
-                    settingsProvider.setGridColumns(newColumns);
-                    setState(() {
-                      currentColumns = newColumns;
-                    });
-                  },
+              return AlertDialog(
+                title: const Text('Grid Layout'),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('Number of Columns: $currentColumns'),
+                    Slider(
+                      value: currentColumns.toDouble(),
+                      min: 1,
+                      max: maxColumns.toDouble(),
+                      divisions: maxColumns > 1 ? maxColumns - 1 : null,
+                      label: currentColumns.toString(),
+                      onChanged: (double value) {
+                        int newColumns = value.toInt();
+                        AppLogger.d('Dialog - Max columns: $maxColumns');
+                        AppLogger.d('Dialog - Attempting to set columns: $newColumns');
+                        
+                        settingsProvider.setGridColumns(newColumns);
+                        setState(() {});
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      isTemporary
+                        ? 'Adjust columns based on harmony size ($temporarySize colors)'
+                        : 'Adjust columns based on default palette size (${settingsProvider.defaultPaletteSize} colors)',
+                      style: Theme.of(context).textTheme.bodySmall,
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  isTemporary
-                    ? 'Adjust columns based on harmony size ($temporarySize colors)'
-                    : 'Adjust columns based on default palette size (${settingsProvider.defaultPaletteSize} colors)',
-                  style: Theme.of(context).textTheme.bodySmall,
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  settingsProvider.setGridColumns(currentColumns);
-                  Navigator.of(context).pop();
-                },
-                child: const Text('Save'),
-              ),
-            ],
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('Cancel'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text('Save'),
+                  ),
+                ],
+              );
+            }
           );
         },
       ),
