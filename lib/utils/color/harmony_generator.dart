@@ -36,22 +36,32 @@ class HarmonyGenerator {
   static List<Color> _generateMonochromatic(Color color) {
     final HSLColor hslColor = HSLColor.fromColor(color);
     return [
-      hslColor.withLightness((hslColor.lightness - 0.3).clamp(0.0, 1.0)).toColor(),
+      hslColor.withLightness((hslColor.lightness - 0.45).clamp(0.0, 1.0)).toColor(),
+      hslColor.withLightness((hslColor.lightness - 0.35).clamp(0.0, 1.0)).toColor(),
+      hslColor.withLightness((hslColor.lightness - 0.25).clamp(0.0, 1.0)).toColor(),
       hslColor.withLightness((hslColor.lightness - 0.15).clamp(0.0, 1.0)).toColor(),
+      hslColor.withLightness((hslColor.lightness - 0.05).clamp(0.0, 1.0)).toColor(),
       color,
+      hslColor.withLightness((hslColor.lightness + 0.05).clamp(0.0, 1.0)).toColor(),
       hslColor.withLightness((hslColor.lightness + 0.15).clamp(0.0, 1.0)).toColor(),
-      hslColor.withLightness((hslColor.lightness + 0.3).clamp(0.0, 1.0)).toColor(),
+      hslColor.withLightness((hslColor.lightness + 0.25).clamp(0.0, 1.0)).toColor(),
+      hslColor.withLightness((hslColor.lightness + 0.35).clamp(0.0, 1.0)).toColor(),
     ];
   }
 
   static List<Color> _generateAnalogous(Color color) {
     final HSLColor hslColor = HSLColor.fromColor(color);
     return [
-      hslColor.withHue((hslColor.hue - 30) % 360).toColor(),
+      hslColor.withHue((hslColor.hue - 45) % 360).toColor(),
+      hslColor.withHue((hslColor.hue - 35) % 360).toColor(),
+      hslColor.withHue((hslColor.hue - 25) % 360).toColor(),
       hslColor.withHue((hslColor.hue - 15) % 360).toColor(),
+      hslColor.withHue((hslColor.hue - 5) % 360).toColor(),
       color,
+      hslColor.withHue((hslColor.hue + 5) % 360).toColor(),
       hslColor.withHue((hslColor.hue + 15) % 360).toColor(),
-      hslColor.withHue((hslColor.hue + 30) % 360).toColor(),
+      hslColor.withHue((hslColor.hue + 25) % 360).toColor(),
+      hslColor.withHue((hslColor.hue + 35) % 360).toColor(),
     ];
   }
 

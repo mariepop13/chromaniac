@@ -1,9 +1,11 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:chromaniac/features/color_palette/domain/color_palette_type.dart';
 import 'package:chromaniac/features/color_palette/presentation/harmony_preview_widget.dart';
 import 'package:chromaniac/utils/color/harmony_generator.dart';
 import '../../../core/constants.dart';
+import '../../../providers/settings_provider.dart';
 
 void showPaletteOptionsDialog(
   BuildContext context,
@@ -14,6 +16,7 @@ void showPaletteOptionsDialog(
   Color previewBaseColor = _generateRandomColor();
   List<Color> previewColors = [];
   ColorPaletteType currentType = selectedColorPaletteType ?? ColorPaletteType.auto;
+  final defaultPaletteSize = Provider.of<SettingsProvider>(context, listen: false).defaultPaletteSize;
 
   showDialog(
     context: context,
@@ -23,7 +26,9 @@ void showPaletteOptionsDialog(
           (type) => type.toString().split('.').last == currentType.toString().split('.').last,
           orElse: () => HarmonyType.monochromatic,
         );
-        previewColors = HarmonyGenerator.generateHarmony(previewBaseColor, selectedHarmonyType);
+        previewColors = HarmonyGenerator.generateHarmony(previewBaseColor, selectedHarmonyType)
+            .take(defaultPaletteSize)
+            .toList();
 
         return AlertDialog(
           title: const Text('Palette Generator'),
@@ -57,6 +62,13 @@ void showPaletteOptionsDialog(
                             currentType = newValue;
                             onTypeChanged(newValue);
                             previewBaseColor = _generateRandomColor();
+                            previewColors = HarmonyGenerator.generateHarmony(previewBaseColor, 
+                                HarmonyType.values.firstWhere(
+                                  (type) => type.toString().split('.').last == currentType.toString().split('.').last,
+                                  orElse: () => HarmonyType.monochromatic,
+                                ))
+                                .take(defaultPaletteSize)
+                                .toList();
                           });
                         }
                       },

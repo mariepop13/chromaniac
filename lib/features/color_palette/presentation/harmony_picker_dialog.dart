@@ -27,13 +27,17 @@ class _HarmonyPickerDialogState extends State<HarmonyPickerDialog> {
   void initState() {
     super.initState();
     selectedHarmony = widget.showAutoOption ? HarmonyType.auto : HarmonyType.monochromatic;
-    previewColors = HarmonyGenerator.generateHarmony(widget.baseColor, selectedHarmony);
+    previewColors = HarmonyGenerator.generateHarmony(widget.baseColor, selectedHarmony)
+        .take(widget.currentPaletteSize)
+        .toList();
   }
 
   void _updatePreview(HarmonyType type) {
     setState(() {
       selectedHarmony = type;
-      previewColors = HarmonyGenerator.generateHarmony(widget.baseColor, type);
+      previewColors = HarmonyGenerator.generateHarmony(widget.baseColor, type)
+          .take(widget.currentPaletteSize)
+          .toList();
     });
   }
 
