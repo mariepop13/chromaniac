@@ -4,6 +4,7 @@ import 'package:reorderable_grid/reorderable_grid.dart';
 import '../../features/color_palette/domain/color_palette_type.dart';
 import '../../features/color_palette/presentation/color_tile_widget.dart';
 import '../../providers/settings_provider.dart';
+import '../../utils/logger/app_logger.dart';
 
 class HomeContent extends StatelessWidget {
   final List<Color> palette;
@@ -34,11 +35,28 @@ class HomeContent extends StatelessWidget {
         final columnCount = settingsProvider.gridColumns;
         final rowCount = (palette.length / columnCount).ceil();
 
+        AppLogger.d('HomeContent Grid Layout:');
+        AppLogger.d('- Palette Size: ${palette.length}');
+        AppLogger.d('- Column Count: $columnCount');
+        AppLogger.d('- Row Count: $rowCount');
+
         return LayoutBuilder(
           builder: (context, constraints) {
-            final width = constraints.maxWidth / columnCount;
-            final height = constraints.maxHeight / rowCount;
-            final aspectRatio = width / height;
+            // Calculate aspect ratio based on actual grid dimensions
+            final gridWidth = constraints.maxWidth;
+            final gridHeight = constraints.maxHeight;
+            
+            // Calculate cell dimensions
+            final cellWidth = gridWidth / columnCount;
+            final cellHeight = gridHeight / rowCount;
+            final aspectRatio = cellWidth / cellHeight;
+
+            AppLogger.d('Grid Layout Constraints:');
+            AppLogger.d('- Max Width: ${constraints.maxWidth}');
+            AppLogger.d('- Max Height: ${constraints.maxHeight}');
+            AppLogger.d('- Cell Width: $cellWidth');
+            AppLogger.d('- Cell Height: $cellHeight');
+            AppLogger.d('- Calculated Aspect Ratio: $aspectRatio');
 
             return ReorderableGridView.builder(
               physics: const NeverScrollableScrollPhysics(),
