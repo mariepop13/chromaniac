@@ -150,7 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    // Landscape layout with image on left and colors on right
+
     return Row(
       children: [
         Expanded(

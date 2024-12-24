@@ -50,7 +50,7 @@ void main() {
         );
         
         for (final colorInfo in result.colorAnalysis) {
-          // Verify object field
+
           expect(
             colorInfo['object'], 
             allOf([
@@ -61,7 +61,7 @@ void main() {
             reason: 'Each color analysis should have a valid object field'
           );
 
-          // Verify colorName field
+
           expect(
             colorInfo['colorName'], 
             allOf([
@@ -73,7 +73,7 @@ void main() {
             reason: 'Each color analysis should have a valid color name'
           );
 
-          // Verify hexCode field
+
           expect(
             colorInfo['hexCode'], 
             allOf([
@@ -113,7 +113,7 @@ void main() {
           reason: 'Should extract colors from large image'
         );
 
-        // Verify all color entries have required fields
+
         for (final colorInfo in result.colorAnalysis) {
           expect(colorInfo['object'], isNotNull);
           expect(colorInfo['colorName'], isNotNull);
@@ -147,7 +147,7 @@ void main() {
           reason: 'Should detect limited color palette'
         );
 
-        // Verify monochrome colors are valid
+
         for (final colorInfo in result.colorAnalysis) {
           expect(colorInfo['object'], isNotNull);
           expect(colorInfo['colorName'], isNotNull);

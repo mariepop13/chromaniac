@@ -14,13 +14,13 @@ void main() {
   final dbPath = '.dart_tool/sqflite_common_ffi/databases/color_palettes.db';
 
   setUpAll(() async {
-    // Initialize logger for tests
+
     await AppLogger.init();
     
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
     
-    // Delete the database file if it exists
+
     final file = File(dbPath);
     if (await file.exists()) {
       await file.delete();

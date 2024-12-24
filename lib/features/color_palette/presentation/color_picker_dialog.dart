@@ -47,7 +47,7 @@ class _ColorPickerDialogState extends State<ColorPickerDialog> {
     AppLogger.d('Debug: isEditing is ${widget.isEditing}');
     AppLogger.d('Debug: Would exceed limit: ${widget.currentPaletteSize + 1 > maxColors}');
 
-    // Check if adding one more color would exceed the limit
+
     if (!widget.isEditing && widget.currentPaletteSize >= maxColors) {
       AppLogger.d('Debug: Showing color limit dialog');
       showDialog(

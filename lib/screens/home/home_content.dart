@@ -42,11 +42,11 @@ class HomeContent extends StatelessWidget {
 
         return LayoutBuilder(
           builder: (context, constraints) {
-            // Calculate aspect ratio based on actual grid dimensions
+
             final gridWidth = constraints.maxWidth;
             final gridHeight = constraints.maxHeight;
             
-            // Calculate cell dimensions
+
             final cellWidth = gridWidth / columnCount;
             final cellHeight = gridHeight / rowCount;
             final aspectRatio = cellWidth / cellHeight;

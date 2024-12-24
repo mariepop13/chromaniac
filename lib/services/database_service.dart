@@ -30,17 +30,17 @@ class DatabaseService {
       AppLogger.d('Resetting database');
       final path = '${await getDatabasesPath()}/color_palettes.db';
       
-      // Close existing connection
+
       if (_database != null) {
         await _database!.close();
         _database = null;
       }
       
-      // Delete the database file
+
       await deleteDatabase(path);
       AppLogger.d('Deleted existing database');
       
-      // Reinitialize the database
+
       _database = await _initDatabase();
       AppLogger.d('Reinitialized database');
     } catch (e, stackTrace) {
@@ -55,7 +55,7 @@ class DatabaseService {
       String path = '${await getDatabasesPath()}/color_palettes.db';
       AppLogger.d('Database path: $path');
       
-      // Check if database exists
+
       bool exists = await databaseExists(path);
       AppLogger.d('Database exists: $exists');
       
@@ -76,7 +76,7 @@ class DatabaseService {
         onUpgrade: _upgradeDb,
         onOpen: (db) async {
           AppLogger.d('Database opened');
-          // Verify tables exist
+
           final tables = await db.query('sqlite_master', 
             where: 'type = ?', 
             whereArgs: ['table']
@@ -167,7 +167,7 @@ class DatabaseService {
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
       
-      // Verify the save
+
       final saved = await db.query(
         'palettes',
         where: 'id = ?',
@@ -190,7 +190,7 @@ class DatabaseService {
       AppLogger.d('Getting palettes from database');
       final db = await database;
       
-      // First, check if the table exists
+
       final tables = await db.query('sqlite_master',
         where: 'type = ? AND name = ?',
         whereArgs: ['table', 'palettes'],
@@ -236,7 +236,7 @@ class DatabaseService {
           AppLogger.d('Successfully processed palette: ${palette.name} with ${palette.colors.length} colors');
         } catch (e, stackTrace) {
           AppLogger.e('Error processing palette at index $i', error: e, stackTrace: stackTrace);
-          // Continue processing other palettes
+
           continue;
         }
       }

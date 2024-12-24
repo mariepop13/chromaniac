@@ -23,7 +23,7 @@ Future<Map<String, dynamic>> readSwatchesFile(Uint8List data, {String space = 'h
     throw ProcreateSwatchesError('Invalid .swatches file.');
   }
 
-  // Check for ZIP file signature (PK..)
+
   if (data[0] != 0x50 || data[1] != 0x4B) {
     throw ProcreateSwatchesError('Invalid .swatches file.');
   }
@@ -134,8 +134,8 @@ List<String> getSupportedColorSpaces() {
 
 List<double> convert(List<double> color, {required String from, required String to}) {
   if (from == 'hsv' && to == 'rgb') {
-    // Add conversion logic here
+
   }
-  // Add more conversions as needed
+
   return color;
 }

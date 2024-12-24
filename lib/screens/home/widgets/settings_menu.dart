@@ -70,20 +70,20 @@ class SettingsMenu extends StatelessWidget {
   void _showGridLayoutDialog(BuildContext context) {
     final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
     
-    // Get the current palette size
+
     final currentPaletteSize = settingsProvider.getCurrentPaletteSize();
     final defaultPaletteSize = settingsProvider.defaultPaletteSize;
     
-    // Determine the appropriate palette size for column calculation
+
     final paletteSize = currentPaletteSize == 3 ? defaultPaletteSize : currentPaletteSize;
     
-    // Calculate optimal columns based on the appropriate palette size
+
     final optimalColumns = settingsProvider.calculateOptimalColumns(paletteSize);
     
-    // Clear temporary palette size and reset grid columns
+
     settingsProvider.clearTemporaryPaletteSize();
     
-    // Set grid columns to optimal for the appropriate palette size
+
     settingsProvider.setGridColumns(optimalColumns);
 
     showDialog(
@@ -93,7 +93,7 @@ class SettingsMenu extends StatelessWidget {
         builder: (context, setState) {
           return Consumer<SettingsProvider>(
             builder: (context, settingsProvider, _) {
-              // Use current grid columns after reset
+
               int currentColumns = settingsProvider.gridColumns;
               int maxColumns = settingsProvider.calculateOptimalColumns(currentPaletteSize);
 
@@ -121,10 +121,10 @@ class SettingsMenu extends StatelessWidget {
                         AppLogger.d('Dialog - Max columns: $maxColumns');
                         AppLogger.d('Dialog - Attempting to set columns: $newColumns');
                         
-                        // Directly set grid columns 
+
                         settingsProvider.setGridColumns(newColumns);
                         
-                        // Force rebuild of the dialog
+
                         setState(() {});
                       },
                     ),

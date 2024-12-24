@@ -50,11 +50,11 @@ class ColorPalette {
       name: map['name'] ?? '',
       colors: colorsList.map((c) {
         if (c is String) {
-          // Ensure we have 8 digits for ARGB
+
           final colorStr = c.padLeft(8, '0');
           return Color(int.parse(colorStr, radix: 16));
         } else if (c is int) {
-          // Add full opacity if alpha is 0
+
           return Color(c | 0xFF000000);
         } else {
           throw FormatException('Invalid color format: $c');

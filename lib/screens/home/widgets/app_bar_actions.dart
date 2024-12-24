@@ -15,7 +15,7 @@ class AppBarActions extends StatelessWidget {
         Consumer<PremiumService>(
           builder: (context, premiumService, _) => IconButton(
             onPressed: () => context.read<DebugProvider>().isDebugEnabled 
-              ? premiumService.togglePremium()
+              ? premiumService.togglePremiumStatus()
               : premiumService.unlockPremium(),
             icon: Icon(
               premiumService.isPremium ? Icons.star : Icons.star_border,

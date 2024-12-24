@@ -8,11 +8,11 @@ import 'test_utils.mocks.dart';
 
 @GenerateMocks([http.Client])
 
-/// Common test utilities and mock responses
+
 class TestUtils {
   static final sampleImageBytes = Uint8List.fromList([1, 2, 3, 4]);
 
-  /// Mock a successful color analysis response
+
   static void mockSuccessfulColorResponse(MockClient mockClient) {
     when(mockClient.post(
       any,
@@ -48,7 +48,7 @@ class TestUtils {
     ));
   }
 
-  /// Mock an unauthorized error response
+
   static void mockUnauthorizedResponse(MockClient mockClient) {
     when(mockClient.post(
       any,
@@ -57,7 +57,7 @@ class TestUtils {
     )).thenAnswer((_) async => http.Response('Unauthorized', 401));
   }
 
-  /// Mock a server error response
+
   static void mockServerErrorResponse(MockClient mockClient) {
     when(mockClient.post(
       any,
@@ -66,7 +66,7 @@ class TestUtils {
     )).thenAnswer((_) async => http.Response('Internal Server Error', 500));
   }
 
-  /// Mock an invalid format response
+
   static void mockInvalidFormatResponse(MockClient mockClient) {
     when(mockClient.post(
       any,
@@ -84,7 +84,7 @@ class TestUtils {
     ));
   }
 
-  /// Verify common request format expectations
+
   static void verifyRequestFormat(MockClient mockClient) {
     verify(mockClient.post(
       any,

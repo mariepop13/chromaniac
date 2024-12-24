@@ -39,11 +39,11 @@ class _HarmonyPickerDialogState extends State<HarmonyPickerDialog> {
       final paletteType = _harmonyTypeToColorPaletteType(type);
       final defaultSize = context.read<SettingsProvider>().defaultPaletteSize;
       
-      // Generate harmony colors
+
       final colors = HarmonyGenerator.generateHarmony(widget.baseColor, type);
       
-      // For auto, analogous, and monochromatic, use default size
-      // For others, use their natural size unless it exceeds the default size
+
+
       if (paletteType == ColorPaletteType.auto || 
           paletteType == ColorPaletteType.analogous || 
           paletteType == ColorPaletteType.monochromatic) {

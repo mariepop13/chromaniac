@@ -70,14 +70,14 @@ class PaletteManager {
         ? AppConstants.maxPaletteColors
         : settingsProvider.defaultPaletteSize;
     
-    // For auto, analogous, and monochromatic, use default size
+
     if (paletteType == ColorPaletteType.auto || 
         paletteType == ColorPaletteType.analogous || 
         paletteType == ColorPaletteType.monochromatic) {
       settingsProvider.setTemporaryPaletteSize(settingsProvider.defaultPaletteSize);
       colors = colors.take(settingsProvider.defaultPaletteSize).toList();
     } else {
-      // For other harmony types, use their natural size
+
       settingsProvider.setTemporaryPaletteSize(colors.length);
     }
     

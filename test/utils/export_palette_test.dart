@@ -21,9 +21,9 @@ void main() {
 
   group('ExportPalette', () {
     final standardTestPalette = [
-      Color.from(alpha: 1.0, red: 1.0, green: 0.0, blue: 0.0), // Red
-      Color.from(alpha: 1.0, red: 0.0, green: 1.0, blue: 0.0), // Green
-      Color.from(alpha: 1.0, red: 0.0, green: 0.0, blue: 1.0), // Blue
+      Color.from(alpha: 1.0, red: 1.0, green: 0.0, blue: 0.0),
+      Color.from(alpha: 1.0, red: 0.0, green: 1.0, blue: 0.0),
+      Color.from(alpha: 1.0, red: 0.0, green: 0.0, blue: 1.0),
     ];
 
     group('CreateSwatchesContent', () {

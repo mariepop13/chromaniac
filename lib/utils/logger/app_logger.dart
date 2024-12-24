@@ -169,15 +169,15 @@ class SimpleLogPrinter extends LogPrinter {
   List<String> log(LogEvent event) {
     final List<String> lines = [];
     
-    // Add the main message
+
     lines.add(event.message);
     
-    // Add error if present
+
     if (event.error != null) {
       lines.add(event.error.toString());
     }
     
-    // Add stack trace if present
+
     if (event.stackTrace != null) {
       final frames = event.stackTrace.toString().trim().split('\n')
         .map((line) => line.replaceAll(RegExp(r'\x1B\[[0-9;]*m'), '')) // Remove ANSI color codes

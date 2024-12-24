@@ -23,7 +23,7 @@ class CloudSyncService {
       final user = _authService.currentUser;
       if (user == null) return;
 
-      // Upload local changes
+
       final unsyncedPalettes = await _dbService.getUnsyncedPalettes();
       for (var palette in unsyncedPalettes) {
         await _supabase
@@ -36,7 +36,7 @@ class CloudSyncService {
         await _dbService.markAsSynced(palette.id);
       }
 
-      // Download remote changes
+
       final response = await _supabase
           .from('palettes')
           .select()
@@ -74,7 +74,7 @@ class CloudSyncService {
       await _dbService.markAsSynced(palette.id);
     } catch (e) {
       AppLogger.e('Error saving palette: $e');
-      // Save locally if offline
+
       await _dbService.savePalette(palette);
       rethrow;
     }

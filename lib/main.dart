@@ -12,10 +12,10 @@ import 'config/supabase_config.dart';
 
 Future<void> main() async {
   try {
-    // Initialize Flutter bindings
+
     WidgetsFlutterBinding.ensureInitialized();
     
-    // Initialize core services
+
     await AppLogger.init();
     await EnvironmentConfig.initialize();
     await SupabaseConfig.initialize();
@@ -34,7 +34,8 @@ Future<void> main() async {
       ),
     );
   } catch (e) {
-    // Handle any exceptions that occur during initialization
+    // Log any exceptions that occur during initialization
+    AppLogger.e('Error during initialization: $e');
   }
 }
 

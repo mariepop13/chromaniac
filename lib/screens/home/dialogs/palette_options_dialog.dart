@@ -23,7 +23,7 @@ void showPaletteOptionsDialog(
     context: context,
     builder: (context) => StatefulBuilder(
       builder: (context, setState) {
-        HarmonyType selectedHarmonyType = HarmonyType.values.firstWhere(
+        HarmonyType.values.firstWhere(
           (type) => type.toString().split('.').last == currentType.toString().split('.').last,
           orElse: () => HarmonyType.monochromatic,
         );

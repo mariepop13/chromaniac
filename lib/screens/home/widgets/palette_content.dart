@@ -31,7 +31,7 @@ class PaletteContent extends StatelessWidget {
               key: ValueKey('color_$colorInt'),
               future: provider.isFavoriteColor(color),
               builder: (context, snapshot) {
-                // Convert to 6-digit hex (RGB only, no alpha)
+
                 final hexString = ((((color.r * 255).round() << 16) |
                                   ((color.g * 255).round() << 8) |
                                   (color.b * 255).round()))

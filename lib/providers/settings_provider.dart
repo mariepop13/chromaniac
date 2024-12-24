@@ -22,8 +22,8 @@ class SettingsProvider extends ChangeNotifier {
     
     await _prefs.setInt(defaultPaletteSizeKey, size);
     
-    // Ne plus ajuster automatiquement les colonnes
-    // Attendre une régénération explicite
+
+
     
     notifyListeners();
   }
@@ -37,7 +37,7 @@ class SettingsProvider extends ChangeNotifier {
     
     AppLogger.d('Setting grid columns: requested = $columns, validated = $validColumns');
     
-    // Always update and notify
+
     await _prefs.setInt(gridColumnsKey, validColumns);
     notifyListeners();
   }
@@ -49,48 +49,48 @@ class SettingsProvider extends ChangeNotifier {
     AppLogger.d('- Requested Size: $size');
     AppLogger.d('- Current Temporary Size: $_temporaryPaletteSize');
     
-    // Validate the size
+
     if (size < AppConstants.minPaletteColors || size > AppConstants.maxPaletteColors) {
       AppLogger.e('Invalid temporary palette size: $size');
       return;
     }
     
-    // Always update temporary palette size
+
     _temporaryPaletteSize = size;
     
-    // Always recalculate and set grid columns based on new palette size
+
     final optimalColumns = calculateOptimalColumns(size);
     
     AppLogger.d('Grid Column Calculation:');
     AppLogger.d('- Optimal Columns: $optimalColumns');
     AppLogger.d('- Current Grid Columns: $gridColumns');
     
-    // Force update grid columns
+
     await setGridColumns(optimalColumns);
     
     AppLogger.d('Setting Temporary Palette Size - Complete');
     
-    // Ensure listeners are notified
+
     notifyListeners();
   }
 
   Future<void> clearTemporaryPaletteSize() async {
     AppLogger.d('Clearing temporary palette size');
     
-    // Always reset temporary palette size
+
     _temporaryPaletteSize = null;
     
-    // Reset to optimal columns based on default palette size
+
     final optimalColumns = calculateOptimalColumns(defaultPaletteSize);
     
     AppLogger.d('Resetting grid columns:');
     AppLogger.d('- Default Palette Size: $defaultPaletteSize');
     AppLogger.d('- Optimal Columns: $optimalColumns');
     
-    // Force update grid columns
+
     await setGridColumns(optimalColumns);
     
-    // Ensure listeners are notified of the state change
+
     notifyListeners();
   }
 
@@ -108,7 +108,7 @@ class SettingsProvider extends ChangeNotifier {
     int currentSize = getCurrentPaletteSize();
     AppLogger.d('Calculating max grid columns for current palette size: $currentSize');
     
-    // Dynamically calculate max columns based on current palette size
+
     int maxColumns = calculateOptimalColumns(currentSize);
     AppLogger.d('Using max columns: $maxColumns');
     return maxColumns;
@@ -130,10 +130,10 @@ class SettingsProvider extends ChangeNotifier {
     AppLogger.d('- Max Columns: $maxColumns');
     AppLogger.d('- Current Grid Columns: $currentGridColumns');
     
-    // Ensure columns are within the valid range
+
     int columnsToSet = optimalColumns.clamp(1, maxColumns);
     
-    // Only update if columns have actually changed
+
     if (columnsToSet != currentGridColumns) {
       AppLogger.d('Updating grid columns: $currentGridColumns -> $columnsToSet');
       await setGridColumns(columnsToSet);
@@ -152,11 +152,11 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   int calculateOptimalColumns(int paletteSize) {
-    // Special handling for very small palettes
+
     if (paletteSize <= 2) return 1;
     if (paletteSize <= 4) return 2;
     
-    // For larger palettes, use the standard calculation
+
     return (paletteSize / 2).ceil().clamp(1, paletteSize);
   }
 
@@ -169,7 +169,7 @@ class SettingsProvider extends ChangeNotifier {
   Future<void> regenerateGridColumnsForDefaultPaletteSize() async {
     int currentDefaultSize = defaultPaletteSize;
     
-    // Ne régénérer que si aucune taille temporaire n'est active
+
     if (_temporaryPaletteSize == null) {
       final optimalColumns = calculateOptimalColumns(currentDefaultSize);
       

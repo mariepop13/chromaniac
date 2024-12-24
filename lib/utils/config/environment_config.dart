@@ -10,8 +10,8 @@ class EnvironmentConfig {
       AppLogger.i('Successfully loaded .env file');
     } catch (e) {
       AppLogger.w('Error loading .env file: $e');
-      // Continue execution even if .env file is missing
-      // This allows the app to run in development without a .env file
+
+
     }
   }
 

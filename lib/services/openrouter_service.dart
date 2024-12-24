@@ -31,21 +31,21 @@ class OpenRouterService {
       try {
         final response = await _sendRequest(apiKey, imageBytes);
         
-        // Don't retry on permanent failures
+
         if (response.statusCode == 401 || response.statusCode == 403) {
           final message = 'API request failed with status: ${response.statusCode}';
           AppLogger.e(message);
           throw Exception(message);
         }
         
-        // Don't retry on server errors
+
         if (response.statusCode >= 500) {
           final message = 'API request failed with status: ${response.statusCode}';
           AppLogger.e(message);
           throw Exception(message);
         }
         
-        // Only retry on temporary failures (429, 408, etc.)
+
         if (response.statusCode != 200) {
           final message = 'API request failed with status: ${response.statusCode}';
           AppLogger.e(message);
@@ -152,7 +152,7 @@ class OpenRouterService {
 
       String content = responseData['choices'][0]['message']['content'];
       
-      // Remove markdown code block if present
+
       content = content.replaceAll(RegExp(r'```json\n|\n```', multiLine: true), '');
       AppLogger.d('API Response content: $content');
       
@@ -160,12 +160,12 @@ class OpenRouterService {
         final result = jsonDecode(content);
         AppLogger.d('Parsed JSON result: $result');
 
-        // Handle old format and convert to new format
+
         if (result['colors'] is List && result['descriptions'] is List) {
           final colors = result['colors'] as List;
           final descriptions = result['descriptions'] as List;
           
-          // For old format, if either list is empty, treat as invalid structure
+
           if (colors.isEmpty || descriptions.isEmpty) {
             AppLogger.e('Invalid response data structure: empty colors or descriptions list');
             throw Exception('Invalid response data structure');
@@ -179,7 +179,7 @@ class OpenRouterService {
             final object = parts.length > 1 ? parts[0] : 'element ${i + 1}';
             final colorName = colors[i];
             
-            // Convert color name to hex code
+
             final hexCode = _colorNameToHex(colorName);
             
             transformedColors.add({
@@ -217,7 +217,7 @@ class OpenRouterService {
   }
 
   String _colorNameToHex(String colorName) {
-    // Basic color mapping
+
     final colorMap = {
       'red': '#FF0000',
       'green': '#00FF00',
@@ -239,20 +239,20 @@ class OpenRouterService {
       'dark red': '#8B0000',
     };
 
-    // Convert to lowercase and try to find an exact match
+
     final normalizedColor = colorName.toLowerCase();
     if (colorMap.containsKey(normalizedColor)) {
       return colorMap[normalizedColor]!;
     }
 
-    // Try to find a partial match
+
     for (final entry in colorMap.entries) {
       if (normalizedColor.contains(entry.key)) {
         return entry.value;
       }
     }
 
-    // Default to a gray if no match is found
+
     return '#808080';
   }
 

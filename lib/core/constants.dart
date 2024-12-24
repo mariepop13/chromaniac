@@ -1,11 +1,11 @@
-/// Application-wide constants
+
 class AppConstants {
-  // Color palette related
+
   static const int defaultPaletteSize = 5;
   static const int maxPaletteColors = 10;
   static const int minPaletteColors = 2;
 
-  // UI dimensions
+
   static const double defaultPadding = 16.0;
   static const double smallPadding = 8.0;
   static const double tinyPadding = 4.0;
@@ -15,7 +15,7 @@ class AppConstants {
   static const double buttonVerticalPadding = 12.0;
   static const double buttonHorizontalPadding = 16.0;
 
-  // Dialog related
+
   static const double dialogBorderRadius = 12.0;
   static const double dialogPadding = 16.0;
   static const double dialogMaxHeight = 400.0;
@@ -24,19 +24,19 @@ class AppConstants {
   static const double spacingSmall = 8.0;
   static const double spacingMedium = 16.0;
 
-  // Grid layout
+
   static const int gridColumnCount = 2;
   static const double gridSpacing = 0.0;
 
-  // API related
+
   static const int maxApiRetries = 3;
   static const int maxTokens = 1000;
   static const double temperature = 0.3;
 }
 
-/// Theme-related constants
+
 class ThemeConstants {
-  // Font sizes
+
   static const double displayLargeSize = 57.0;
   static const double displayMediumSize = 45.0;
   static const double displaySmallSize = 36.0;
@@ -53,9 +53,9 @@ class ThemeConstants {
   static const double labelMediumSize = 12.0;
   static const double labelSmallSize = 11.0;
 
-  // Border radius
+
   static const double defaultBorderRadius = 16.0;
   
-  // Elevation
+
   static const double defaultElevation = 2.0;
 }

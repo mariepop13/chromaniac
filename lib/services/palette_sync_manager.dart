@@ -22,7 +22,7 @@ class PaletteSyncManager extends ChangeNotifier {
   }
 
   PaletteSyncManager._internal() {
-    // Écouter les changements d'état d'authentification
+
     _authService.authStateChanges.listen((state) {
       if (state.event == AuthChangeEvent.signedIn) {
         startAutoSync();
@@ -36,13 +36,13 @@ class PaletteSyncManager extends ChangeNotifier {
   DateTime? get lastSyncTime => _lastSyncTime;
 
   void startAutoSync() {
-    // Synchroniser toutes les 5 minutes
+
     _syncTimer?.cancel();
     _syncTimer = Timer.periodic(const Duration(minutes: 5), (_) {
       syncPalettes();
     });
     
-    // Synchroniser immédiatement au démarrage
+
     syncPalettes();
   }
 
@@ -71,10 +71,10 @@ class PaletteSyncManager extends ChangeNotifier {
 
   Future<void> savePalette(ColorPalette palette) async {
     try {
-      // Sauvegarder localement d'abord
+
       await _dbService.savePalette(palette);
 
-      // Si l'utilisateur est connecté, synchroniser avec Supabase
+
       if (_authService.currentUser != null) {
         await _supabaseService.savePalette(palette);
         await _dbService.markAsSynced(palette.id);
@@ -87,10 +87,10 @@ class PaletteSyncManager extends ChangeNotifier {
 
   Future<void> deletePalette(String id) async {
     try {
-      // Supprimer localement d'abord
+
       await _dbService.deletePalette(id);
 
-      // Si l'utilisateur est connecté, supprimer de Supabase
+
       if (_authService.currentUser != null) {
         await _supabaseService.deletePalette(id);
       }
@@ -114,10 +114,10 @@ class PaletteSyncManager extends ChangeNotifier {
   Future<List<ColorPalette>> searchPalettes(String query) async {
     try {
       if (_authService.currentUser != null) {
-        // Rechercher dans Supabase si connecté
+
         return await _supabaseService.searchPalettes(query);
       } else {
-        // Rechercher localement si hors ligne
+
         final palettes = await _dbService.getPalettes();
         return palettes
             .where((p) => p.name.toLowerCase().contains(query.toLowerCase()))
