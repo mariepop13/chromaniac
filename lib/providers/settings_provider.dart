@@ -22,11 +22,8 @@ class SettingsProvider extends ChangeNotifier {
     
     await _prefs.setInt(defaultPaletteSizeKey, size);
     
-    // If not using temporary palette size, adjust grid columns based on new default size
-    if (_temporaryPaletteSize == null) {
-      final optimalColumns = (size / 2).ceil();
-      await setGridColumns(optimalColumns);
-    }
+    // Ne plus ajuster automatiquement les colonnes
+    // Attendre une régénération explicite
     
     notifyListeners();
   }
@@ -167,5 +164,22 @@ class SettingsProvider extends ChangeNotifier {
     bool isTemporary = _temporaryPaletteSize != null;
     AppLogger.d('Checking temporary palette status: $isTemporary');
     return isTemporary;
+  }
+
+  Future<void> regenerateGridColumnsForDefaultPaletteSize() async {
+    int currentDefaultSize = defaultPaletteSize;
+    
+    // Ne régénérer que si aucune taille temporaire n'est active
+    if (_temporaryPaletteSize == null) {
+      final optimalColumns = calculateOptimalColumns(currentDefaultSize);
+      
+      AppLogger.d('Regenerating grid columns for default palette size:');
+      AppLogger.d('- Default Palette Size: $currentDefaultSize');
+      AppLogger.d('- Optimal Columns: $optimalColumns');
+      
+      await setGridColumns(optimalColumns);
+    } else {
+      AppLogger.d('Skipping grid columns regeneration due to active temporary palette size');
+    }
   }
 }
