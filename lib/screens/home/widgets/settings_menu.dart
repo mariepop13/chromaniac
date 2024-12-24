@@ -70,15 +70,22 @@ class SettingsMenu extends StatelessWidget {
   void _showGridLayoutDialog(BuildContext context) {
     final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
     
+    final temporarySize = settingsProvider.getCurrentPaletteSize();
+    final isTemporary = settingsProvider.isUsingTemporaryPalette();
+    
+    if (isTemporary) {
+      settingsProvider.setTemporaryPaletteSize(temporarySize);
+    }
+    
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) {
           int maxColumns = settingsProvider.getMaxGridColumns();
           int currentColumns = settingsProvider.gridColumns;
-          int defaultPaletteSize = settingsProvider.defaultPaletteSize;
 
-          AppLogger.d('Grid Layout Dialog - Default Palette Size: $defaultPaletteSize');
+          AppLogger.d('Grid Layout Dialog - Current Palette Size: ${settingsProvider.getCurrentPaletteSize()}');
           AppLogger.d('Grid Layout Dialog - Max Columns: $maxColumns');
           AppLogger.d('Grid Layout Dialog - Current Columns: $currentColumns');
 
@@ -98,6 +105,7 @@ class SettingsMenu extends StatelessWidget {
                     int newColumns = value.toInt();
                     AppLogger.d('Dialog - Max columns: $maxColumns');
                     AppLogger.d('Dialog - Attempting to set columns: $newColumns');
+                    
                     settingsProvider.setGridColumns(newColumns);
                     setState(() {
                       currentColumns = newColumns;
@@ -106,7 +114,9 @@ class SettingsMenu extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Adjust columns based on default palette size ($defaultPaletteSize colors)',
+                  isTemporary
+                    ? 'Adjust columns based on harmony size ($temporarySize colors)'
+                    : 'Adjust columns based on default palette size (${settingsProvider.defaultPaletteSize} colors)',
                   style: Theme.of(context).textTheme.bodySmall,
                   textAlign: TextAlign.center,
                 ),

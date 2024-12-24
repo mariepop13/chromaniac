@@ -64,9 +64,12 @@ class PaletteManager {
     List<Color> colors,
     Function(List<Color>) onColorsApplied,
   ) {
+    final settingsProvider = context.read<SettingsProvider>();
     final maxColors = context.read<PremiumService>().isPremium
         ? AppConstants.maxPaletteColors
-        : context.read<SettingsProvider>().defaultPaletteSize;
+        : settingsProvider.defaultPaletteSize;
+    
+    settingsProvider.setTemporaryPaletteSize(colors.length);
     
     if (colors.length > maxColors) {
       showPaletteLimitDialog(context, () {});
@@ -74,6 +77,8 @@ class PaletteManager {
     }
     
     onColorsApplied(colors);
+    
+    settingsProvider.adjustGridColumnsForPaletteSize();
   }
 
   static Color generateRandomColor() {

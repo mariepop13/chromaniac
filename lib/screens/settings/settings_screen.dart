@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:chromaniac/providers/settings_provider.dart';
 import 'package:chromaniac/core/constants.dart';
-import 'package:chromaniac/utils/logger/app_logger.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -18,7 +17,6 @@ class SettingsScreen extends StatelessWidget {
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              // Palette Size Setting
               _buildSettingTile(
                 title: 'Default Palette Size',
                 subtitle: 'Maximum number of colors in a palette',
@@ -41,7 +39,6 @@ class SettingsScreen extends StatelessWidget {
                 ),
               ),
 
-              // Grid Layout Setting
               _buildSettingTile(
                 title: 'Grid Layout',
                 subtitle: 'Number of columns in color grid',
@@ -58,9 +55,6 @@ class SettingsScreen extends StatelessWidget {
                           label: settingsProvider.gridColumns.toString(),
                           onChanged: (value) {
                             int newColumns = value.round();
-                            AppLogger.d('Current default palette size: ${settingsProvider.defaultPaletteSize}');
-                            AppLogger.d('Max grid columns: ${settingsProvider.getMaxGridColumns()}');
-                            AppLogger.d('Attempting to set columns: $newColumns');
                             settingsProvider.setGridColumns(newColumns);
                             setState(() {});
                           },
@@ -68,7 +62,7 @@ class SettingsScreen extends StatelessWidget {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: Text(
-                            'Adjust columns based on default palette size (${settingsProvider.defaultPaletteSize} colors)',
+                            'Adjust columns based on default palette size (${settingsProvider.getCurrentPaletteSize()} colors)',
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ),
