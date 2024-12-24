@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:chromaniac/providers/theme_provider.dart';
+import 'package:chromaniac/providers/settings_provider.dart';
+import 'package:chromaniac/utils/logger/app_logger.dart';
 
 class SettingsMenu extends StatelessWidget {
   final Function() onSettingsTap;
@@ -22,6 +24,9 @@ class SettingsMenu extends StatelessWidget {
             break;
           case 'settings':
             onSettingsTap();
+            break;
+          case 'grid_layout':
+            _showGridLayoutDialog(context);
             break;
         }
       },
@@ -48,7 +53,81 @@ class SettingsMenu extends StatelessWidget {
             ],
           ),
         ),
+        const PopupMenuItem(
+          value: 'grid_layout',
+          child: Row(
+            children: [
+              Icon(Icons.grid_view),
+              SizedBox(width: 8),
+              Text('Grid Layout'),
+            ],
+          ),
+        ),
       ],
+    );
+  }
+
+  void _showGridLayoutDialog(BuildContext context) {
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          int maxColumns = settingsProvider.getMaxGridColumns();
+          int currentColumns = settingsProvider.gridColumns;
+          int defaultPaletteSize = settingsProvider.defaultPaletteSize;
+
+          AppLogger.d('Grid Layout Dialog - Default Palette Size: $defaultPaletteSize');
+          AppLogger.d('Grid Layout Dialog - Max Columns: $maxColumns');
+          AppLogger.d('Grid Layout Dialog - Current Columns: $currentColumns');
+
+          return AlertDialog(
+            title: const Text('Grid Layout'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Number of Columns: $currentColumns'),
+                Slider(
+                  value: currentColumns.toDouble(),
+                  min: 1,
+                  max: maxColumns.toDouble(),
+                  divisions: maxColumns - 1,
+                  label: currentColumns.toString(),
+                  onChanged: (double value) {
+                    int newColumns = value.toInt();
+                    AppLogger.d('Dialog - Max columns: $maxColumns');
+                    AppLogger.d('Dialog - Attempting to set columns: $newColumns');
+                    settingsProvider.setGridColumns(newColumns);
+                    setState(() {
+                      currentColumns = newColumns;
+                    });
+                  },
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Adjust columns based on default palette size ($defaultPaletteSize colors)',
+                  style: Theme.of(context).textTheme.bodySmall,
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  settingsProvider.setGridColumns(currentColumns);
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Save'),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 }
