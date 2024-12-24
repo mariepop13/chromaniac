@@ -155,11 +155,13 @@ class _ColorAnalysisButtonState extends State<ColorAnalysisButton> {
       final result = await analyzer.analyzeColoringImage(widget.imageBytes!);
       if (mounted) {
         widget.onAnalysisComplete(result);
-        _showAnalysisDialog(context, result);
+        if (context.mounted) {
+          _showAnalysisDialog(context, result);
+        }
       }
     } catch (e, stackTrace) {
       AppLogger.e('Error analyzing colors', error: e, stackTrace: stackTrace);
-      if (mounted) {
+      if (mounted && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Failed to analyze colors. Please try again.'),
