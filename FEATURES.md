@@ -16,7 +16,7 @@
 
 ## UI Improvements
 - 🌓 Per-palette dark/light mode toggle
-- 📐 Different grid layout options (1x4, 2x2, etc.)
+- ✅ Different grid layout options (1x4, 2x2, etc.)
 - 🏷️ Custom names for colors in palette
 - 👆 Double-tap to copy color code
 - 🔍 Color preview on long press

@@ -70,20 +70,15 @@ class SettingsMenu extends StatelessWidget {
   void _showGridLayoutDialog(BuildContext context) {
     final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
     
-
     final currentPaletteSize = settingsProvider.getCurrentPaletteSize();
     final defaultPaletteSize = settingsProvider.defaultPaletteSize;
     
-
     final paletteSize = currentPaletteSize == 3 ? defaultPaletteSize : currentPaletteSize;
     
-
     final optimalColumns = settingsProvider.calculateOptimalColumns(paletteSize);
     
-
     settingsProvider.clearTemporaryPaletteSize();
     
-
     settingsProvider.setGridColumns(optimalColumns);
 
     showDialog(
@@ -93,9 +88,11 @@ class SettingsMenu extends StatelessWidget {
         builder: (context, setState) {
           return Consumer<SettingsProvider>(
             builder: (context, settingsProvider, _) {
-
               int currentColumns = settingsProvider.gridColumns;
               int maxColumns = settingsProvider.calculateOptimalColumns(currentPaletteSize);
+
+              // Ensure currentColumns is within the valid range
+              currentColumns = currentColumns.clamp(1, maxColumns);
 
               AppLogger.d('Grid Layout Dialog - Current Palette Size: $currentPaletteSize');
               AppLogger.d('Grid Layout Dialog - Default Palette Size: $defaultPaletteSize');
@@ -117,14 +114,12 @@ class SettingsMenu extends StatelessWidget {
                       divisions: maxColumns > 1 ? maxColumns - 1 : null,
                       label: currentColumns.toString(),
                       onChanged: (double value) {
-                        int newColumns = value.toInt();
+                        int newColumns = value.round();
                         AppLogger.d('Dialog - Max columns: $maxColumns');
                         AppLogger.d('Dialog - Attempting to set columns: $newColumns');
                         
-
                         settingsProvider.setGridColumns(newColumns);
                         
-
                         setState(() {});
                       },
                     ),
