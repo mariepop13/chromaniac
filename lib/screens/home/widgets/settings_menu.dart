@@ -99,7 +99,7 @@ class SettingsMenu extends StatelessWidget {
                   value: currentColumns.toDouble(),
                   min: 1,
                   max: maxColumns.toDouble(),
-                  divisions: maxColumns - 1,
+                  divisions: maxColumns > 1 ? maxColumns - 1 : null,
                   label: currentColumns.toString(),
                   onChanged: (double value) {
                     int newColumns = value.toInt();
