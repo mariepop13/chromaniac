@@ -59,7 +59,7 @@ class OpenRouterService {
         return _processResponse(response);
       } catch (e) {
         if (e is Exception && e.toString().contains('API request failed with status:')) {
-          rethrow; // Don't retry status code errors
+          rethrow;
         }
         lastError = e is Exception ? e : Exception(e.toString());
         if (attempt == _maxRetries) {

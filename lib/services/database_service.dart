@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'dart:ui';
-import 'dart:convert'; // Import json library
+import 'dart:convert';
 
 import 'package:chromaniac/models/favorite_color.dart';
 import 'package:path/path.dart';

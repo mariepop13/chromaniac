@@ -195,7 +195,7 @@ class HomeScreenStateWidgetState extends State<HomeScreenStateWidget> {
       final colorPalette = ColorPalette(
         id: const Uuid().v4(),
         name: name ?? 'Palette ${now.toIso8601String()}',
-        colors: List<Color>.from(homeScreenState.palette), // Create a new list to avoid reference issues
+        colors: List<Color>.from(homeScreenState.palette),
         createdAt: now,
         updatedAt: now,
       );
@@ -221,5 +221,5 @@ class HomeScreenStateWidgetState extends State<HomeScreenStateWidget> {
   }
 
   @override
-  Widget build(BuildContext context) => Container(); // Implemented in home_screen.dart
+  Widget build(BuildContext context) => Container();
 }

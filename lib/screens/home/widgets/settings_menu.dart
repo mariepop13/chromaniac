@@ -77,9 +77,6 @@ class SettingsMenu extends StatelessWidget {
     
     final optimalColumns = settingsProvider.calculateOptimalColumns(paletteSize);
     
-    settingsProvider.clearTemporaryPaletteSize();
-    
-    // Force 2 columns for palette size 3
     final columnsToSet = paletteSize == 3 ? 2 : optimalColumns;
     settingsProvider.setGridColumns(columnsToSet);
 
@@ -93,15 +90,14 @@ class SettingsMenu extends StatelessWidget {
               int currentColumns = settingsProvider.gridColumns;
               int maxColumns = settingsProvider.calculateOptimalColumns(currentPaletteSize);
 
-              // Ensure currentColumns is within the valid range
               currentColumns = currentColumns.clamp(1, maxColumns);
 
-              AppLogger.d('Grid Layout Dialog - Current Palette Size: $currentPaletteSize');
-              AppLogger.d('Grid Layout Dialog - Default Palette Size: $defaultPaletteSize');
-              AppLogger.d('Grid Layout Dialog - Appropriate Palette Size: $paletteSize');
-              AppLogger.d('Grid Layout Dialog - Max Columns: $maxColumns');
-              AppLogger.d('Grid Layout Dialog - Current Columns: $currentColumns');
-              AppLogger.d('Grid Layout Dialog - Optimal Columns: $optimalColumns');
+              AppLogger.d('🔍 GRID LAYOUT DIALOG OPENED');
+              AppLogger.d('- Current Palette Size: $currentPaletteSize');
+              AppLogger.d('- Default Palette Size: $defaultPaletteSize');
+              AppLogger.d('- Current Grid Columns: $currentColumns');
+              AppLogger.d('- Max Columns: $maxColumns');
+              AppLogger.d('- Optimal Columns: $optimalColumns');
 
               return AlertDialog(
                 title: const Text('Grid Layout'),

@@ -34,7 +34,6 @@ Future<void> main() async {
       ),
     );
   } catch (e) {
-    // Log any exceptions that occur during initialization
     AppLogger.e('Error during initialization: $e');
   }
 }

@@ -12,7 +12,6 @@ class SettingsProvider extends ChangeNotifier {
   final SharedPreferences _prefs;
 
   SettingsProvider(this._prefs) {
-    // Ensure default value for palette size 3 columns
     if (_prefs.getInt(gridColumnsPaletteSizeThreeKey) == null) {
       _prefs.setInt(gridColumnsPaletteSizeThreeKey, 2);
     }
@@ -28,7 +27,6 @@ class SettingsProvider extends ChangeNotifier {
     
     await _prefs.setInt(defaultPaletteSizeKey, size);
     
-    // Special handling for palette size 3
     if (size == 3) {
       await setGridColumns(2);
     } else {
@@ -51,7 +49,6 @@ class SettingsProvider extends ChangeNotifier {
     AppLogger.d('Setting grid columns: requested = $columns, validated = $validColumns');
     AppLogger.d('Current palette size: ${getCurrentPaletteSize()}');
     
-    // Prevent switching to 4 columns when palette size is 3
     if (getCurrentPaletteSize() == 3 && validColumns > 2) {
       AppLogger.d('Preventing column change for palette size 3');
       validColumns = 2;

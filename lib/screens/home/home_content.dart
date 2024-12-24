@@ -51,13 +51,6 @@ class HomeContent extends StatelessWidget {
             final cellHeight = gridHeight / rowCount;
             final aspectRatio = cellWidth / cellHeight;
 
-            AppLogger.d('Grid Layout Constraints:');
-            AppLogger.d('- Max Width: ${constraints.maxWidth}');
-            AppLogger.d('- Max Height: ${constraints.maxHeight}');
-            AppLogger.d('- Cell Width: $cellWidth');
-            AppLogger.d('- Cell Height: $cellHeight');
-            AppLogger.d('- Calculated Aspect Ratio: $aspectRatio');
-
             return ReorderableGridView.builder(
               physics: const NeverScrollableScrollPhysics(),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(

@@ -180,7 +180,7 @@ class SimpleLogPrinter extends LogPrinter {
 
     if (event.stackTrace != null) {
       final frames = event.stackTrace.toString().trim().split('\n')
-        .map((line) => line.replaceAll(RegExp(r'\x1B\[[0-9;]*m'), '')) // Remove ANSI color codes
+        .map((line) => line.replaceAll(RegExp(r'\x1B\[[0-9;]*m'), ''))
         .map((line) => line.trim())
         .where((line) => line.isNotEmpty);
       lines.addAll(frames);
