@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:chromaniac/features/color_palette/presentation/color_picker_dialog.dart';
 import 'package:chromaniac/utils/color/export_palette.dart';
+import 'package:chromaniac/utils/color/image_color_analyzer.dart';
 import 'package:chromaniac/screens/favorites/favorites_screen.dart';
 import 'package:chromaniac/widgets/app_bottom_nav.dart';
 import 'package:chromaniac/widgets/speed_dial_fab.dart';
@@ -118,43 +119,18 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      key: _scaffoldKey,
-      appBar: AppBar(
-        leading: SettingsMenu(onSettingsTap: () => _showSettingsDialog(context)),
-        title: const Text('Chromaniac'),
-        actions: const [AppBarActions()],
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            if (_state.selectedImage != null)
-              ImagePreview(
-                image: _state.selectedImage!,
-                imageBytes: _state.imageBytes!,
-                onAnalysisComplete: (result) {
-                  try {
-                    setState(() {
-                      _state.clearPalette();
-                      final colors = ImageHandler.processColorAnalysis(result.colorAnalysis);
-                      _state.addColors(colors);
-                    });
-                  } catch (e, stackTrace) {
-                    AppLogger.e('Error processing color analysis', error: e, stackTrace: stackTrace);
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Error processing colors. Please try again.'),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                    }
-                  }
-                },
-              ),
-            HomeContent(
+  Widget _buildContent(BuildContext context, Orientation orientation) {
+    if (orientation == Orientation.portrait || _state.selectedImage == null) {
+      return Column(
+        children: [
+          if (_state.selectedImage != null)
+            ImagePreview(
+              image: _state.selectedImage!,
+              imageBytes: _state.imageBytes!,
+              onAnalysisComplete: _handleAnalysisComplete,
+            ),
+          Expanded(
+            child: HomeContent(
               palette: _state.palette,
               onRemoveColor: (color) => setState(() => _state.removeColor(color)),
               onEditColor: (oldColor, newColor) => setState(() => _state.updateColor(oldColor, newColor)),
@@ -168,7 +144,75 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               onReorder: (oldIndex, newIndex) => setState(() => _state.reorderColors(oldIndex, newIndex)),
             ),
-          ],
+          ),
+        ],
+      );
+    }
+
+    // Landscape layout with image on left and colors on right
+    return Row(
+      children: [
+        Expanded(
+          flex: 1,
+          child: ImagePreview(
+            image: _state.selectedImage!,
+            imageBytes: _state.imageBytes!,
+            onAnalysisComplete: _handleAnalysisComplete,
+          ),
+        ),
+        Expanded(
+          flex: 1,
+          child: HomeContent(
+            palette: _state.palette,
+            onRemoveColor: (color) => setState(() => _state.removeColor(color)),
+            onEditColor: (oldColor, newColor) => setState(() => _state.updateColor(oldColor, newColor)),
+            onAddHarmonyColors: (colors) => PaletteManager.applyHarmonyColors(
+              context,
+              colors,
+              (newColors) => setState(() {
+                _state.clearPalette();
+                _state.addColors(newColors);
+              }),
+            ),
+            onReorder: (oldIndex, newIndex) => setState(() => _state.reorderColors(oldIndex, newIndex)),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _handleAnalysisComplete(ColorAnalysisResult result) {
+    try {
+      setState(() {
+        _state.clearPalette();
+        final colors = ImageHandler.processColorAnalysis(result.colorAnalysis);
+        _state.addColors(colors);
+      });
+    } catch (e, stackTrace) {
+      AppLogger.e('Error processing color analysis', error: e, stackTrace: stackTrace);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Error processing colors. Please try again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      key: _scaffoldKey,
+      appBar: AppBar(
+        leading: SettingsMenu(onSettingsTap: () => _showSettingsDialog(context)),
+        title: const Text('Chromaniac'),
+        actions: const [AppBarActions()],
+      ),
+      body: SafeArea(
+        child: OrientationBuilder(
+          builder: (context, orientation) => _buildContent(context, orientation),
         ),
       ),
       bottomNavigationBar: AppBottomNav(

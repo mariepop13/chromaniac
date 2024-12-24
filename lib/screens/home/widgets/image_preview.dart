@@ -19,22 +19,32 @@ class ImagePreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Image.file(
-          image,
-          height: AppConstants.colorPreviewHeight,
-          width: double.infinity,
-          fit: BoxFit.cover,
-        ),
-        Padding(
-          padding: EdgeInsets.all(AppConstants.defaultPadding),
-          child: ColorAnalysisButton(
-            imageBytes: imageBytes,
-            onAnalysisComplete: onAnalysisComplete,
-          ),
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final imageWidth = constraints.maxWidth;
+        final imageHeight = imageWidth * 0.4;
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.file(
+              image,
+              height: imageHeight,
+              width: imageWidth,
+              fit: BoxFit.cover,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppConstants.defaultPadding,
+                vertical: AppConstants.smallPadding,
+              ),
+              child: ColorAnalysisButton(
+                imageBytes: imageBytes,
+                onAnalysisComplete: onAnalysisComplete,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

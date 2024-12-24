@@ -30,83 +30,101 @@ class _ColorAnalysisButtonState extends State<ColorAnalysisButton> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppConstants.dialogBorderRadius),
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(AppConstants.dialogPadding),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Color Analysis Results',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
+          child: OrientationBuilder(
+            builder: (context, orientation) {
+              final isLandscape = orientation == Orientation.landscape;
+              return LayoutBuilder(
+                builder: (context, constraints) {
+                  final maxDialogHeight = isLandscape 
+                      ? MediaQuery.of(context).size.height * 0.8
+                      : constraints.maxHeight - 100;
+                  final maxDialogWidth = isLandscape 
+                      ? MediaQuery.of(context).size.width * 0.8
+                      : constraints.maxWidth;
+
+                  return Container(
+                    width: maxDialogWidth,
+                    constraints: BoxConstraints(
+                      maxHeight: maxDialogHeight,
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppConstants.spacingMedium),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(
-                    maxHeight: AppConstants.dialogMaxHeight,
-                  ),
-                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(AppConstants.dialogPadding),
                     child: Column(
-                      children: result.colorAnalysis.map((analysis) {
-                        final color = Color(int.parse(
-                          analysis['hexCode']!.replaceAll('#', '0xFF'),
-                        ));
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: AppConstants.spacingSmall,
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: AppConstants.colorPreviewSize,
-                                height: AppConstants.colorPreviewSize,
-                                decoration: BoxDecoration(
-                                  color: color,
-                                  borderRadius: BorderRadius.circular(
-                                    AppConstants.colorPreviewBorderRadius,
-                                  ),
-                                  border: Border.all(
-                                    color: Colors.grey.shade300,
-                                  ),
-                                ),
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Color Analysis Results',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
                               ),
-                              const SizedBox(width: AppConstants.spacingMedium),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      analysis['object']!,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.close),
+                              onPressed: () => Navigator.of(context).pop(),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: AppConstants.spacingMedium),
+                        Flexible(
+                          child: SingleChildScrollView(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: result.colorAnalysis.map((analysis) {
+                                final color = Color(int.parse(
+                                  analysis['hexCode']!.replaceAll('#', '0xFF'),
+                                ));
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: AppConstants.spacingSmall,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: AppConstants.colorPreviewSize,
+                                        height: AppConstants.colorPreviewSize,
+                                        decoration: BoxDecoration(
+                                          color: color,
+                                          borderRadius: BorderRadius.circular(
+                                            AppConstants.colorPreviewBorderRadius,
+                                          ),
+                                          border: Border.all(
+                                            color: Colors.grey.shade300,
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                    Text(analysis['colorName']!),
-                                  ],
-                                ),
-                              ),
-                              Text(analysis['hexCode']!),
-                            ],
+                                      const SizedBox(width: AppConstants.spacingMedium),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              analysis['object']!,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            Text(analysis['colorName']!),
+                                          ],
+                                        ),
+                                      ),
+                                      Text(analysis['hexCode']!),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
+                            ),
                           ),
-                        );
-                      }).toList(),
+                        ),
+                      ],
                     ),
-                  ),
-                ),
-              ],
-            ),
+                  );
+                },
+              );
+            },
           ),
         );
       },
