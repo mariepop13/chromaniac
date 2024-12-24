@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:chromaniac/utils/color/contrast_color.dart';
 
 class AppBottomNav extends StatelessWidget {
   final int currentIndex;
@@ -12,10 +13,15 @@ class AppBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = ContrastColorScheme.fromBottomNavTheme(Theme.of(context));
+
     return BottomNavigationBar(
       currentIndex: currentIndex,
       onTap: onTap,
       type: BottomNavigationBarType.fixed,
+      backgroundColor: colorScheme.backgroundColor,
+      selectedItemColor: colorScheme.foregroundColor,
+      unselectedItemColor: colorScheme.inactiveForegroundColor,
       items: const [
         BottomNavigationBarItem(
           icon: Icon(Icons.palette),
