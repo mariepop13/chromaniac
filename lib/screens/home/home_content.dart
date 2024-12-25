@@ -4,7 +4,6 @@ import 'package:reorderable_grid/reorderable_grid.dart';
 import '../../features/color_palette/domain/color_palette_type.dart';
 import '../../features/color_palette/presentation/color_tile_widget.dart';
 import '../../providers/settings_provider.dart';
-import '../../utils/logger/app_logger.dart';
 
 class HomeContent extends StatelessWidget {
   final List<Color> palette;
