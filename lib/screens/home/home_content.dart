@@ -35,11 +35,6 @@ class HomeContent extends StatelessWidget {
         final columnCount = settingsProvider.gridColumns;
         final rowCount = (palette.length / columnCount).ceil();
 
-        AppLogger.d('HomeContent Grid Layout:');
-        AppLogger.d('- Palette Size: ${palette.length}');
-        AppLogger.d('- Column Count: $columnCount');
-        AppLogger.d('- Row Count: $rowCount');
-
         return LayoutBuilder(
           builder: (context, constraints) {
 
