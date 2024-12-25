@@ -1,9 +1,10 @@
-
 class AppConstants {
 
   static const int defaultPaletteSize = 5;
   static const int maxPaletteColors = 10;
   static const int minPaletteColors = 2;
+  static const int nonPremiumMaxPaletteColors = 5;
+  static const int premiumMaxPaletteColors = 10;
 
 
   static const double defaultPadding = 16.0;

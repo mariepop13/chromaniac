@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:chromaniac/providers/theme_provider.dart';
+import 'package:chromaniac/services/premium_service.dart';
 
 class SettingsMenu extends StatelessWidget {
   final Function() onSettingsTap;
@@ -15,7 +16,16 @@ class SettingsMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PopupMenuButton<String>(
-      icon: const Icon(Icons.more_vert),
+      icon: Consumer<PremiumService>(
+        builder: (context, premiumService, _) => Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.more_vert),
+            if (premiumService.isPremium)
+              const Icon(Icons.star, color: Colors.amber, size: 16),
+          ],
+        ),
+      ),
       onSelected: (value) async {
         switch (value) {
           case 'settings':

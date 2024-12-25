@@ -12,27 +12,28 @@ class AppBarActions extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Consumer<PremiumService>(
-          builder: (context, premiumService, _) => IconButton(
-            onPressed: () => context.read<DebugProvider>().isDebugEnabled 
-              ? premiumService.togglePremiumStatus()
-              : premiumService.unlockPremium(),
-            icon: Icon(
-              premiumService.isPremium ? Icons.star : Icons.star_border,
-              color: premiumService.isPremium ? Colors.amber : null,
-            ),
-          ),
-        ),
         if (kDebugMode)
-          Consumer<DebugProvider>(
-            builder: (context, debugProvider, _) => IconButton(
-              onPressed: () => debugProvider.toggleDebug(),
+          Consumer<PremiumService>(
+            builder: (context, premiumService, _) => IconButton(
+              onPressed: () =>
+                  context.read<DebugProvider>().togglePremiumStatus(),
               icon: Icon(
-                debugProvider.isDebugEnabled ? Icons.bug_report : Icons.bug_report_outlined,
-                color: debugProvider.isDebugEnabled ? Colors.red : null,
+                premiumService.isPremium ? Icons.star : Icons.star_border,
+                color: premiumService.isPremium ? Colors.amber : null,
               ),
             ),
           ),
+        Consumer<DebugProvider>(
+          builder: (context, debugProvider, _) => IconButton(
+            onPressed: () => debugProvider.toggleDebug(),
+            icon: Icon(
+              debugProvider.isDebugEnabled
+                  ? Icons.bug_report
+                  : Icons.bug_report_outlined,
+              color: debugProvider.isDebugEnabled ? Colors.red : null,
+            ),
+          ),
+        ),
       ],
     );
   }

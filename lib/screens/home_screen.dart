@@ -308,13 +308,15 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
         leading: SettingsMenu(
-          onSettingsTap: () => _showSettingsDialog(context),onThemeTap: () {
+          onSettingsTap: () => _showSettingsDialog(context),
+          onThemeTap: () {
             Provider.of<ThemeProvider>(context, listen: false)
                 .toggleTheme(!Provider.of<ThemeProvider>(context, listen: false).isDarkMode);
           },

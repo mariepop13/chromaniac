@@ -27,8 +27,13 @@ Future<void> main() async {
         providers: [
           ChangeNotifierProvider(create: (_) => ThemeProvider(prefs)),
           ChangeNotifierProvider(create: (_) => PremiumService()),
-          ChangeNotifierProvider(create: (_) => DebugProvider()),
-          ChangeNotifierProvider(create: (_) => SettingsProvider(prefs)),
+          ChangeNotifierProvider(create: (context) => SettingsProvider(prefs)),
+          ChangeNotifierProvider(
+            create: (context) => DebugProvider(
+              Provider.of<SettingsProvider>(context, listen: false),
+              Provider.of<PremiumService>(context, listen: false)
+            ),
+          ),
         ],
         child: const ChromaniacApp(),
       ),

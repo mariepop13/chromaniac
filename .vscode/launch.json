@@ -1,7 +1,4 @@
 {
-    // Utilisez IntelliSense pour en savoir plus sur les attributs possibles.
-    // Pointez pour afficher la description des attributs existants.
-    // Pour plus d'informations, visitez : https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
         {
@@ -39,12 +36,22 @@
             "request": "launch",
             "type": "dart",
             "deviceId": "00008101-000A00DE34F9001E"
+        },
+        {
+            "name": "chromaniac (Flutter iPhone 16)",
+            "program": "lib/main.dart",
+            "deviceId": "82C58AF1-62E8-4C1D-8699-497A6078DEAD",
+            "request": "launch",
+            "type": "dart"
         }
     ],
     "compounds": [
         {
             "name": "chromaniac (iPhone & iPad)",
-            "configurations": ["chromaniac (iPhone)", "chromaniac (iPad)"]
+            "configurations": [
+                "chromaniac (iPhone)",
+                "chromaniac (iPad)"
+            ]
         }
     ]
 }

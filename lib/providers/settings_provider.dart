@@ -8,6 +8,9 @@ class SettingsProvider extends ChangeNotifier {
   static const String defaultPaletteSizeKey = 'defaultPaletteSize';
   static const String gridColumnsKey = 'gridColumns';
   static const String gridColumnsPaletteSizeThreeKey = 'gridColumnsPaletteSizeThree';
+  static const String isPremiumEnabledKey = 'isPremiumEnabled';
+  static const String isPremiumStarLogoEnabledKey = 'isPremiumStarLogoEnabled';
+  static const String maxPremiumPaletteColorsKey = 'maxPremiumPaletteColors';
 
   final SharedPreferences _prefs;
 
@@ -21,8 +24,8 @@ class SettingsProvider extends ChangeNotifier {
       _prefs.getInt(defaultPaletteSizeKey) ?? AppConstants.defaultPaletteSize;
 
   Future<void> setDefaultPaletteSize(int size) async {
-    if (size < AppConstants.minPaletteColors || size > AppConstants.maxPaletteColors) {
-      throw RangeError('Palette size must be between ${AppConstants.minPaletteColors} and ${AppConstants.maxPaletteColors}');
+    if (!isPremiumEnabled && size > maxPremiumPaletteColors) {
+      throw RangeError('Non-premium users are limited to $maxPremiumPaletteColors colors');
     }
     
     await _prefs.setInt(defaultPaletteSizeKey, size);
@@ -213,5 +216,30 @@ class SettingsProvider extends ChangeNotifier {
     } else {
       AppLogger.d('Skipping grid columns regeneration due to active temporary palette size');
     }
+  }
+
+  bool get isPremiumEnabled => _prefs.getBool(isPremiumEnabledKey) ?? false;
+
+  Future<void> setIsPremiumEnabled(bool enabled) async {
+    await _prefs.setBool(isPremiumEnabledKey, enabled);
+    notifyListeners();
+  }
+
+  bool get isPremiumStarLogoEnabled => _prefs.getBool(isPremiumStarLogoEnabledKey) ?? false;
+
+  Future<void> setIsPremiumStarLogoEnabled(bool enabled) async {
+    await _prefs.setBool(isPremiumStarLogoEnabledKey, enabled);
+    notifyListeners();
+  }
+
+  int get maxPremiumPaletteColors => _prefs.getInt(maxPremiumPaletteColorsKey) ?? AppConstants.maxPaletteColors;
+
+  Future<void> setMaxPremiumPaletteColors(int maxColors) async {
+    if (maxColors < AppConstants.minPaletteColors || maxColors > AppConstants.maxPaletteColors) {
+      throw RangeError('Premium palette size must be between ${AppConstants.minPaletteColors} and ${AppConstants.maxPaletteColors}');
+    }
+    
+    await _prefs.setInt(maxPremiumPaletteColorsKey, maxColors);
+    notifyListeners();
   }
 }

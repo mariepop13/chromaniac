@@ -14,8 +14,8 @@ class PaletteManager {
       builder: (context) => AlertDialog(
         title: const Text('Palette Full'),
         content: Text(
-          'You\'ve reached the maximum of ${context.read<SettingsProvider>().defaultPaletteSize} colors. '
-          'Upgrade to premium to add up to ${AppConstants.maxPaletteColors} colors!'
+          'You\'ve reached the maximum of ${context.read<PremiumService>().getMaxPaletteSize()} colors. '
+          'Upgrade to premium to add up to ${AppConstants.premiumMaxPaletteColors} colors!'
         ),
         actions: [
           TextButton(
@@ -41,9 +41,7 @@ class PaletteManager {
     List<Color> currentPalette,
     Function(List<Color>) onColorsAdded,
   ) {
-    final maxColors = context.read<PremiumService>().isPremium
-        ? AppConstants.maxPaletteColors
-        : context.read<SettingsProvider>().defaultPaletteSize;
+    final maxColors = context.read<PremiumService>().getMaxPaletteSize();
     
     final remainingSpace = maxColors - currentPalette.length;
     
@@ -66,10 +64,7 @@ class PaletteManager {
     ColorPaletteType paletteType,
   ) {
     final settingsProvider = context.read<SettingsProvider>();
-    final maxColors = context.read<PremiumService>().isPremium
-        ? AppConstants.maxPaletteColors
-        : settingsProvider.defaultPaletteSize;
-    
+    final maxColors = context.read<PremiumService>().getMaxPaletteSize();
 
     if (paletteType == ColorPaletteType.auto || 
         paletteType == ColorPaletteType.analogous || 
@@ -77,7 +72,6 @@ class PaletteManager {
       settingsProvider.setTemporaryPaletteSize(settingsProvider.defaultPaletteSize);
       colors = colors.take(settingsProvider.defaultPaletteSize).toList();
     } else {
-
       settingsProvider.setTemporaryPaletteSize(colors.length);
     }
     
