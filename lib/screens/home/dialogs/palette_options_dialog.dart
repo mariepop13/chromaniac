@@ -33,13 +33,22 @@ void showPaletteOptionsDialog(
                 ColorPaletteType.auto, 
                 _generateRandomColor()
               )
-            : HarmonyGenerator.generateHarmony(previewBaseColor, 
-                HarmonyType.values.firstWhere(
-                  (type) => type.toString().split('.').last == currentType.toString().split('.').last,
-                  orElse: () => HarmonyType.monochromatic,
-                ))
-                .take(defaultPaletteSize)
-                .toList();
+            : (() {
+                final colors = HarmonyGenerator.generateHarmony(
+                  previewBaseColor,
+                  HarmonyType.values.firstWhere(
+                    (type) => type.toString().split('.').last == currentType.toString().split('.').last,
+                    orElse: () => HarmonyType.monochromatic,
+                  )
+                );
+                if (currentType == ColorPaletteType.splitComplementary ||
+                    currentType == ColorPaletteType.triadic ||
+                    currentType == ColorPaletteType.tetradic ||
+                    currentType == ColorPaletteType.square) {
+                  return colors;
+                }
+                return colors.take(defaultPaletteSize).toList();
+              })();
 
         return AlertDialog(
           title: const Text('Palette Generator'),
@@ -79,13 +88,22 @@ void showPaletteOptionsDialog(
                                     ColorPaletteType.auto, 
                                     _generateRandomColor()
                                   )
-                                : HarmonyGenerator.generateHarmony(previewBaseColor, 
-                                    HarmonyType.values.firstWhere(
-                                      (type) => type.toString().split('.').last == currentType.toString().split('.').last,
-                                      orElse: () => HarmonyType.monochromatic,
-                                    ))
-                                    .take(defaultPaletteSize)
-                                    .toList();
+                                : (() {
+                                    final colors = HarmonyGenerator.generateHarmony(
+                                      previewBaseColor,
+                                      HarmonyType.values.firstWhere(
+                                        (type) => type.toString().split('.').last == currentType.toString().split('.').last,
+                                        orElse: () => HarmonyType.monochromatic,
+                                      )
+                                    );
+                                    if (currentType == ColorPaletteType.splitComplementary ||
+                                        currentType == ColorPaletteType.triadic ||
+                                        currentType == ColorPaletteType.tetradic ||
+                                        currentType == ColorPaletteType.square) {
+                                      return colors;
+                                    }
+                                    return colors.take(defaultPaletteSize).toList();
+                                  })();
                           });
                         }
                       },

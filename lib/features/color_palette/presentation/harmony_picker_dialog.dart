@@ -1,3 +1,4 @@
+import 'package:chromaniac/utils/logger/app_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../utils/color/harmony_generator.dart';
@@ -39,18 +40,26 @@ class _HarmonyPickerDialogState extends State<HarmonyPickerDialog> {
       final paletteType = _harmonyTypeToColorPaletteType(type);
       final defaultSize = context.read<SettingsProvider>().defaultPaletteSize;
       
-
-      final colors = HarmonyGenerator.generateHarmony(widget.baseColor, type);
+      AppLogger.d('Selected harmony type: $type');
+      AppLogger.d('Palette type: $paletteType');
+      AppLogger.d('Default size: $defaultSize');
       
-
-
-      if (paletteType == ColorPaletteType.auto || 
-          paletteType == ColorPaletteType.analogous || 
-          paletteType == ColorPaletteType.monochromatic) {
-        previewColors = colors.take(defaultSize).toList();
-      } else {
+      final colors = HarmonyGenerator.generateHarmony(widget.baseColor, type);
+      AppLogger.d('Generated colors length: ${colors.length}');
+      AppLogger.d('Generated colors: $colors');
+      
+      if (type == HarmonyType.splitComplementary ||
+          type == HarmonyType.triadic ||
+          type == HarmonyType.tetradic ||
+          type == HarmonyType.square) {
+        AppLogger.d('Special mode detected, using all colors');
         previewColors = colors;
+      } else {
+        AppLogger.d('Normal mode, taking $defaultSize colors');
+        previewColors = colors.take(defaultSize).toList();
       }
+      AppLogger.d('Final preview colors length: ${previewColors.length}');
+      AppLogger.d('Final preview colors: $previewColors');
     });
   }
 
