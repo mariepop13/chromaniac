@@ -76,151 +76,160 @@ class _HomeScreenState extends State<HomeScreen> {
     
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Settings', style: TextStyle(fontWeight: FontWeight.bold)),
-        content: StatefulBuilder(
-          builder: (context, setState) {
-            int currentColumns = settingsProvider.gridColumns;
-            int maxColumns = settingsProvider.calculateOptimalColumns(
-              settingsProvider.getCurrentPaletteSize()
-            );
-            currentColumns = currentColumns.clamp(1, maxColumns);
+      builder: (context) {
+        int currentColumns = settingsProvider.gridColumns;
+        int maxColumns = settingsProvider.calculateOptimalColumns(
+          settingsProvider.getCurrentPaletteSize()
+        );
+        currentColumns = currentColumns.clamp(1, maxColumns);
 
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Customize your Chromaniac experience',
-                  style: TextStyle(color: Colors.grey, fontSize: 12),
-                ),
-                const SizedBox(height: 16),
-                Card(
-                  elevation: 1,
-                  child: ListTile(
-                    leading: const Icon(Icons.palette, color: Colors.blue),
-                    title: const Text('Palette Size'),
-                    subtitle: Text(
-                      '${settingsProvider.defaultPaletteSize} colors',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () {
-                      Navigator.pop(context);
-                      showDialog(
-                        context: context,
-                        builder: (context) => const PaletteSizeDialog(),
-                      );
-                    },
+        return AlertDialog(
+          title: const Text('Settings', style: TextStyle(fontWeight: FontWeight.bold)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Customize your Chromaniac experience',
+                style: TextStyle(color: Colors.grey, fontSize: 12),
+              ),
+              const SizedBox(height: 16),
+              Card(
+                elevation: 1,
+                child: ListTile(
+                  leading: const Icon(Icons.palette, color: Colors.blue),
+                  title: const Text('Palette Size'),
+                  subtitle: Text(
+                    '${settingsProvider.defaultPaletteSize} colors',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    Navigator.pop(context);
+                    showDialog(
+                      context: context,
+                      builder: (context) => PaletteSizeDialog(
+                        onSave: (size) {
+                          settingsProvider.setDefaultPaletteSize(
+                            size, 
+                            onPaletteTruncate: (newSize) {
+                              setState(() {
+                                _state.truncatePaletteToSize(newSize);
+                              });
+                            }
+                          );
+                        },
+                      ),
+                    );
+                  },
                 ),
-                const SizedBox(height: 8),
-                Card(
-                  elevation: 1,
-                  child: ListTile(
-                    leading: const Icon(Icons.color_lens, color: Colors.green),
-                    title: const Text('Color Harmony'),
-                    subtitle: Text(
-                      _state.selectedColorPaletteType?.toString().split('.').last ?? 'Auto',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () {
-                      Navigator.pop(context);
-                      showPaletteOptionsDialog(
-                        context,
-                        _state.selectedColorPaletteType,
-                        (type) => setState(() => _state.selectedColorPaletteType = type),
-                        (colors) => setState(() {
-                          _state.clearPalette();
-                          _state.addColors(colors);
-                        }),
-                      );
-                    },
+              ),
+              const SizedBox(height: 8),
+              Card(
+                elevation: 1,
+                child: ListTile(
+                  leading: const Icon(Icons.color_lens, color: Colors.green),
+                  title: const Text('Color Harmony'),
+                  subtitle: Text(
+                    _state.selectedColorPaletteType?.toString().split('.').last ?? 'Auto',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    Navigator.pop(context);
+                    showPaletteOptionsDialog(
+                      context,
+                      _state.selectedColorPaletteType,
+                      (type) => setState(() => _state.selectedColorPaletteType = type),
+                      (colors) => setState(() {
+                        _state.clearPalette();
+                        _state.addColors(colors);
+                      }),
+                    );
+                  },
                 ),
-                const SizedBox(height: 8),
-                Card(
-                  elevation: 1,
-                  child: ListTile(
-                    leading: const Icon(Icons.grid_view, color: Colors.purple),
-                    title: const Text('Grid Layout'),
-                    subtitle: Text(
-                      '$currentColumns columns',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (context) => StatefulBuilder(
-                          builder: (context, dialogSetState) {
-                            return AlertDialog(
-                              title: const Text('Grid Layout', style: TextStyle(fontWeight: FontWeight.bold)),
-                              content: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Adjust the number of columns to optimize your color grid view',
-                                    style: TextStyle(color: Colors.grey, fontSize: 12),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      const Text('Number of Columns:', style: TextStyle(fontWeight: FontWeight.bold)),
-                                      Text(
-                                        currentColumns.toString(),
-                                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                                      ),
-                                    ],
-                                  ),
-                                  Slider(
-                                    value: currentColumns.toDouble(),
-                                    min: 1,
-                                    max: maxColumns.toDouble(),
-                                    divisions: maxColumns > 1 ? maxColumns - 1 : null,
-                                    label: currentColumns.toString(),
-                                    onChanged: (double value) {
-                                      currentColumns = value.round();
-                                      settingsProvider.setGridColumns(currentColumns);
-                                      dialogSetState(() {});
-                                      setState(() {});
-                                    },
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Optimal columns based on current palette size (${settingsProvider.getCurrentPaletteSize()} colors)',
-                                    style: Theme.of(context).textTheme.bodySmall,
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ],
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.of(context).pop(),
-                                  child: const Text('Close'),
+              ),
+              const SizedBox(height: 8),
+              Card(
+                elevation: 1,
+                child: ListTile(
+                  leading: const Icon(Icons.grid_view, color: Colors.purple),
+                  title: const Text('Grid Layout'),
+                  subtitle: Text(
+                    '$currentColumns columns',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => StatefulBuilder(
+                        builder: (context, dialogSetState) {
+                          return AlertDialog(
+                            title: const Text('Grid Layout', style: TextStyle(fontWeight: FontWeight.bold)),
+                            content: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Adjust the number of columns to optimize your color grid view',
+                                  style: TextStyle(color: Colors.grey, fontSize: 12),
+                                ),
+                                const SizedBox(height: 16),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text('Number of Columns:', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    Text(
+                                      currentColumns.toString(),
+                                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                ),
+                                Slider(
+                                  value: currentColumns.toDouble(),
+                                  min: 1,
+                                  max: maxColumns.toDouble(),
+                                  divisions: maxColumns > 1 ? maxColumns - 1 : null,
+                                  label: currentColumns.toString(),
+                                  onChanged: (double value) {
+                                    currentColumns = value.round();
+                                    settingsProvider.setGridColumns(currentColumns);
+                                    dialogSetState(() {});
+                                    setState(() {});
+                                  },
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Optimal columns based on current palette size (${settingsProvider.getCurrentPaletteSize()} colors)',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                  textAlign: TextAlign.center,
                                 ),
                               ],
-                            );
-                          },
-                        ),
-                      );
-                    },
-                  ),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                child: const Text('Close'),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    );
+                  },
                 ),
-              ],
-            );
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
           ),
-        ],
-      ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
     );
   }
 

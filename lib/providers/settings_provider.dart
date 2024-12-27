@@ -23,7 +23,7 @@ class SettingsProvider extends ChangeNotifier {
   int get defaultPaletteSize =>
       _prefs.getInt(defaultPaletteSizeKey) ?? AppConstants.defaultPaletteSize;
 
-  Future<void> setDefaultPaletteSize(int size) async {
+  Future<void> setDefaultPaletteSize(int size, {Function(int)? onPaletteTruncate}) async {
     if (!isPremiumEnabled && size > maxPremiumPaletteColors) {
       throw RangeError('Non-premium users are limited to $maxPremiumPaletteColors colors');
     }
@@ -34,6 +34,10 @@ class SettingsProvider extends ChangeNotifier {
       await setGridColumns(2);
     } else {
       await regenerateGridColumnsForDefaultPaletteSize();
+    }
+    
+    if (onPaletteTruncate != null) {
+      onPaletteTruncate(size);
     }
     
     notifyListeners();

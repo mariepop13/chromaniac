@@ -56,6 +56,24 @@ class HomeScreenState {
       palette[index] = newColor;
     }
   }
+  
+  void truncatePaletteToSize(int newSize) {
+    if (palette.length > newSize) {
+      palette = palette.take(newSize).toList();
+    } else if (palette.length < newSize) {
+      final colorsToAdd = newSize - palette.length;
+      final newColors = List.generate(
+        colorsToAdd, 
+        (_) => Color.fromRGBO(
+          Random().nextInt(256),
+          Random().nextInt(256),
+          Random().nextInt(256),
+          1.0
+        )
+      );
+      palette.addAll(newColors);
+    }
+  }
 }
 
 class HomeScreenStateWidget extends StatefulWidget {

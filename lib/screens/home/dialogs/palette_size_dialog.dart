@@ -5,7 +5,9 @@ import '../../../core/constants.dart';
 import '../../../providers/settings_provider.dart';
 
 class PaletteSizeDialog extends StatefulWidget {
-  const PaletteSizeDialog({super.key});
+  final Function(int)? onSave;
+
+  const PaletteSizeDialog({super.key, this.onSave});
 
   @override
   State<PaletteSizeDialog> createState() => _PaletteSizeDialogState();
@@ -52,7 +54,11 @@ class _PaletteSizeDialogState extends State<PaletteSizeDialog> {
         ),
         TextButton(
           onPressed: () {
-            context.read<SettingsProvider>().setDefaultPaletteSize(selectedSize);
+            if (widget.onSave != null) {
+              widget.onSave!(selectedSize);
+            } else {
+              context.read<SettingsProvider>().setDefaultPaletteSize(selectedSize);
+            }
             Navigator.pop(context);
           },
           child: const Text('Save'),
