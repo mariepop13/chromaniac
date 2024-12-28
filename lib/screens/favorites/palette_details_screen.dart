@@ -126,75 +126,86 @@ class _PaletteDetailsScreenState extends State<PaletteDetailsScreen> {
   }
 
   void _showPaletteActionsMenu() {
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(20),
-        ),
-      ),
       builder: (BuildContext context) {
-        return DraggableScrollableSheet(
-          initialChildSize: 0.4,
-          minChildSize: 0.25,
-          maxChildSize: 0.75,
-          expand: false,
-          builder: (context, scrollController) {
-            return Container(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              child: ListView(
-                controller: scrollController,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      'Palette Actions',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  ListTile(
-                    leading: const Icon(Icons.save_outlined),
-                    title: const Text('Save Palette'),
-                    subtitle: const Text('Update the current palette details'),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _savePalette();
-                    },
-                  ),
-                  if (widget.onRestorePalette != null)
-                    ListTile(
-                      leading: const Icon(Icons.palette_outlined),
-                      title: const Text('Apply to Home'),
-                      subtitle: const Text('Use this palette in the main color grid'),
-                      onTap: () {
-                        Navigator.pop(context);
-                        _restorePaletteToHome();
-                      },
-                    ),
-                  ListTile(
-                    leading: const Icon(Icons.share_outlined),
-                    title: const Text('Share Palette'),
-                    subtitle: const Text('Export palette to other apps'),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _sharePalette();
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.delete_outline),
-                    title: const Text('Delete Palette'),
-                    subtitle: const Text('Permanently remove this palette'),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _deletePalette();
-                    },
-                  ),
-                ],
+        return Center(
+          child: SingleChildScrollView(
+            child: AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
               ),
-            );
-          },
+              title: Text(
+                'Palette Actions',
+                style: Theme.of(context).textTheme.titleLarge,
+                textAlign: TextAlign.center,
+              ),
+              content: SizedBox(
+                width: MediaQuery.of(context).size.width * 0.8,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Card(
+                      margin: const EdgeInsets.symmetric(vertical: 8),
+                      child: ListTile(
+                        leading: const Icon(Icons.save_outlined),
+                        title: const Text('Save Palette'),
+                        subtitle: const Text('Update the current palette details'),
+                        onTap: () {
+                          Navigator.pop(context);
+                          _savePalette();
+                        },
+                      ),
+                    ),
+                    if (widget.onRestorePalette != null)
+                      Card(
+                        margin: const EdgeInsets.symmetric(vertical: 8),
+                        child: ListTile(
+                          leading: const Icon(Icons.palette_outlined),
+                          title: const Text('Apply to Home'),
+                          subtitle: const Text('Use this palette in the main color grid'),
+                          onTap: () {
+                            Navigator.pop(context);
+                            _restorePaletteToHome();
+                          },
+                        ),
+                      ),
+                    Card(
+                      margin: const EdgeInsets.symmetric(vertical: 8),
+                      child: ListTile(
+                        leading: const Icon(Icons.share_outlined),
+                        title: const Text('Share Palette'),
+                        subtitle: const Text('Export palette to other apps'),
+                        onTap: () {
+                          Navigator.pop(context);
+                          _sharePalette();
+                        },
+                      ),
+                    ),
+                    Card(
+                      margin: const EdgeInsets.symmetric(vertical: 8),
+                      child: ListTile(
+                        leading: const Icon(Icons.delete_outline),
+                        title: const Text('Delete Palette'),
+                        subtitle: const Text('Permanently remove this palette'),
+                        onTap: () {
+                          Navigator.pop(context);
+                          _deletePalette();
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+              ],
+            ),
+          ),
         );
       },
     );
