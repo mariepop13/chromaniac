@@ -5,14 +5,14 @@ import '../../features/color_palette/domain/color_palette_type.dart';
 import '../../features/color_palette/presentation/color_tile_widget.dart';
 import '../../providers/settings_provider.dart';
 
-class HomeContent extends StatelessWidget {
+class PaletteGridView extends StatefulWidget {
   final List<Color> palette;
   final Function(Color) onRemoveColor;
   final Function(Color, Color) onEditColor;
   final Function(List<Color>, ColorPaletteType) onAddHarmonyColors;
   final Function(int, int) onReorder;
 
-  const HomeContent({
+  const PaletteGridView({
     super.key,
     required this.palette,
     required this.onRemoveColor,
@@ -22,8 +22,13 @@ class HomeContent extends StatelessWidget {
   });
 
   @override
+  PaletteGridViewState createState() => PaletteGridViewState();
+}
+
+class PaletteGridViewState extends State<PaletteGridView> {
+  @override
   Widget build(BuildContext context) {
-    if (palette.isEmpty) {
+    if (widget.palette.isEmpty) {
       return const Center(
         child: Text('Generate a palette or add colors'),
       );
@@ -32,19 +37,17 @@ class HomeContent extends StatelessWidget {
     return Consumer<SettingsProvider>(
       builder: (context, settingsProvider, _) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          settingsProvider.adjustGridColumnsForCurrentPaletteSize(palette.length);
+          settingsProvider.adjustGridColumnsForCurrentPaletteSize(widget.palette.length);
         });
 
         final columnCount = settingsProvider.gridColumns;
-        final rowCount = (palette.length / columnCount).ceil();
+        final rowCount = (widget.palette.length / columnCount).ceil();
 
         return LayoutBuilder(
           builder: (context, constraints) {
-
             final gridWidth = constraints.maxWidth;
             final gridHeight = constraints.maxHeight;
             
-
             final cellWidth = gridWidth / columnCount;
             final cellHeight = gridHeight / rowCount;
             final aspectRatio = cellWidth / cellHeight;
@@ -57,20 +60,20 @@ class HomeContent extends StatelessWidget {
                 crossAxisSpacing: 0,
                 mainAxisSpacing: 0,
               ),
-              itemCount: palette.length,
+              itemCount: widget.palette.length,
               itemBuilder: (context, index) {
-                final color = palette[index];
+                final color = widget.palette[index];
                 return ColorTileWidget(
                   key: ValueKey('${((color.a * 255).round() << 24) | ((color.r * 255).round() << 16) | ((color.g * 255).round() << 8) | (color.b * 255).round()}_$index'),
                   color: color,
                   hex: ((((color.r * 255).round() << 16) | ((color.g * 255).round() << 8) | (color.b * 255).round())).toRadixString(16).padLeft(6, '0'),
-                  onRemoveColor: onRemoveColor,
-                  onEditColor: (newColor) => onEditColor(color, newColor),
-                  paletteSize: palette.length,
-                  onAddHarmonyColors: onAddHarmonyColors,
+                  onRemoveColor: widget.onRemoveColor,
+                  onEditColor: (newColor) => widget.onEditColor(color, newColor),
+                  paletteSize: widget.palette.length,
+                  onAddHarmonyColors: widget.onAddHarmonyColors,
                 );
               },
-              onReorder: onReorder,
+              onReorder: widget.onReorder,
             );
           },
         );

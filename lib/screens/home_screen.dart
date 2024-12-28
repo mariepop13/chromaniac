@@ -12,7 +12,6 @@ import '../utils/logger/app_logger.dart';
 import 'home/dialogs/palette_size_dialog.dart';
 import 'home/dialogs/palette_options_dialog.dart';
 import 'home/dialogs/save_palette_dialog.dart';
-import 'home/home_content.dart';
 import 'home/widgets/app_bar_actions.dart';
 import 'home/widgets/settings_menu.dart';
 import 'home/widgets/image_preview.dart';
@@ -21,6 +20,7 @@ import 'home/utils/palette_manager.dart';
 import 'home/utils/image_handler.dart';
 import 'package:chromaniac/providers/theme_provider.dart';
 import 'dart:math' show max;
+import '../../screens/home/palette_grid_view.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -245,7 +245,7 @@ class _HomeScreenState extends State<HomeScreen> {
               onAnalysisComplete: _handleAnalysisComplete,
             ),
           Expanded(
-            child: HomeContent(
+            child: PaletteGridView(
               palette: _state.palette,
               onRemoveColor: (color) => setState(() => _state.removeColor(color)),
               onEditColor: (oldColor, newColor) => setState(() => _state.updateColor(oldColor, newColor)),
@@ -265,7 +265,6 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-
     return Row(
       children: [
         Expanded(
@@ -278,7 +277,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         Expanded(
           flex: 1,
-          child: HomeContent(
+          child: PaletteGridView(
             palette: _state.palette,
             onRemoveColor: (color) => setState(() => _state.removeColor(color)),
             onEditColor: (oldColor, newColor) => setState(() => _state.updateColor(oldColor, newColor)),
@@ -318,6 +317,35 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Widget _buildBottomNavigation() {
+    return AppBottomNav(
+      currentIndex: 1,
+      onTap: (index) {
+        switch (index) {
+          case 0:
+            _generateRandomPalette();
+            break;
+          case 1:
+            break;
+          case 2:
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => FavoritesScreen(
+                  onRestorePalette: (colors) {
+                    setState(() {
+                      _state.clearPalette();
+                      _state.addColors(colors);
+                    });
+                  },
+                ),
+              ),
+            );
+            break;
+        }
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -339,22 +367,7 @@ class _HomeScreenState extends State<HomeScreen> {
           builder: (context, orientation) => _buildContent(context, orientation),
         ),
       ),
-      bottomNavigationBar: AppBottomNav(
-        currentIndex: 0,
-        onTap: (index) {
-          switch (index) {
-            case 1:
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const FavoritesScreen()),
-              );
-              break;
-            case 2:
-              _generateRandomPalette();
-              break;
-          }
-        },
-      ),
+      bottomNavigationBar: _buildBottomNavigation(),
       floatingActionButton: Consumer<DebugProvider>(
         builder: (context, debugProvider, child) => SpeedDialFab(
           onAddColor: () => showDialog(

@@ -8,7 +8,12 @@ import 'package:provider/provider.dart';
 import 'package:chromaniac/providers/debug_provider.dart';
 
 class FavoritesScreen extends StatefulWidget {
-  const FavoritesScreen({super.key});
+  final Function(List<Color>)? onRestorePalette;
+
+  const FavoritesScreen({
+    super.key,
+    this.onRestorePalette,
+  });
 
   @override
   State<FavoritesScreen> createState() => _FavoritesScreenState();
@@ -42,6 +47,20 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Error removing palette')),
+      );
+    }
+  }
+
+  void _restorePaletteToHome(List<Color> colors) {
+    if (widget.onRestorePalette != null) {
+      widget.onRestorePalette!(colors);
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Palette restored to home')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Restoration not supported')),
       );
     }
   }
@@ -114,7 +133,10 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     final updated = await Navigator.push<bool>(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => PaletteDetailsScreen(palette: palette),
+                        builder: (context) => PaletteDetailsScreen(
+                          palette: palette,
+                          onRestorePalette: _restorePaletteToHome,
+                        ),
                       ),
                     );
                     
