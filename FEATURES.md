@@ -20,6 +20,7 @@
 - 🏷️ Custom names for colors in palette
 - 👆 Double-tap to copy color code
 - 🔍 Color preview on long press
+- 🎲 Random theme spinner for instant palette inspiration
 
 ## Organization
 - 📁 Group palettes into collections
