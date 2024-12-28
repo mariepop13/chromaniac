@@ -179,22 +179,7 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   int calculateOptimalColumns(int paletteSize) {
-    AppLogger.d('Calculating Optimal Columns - Diagnostic:');
-    AppLogger.d('- Input Palette Size: $paletteSize');
-
-    int columns;
-    if (paletteSize <= 4) {
-      columns = (paletteSize / 2).ceil();
-      AppLogger.d('- Case: Palette Size <= 4');
-      AppLogger.d('- Columns Set: $columns');
-    } else {
-      columns = (paletteSize / 2).ceil().clamp(1, paletteSize);
-      AppLogger.d('- Case: Palette Size > 4');
-      AppLogger.d('- Calculated Columns: $columns');
-    }
-
-    AppLogger.d('- Final Optimal Columns: $columns');
-    return columns;
+    return (paletteSize / 2).ceil().clamp(1, paletteSize);
   }
 
   bool isUsingTemporaryPalette() {
@@ -245,5 +230,17 @@ class SettingsProvider extends ChangeNotifier {
     
     await _prefs.setInt(maxPremiumPaletteColorsKey, maxColors);
     notifyListeners();
+  }
+
+  Future<void> adjustGridColumnsForCurrentPaletteSize(int currentPaletteSize) async {
+    if (currentPaletteSize < AppConstants.minPaletteColors || 
+        currentPaletteSize > AppConstants.maxPaletteColors) {
+      AppLogger.d('Invalid palette size: $currentPaletteSize');
+      return;
+    }
+
+    _temporaryPaletteSize = currentPaletteSize;
+    await adjustGridColumnsForPaletteSize();
+    _temporaryPaletteSize = null;
   }
 }

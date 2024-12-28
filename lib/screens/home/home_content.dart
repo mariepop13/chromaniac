@@ -31,6 +31,10 @@ class HomeContent extends StatelessWidget {
 
     return Consumer<SettingsProvider>(
       builder: (context, settingsProvider, _) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          settingsProvider.adjustGridColumnsForCurrentPaletteSize(palette.length);
+        });
+
         final columnCount = settingsProvider.gridColumns;
         final rowCount = (palette.length / columnCount).ceil();
 

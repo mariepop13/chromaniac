@@ -20,6 +20,7 @@ import 'home/state/home_screen_state.dart';
 import 'home/utils/palette_manager.dart';
 import 'home/utils/image_handler.dart';
 import 'package:chromaniac/providers/theme_provider.dart';
+import 'dart:math' show max;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -79,7 +80,7 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (context) {
         int currentColumns = settingsProvider.gridColumns;
         int maxColumns = settingsProvider.calculateOptimalColumns(
-          settingsProvider.getCurrentPaletteSize()
+          _state.palette.length
         );
         currentColumns = currentColumns.clamp(1, maxColumns);
 
@@ -189,8 +190,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 Slider(
                                   value: currentColumns.toDouble(),
                                   min: 1,
-                                  max: maxColumns.toDouble(),
-                                  divisions: maxColumns > 1 ? maxColumns - 1 : null,
+                                  max: max(currentColumns, maxColumns).toDouble(),
+                                  divisions: max(currentColumns, maxColumns) > 1 ? max(currentColumns, maxColumns) - 1 : null,
                                   label: currentColumns.toString(),
                                   onChanged: (double value) {
                                     currentColumns = value.round();
@@ -201,7 +202,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  'Optimal columns based on current palette size (${settingsProvider.getCurrentPaletteSize()} colors)',
+                                  'Optimal columns based on current palette size (${_state.palette.length} colors)',
                                   style: Theme.of(context).textTheme.bodySmall,
                                   textAlign: TextAlign.center,
                                 ),
