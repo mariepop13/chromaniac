@@ -51,16 +51,13 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   Future<void> setGridColumns(int columns) async {
-    int validColumns = validateGridColumns(columns);
-    
-    AppLogger.d('Setting grid columns: requested = $columns, validated = $validColumns');
-    AppLogger.d('Current palette size: ${getCurrentPaletteSize()}');
-    
-    if (getCurrentPaletteSize() == 3 && validColumns > 2) {
-      AppLogger.d('Preventing column change for palette size 3');
-      validColumns = 2;
+    if (columns == gridColumns) {
+      return;
     }
-
+    
+    AppLogger.d('Setting grid columns: requested = $columns');
+    int validColumns = columns.clamp(1, getCurrentPaletteSize());
+    
     if (defaultPaletteSize == 3) {
       await _prefs.setInt(gridColumnsPaletteSizeThreeKey, validColumns);
     } else {
@@ -72,33 +69,20 @@ class SettingsProvider extends ChangeNotifier {
   int? _temporaryPaletteSize;
 
   Future<void> setTemporaryPaletteSize(int size) async {
-    AppLogger.d('Setting Temporary Palette Size - Start:');
-    AppLogger.d('- Requested Size: $size');
-    AppLogger.d('- Current Temporary Size: $_temporaryPaletteSize');
-    
-
     if (size < AppConstants.minPaletteColors || size > AppConstants.maxPaletteColors) {
       AppLogger.e('Invalid temporary palette size: $size');
       return;
     }
-    
+
+    if (_temporaryPaletteSize == size) {
+      return;
+    }
 
     _temporaryPaletteSize = size;
-    
-
-    final optimalColumns = calculateOptimalColumns(size);
-    
-    AppLogger.d('Grid Column Calculation:');
-    AppLogger.d('- Optimal Columns: $optimalColumns');
-    AppLogger.d('- Current Grid Columns: $gridColumns');
-    
-
-    await setGridColumns(optimalColumns);
-    
-    AppLogger.d('Setting Temporary Palette Size - Complete');
-    
-
-    notifyListeners();
+    int currentColumns = gridColumns;
+    if (currentColumns > size) {
+      await setGridColumns(size);
+    }
   }
 
   Future<void> clearTemporaryPaletteSize() async {
@@ -122,13 +106,7 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   int getCurrentPaletteSize() {
-    if (_temporaryPaletteSize != null) {
-      AppLogger.d('Using temporary palette size: $_temporaryPaletteSize');
-      return _temporaryPaletteSize!;
-    }
-    
-    AppLogger.d('Using default palette size: $defaultPaletteSize');
-    return defaultPaletteSize;
+    return _temporaryPaletteSize ?? defaultPaletteSize;
   }
 
   int getMaxGridColumns() {
@@ -142,28 +120,22 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   int getGridColumnsForPaletteSize(int paletteSize) {
-    return (paletteSize / 2).ceil();
+    return calculateOptimalColumns(paletteSize);
   }
 
   Future<void> adjustGridColumnsForPaletteSize() async {
     int currentSize = getCurrentPaletteSize();
-    int optimalColumns = getGridColumnsForPaletteSize(currentSize);
-    int maxColumns = getMaxGridColumns();
+    int optimalColumns = calculateOptimalColumns(currentSize);
     int currentGridColumns = gridColumns;
-    
+
     AppLogger.d('Grid Columns Update Diagnostic:');
     AppLogger.d('- Current Palette Size: $currentSize');
     AppLogger.d('- Optimal Columns: $optimalColumns');
-    AppLogger.d('- Max Columns: $maxColumns');
     AppLogger.d('- Current Grid Columns: $currentGridColumns');
-    
 
-    int columnsToSet = optimalColumns.clamp(1, maxColumns);
-    
-
-    if (columnsToSet != currentGridColumns) {
-      AppLogger.d('Updating grid columns: $currentGridColumns -> $columnsToSet');
-      await setGridColumns(columnsToSet);
+    if (optimalColumns != currentGridColumns) {
+      AppLogger.d('Updating grid columns: $currentGridColumns -> $optimalColumns');
+      await setGridColumns(optimalColumns);
     } else {
       AppLogger.d('No grid column update needed');
     }
@@ -171,21 +143,17 @@ class SettingsProvider extends ChangeNotifier {
 
   int validateGridColumns(int columns) {
     int currentSize = getCurrentPaletteSize();
-    int maxColumns = calculateOptimalColumns(currentSize);
-    
-    AppLogger.d('Validating grid columns: current size = $currentSize, max columns = $maxColumns');
-    
-    return columns.clamp(1, maxColumns);
+    int optimalColumns = calculateOptimalColumns(currentSize);
+    return columns.clamp(1, optimalColumns);
   }
 
   int calculateOptimalColumns(int paletteSize) {
-    return (paletteSize / 2).ceil().clamp(1, paletteSize);
+    int columns = (paletteSize / 2).ceil();
+    return columns.clamp(1, paletteSize);
   }
 
   bool isUsingTemporaryPalette() {
-    bool isTemporary = _temporaryPaletteSize != null;
-    AppLogger.d('Checking temporary palette status: $isTemporary');
-    return isTemporary;
+    return _temporaryPaletteSize != null;
   }
 
   Future<void> regenerateGridColumnsForDefaultPaletteSize() async {
@@ -198,9 +166,7 @@ class SettingsProvider extends ChangeNotifier {
     
     if (_temporaryPaletteSize == null) {
       final optimalColumns = calculateOptimalColumns(currentDefaultSize);
-      
       AppLogger.d('- Optimal Columns: $optimalColumns');
-      
       await setGridColumns(optimalColumns);
     } else {
       AppLogger.d('Skipping grid columns regeneration due to active temporary palette size');
@@ -233,14 +199,9 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   Future<void> adjustGridColumnsForCurrentPaletteSize(int currentPaletteSize) async {
-    if (currentPaletteSize < AppConstants.minPaletteColors || 
-        currentPaletteSize > AppConstants.maxPaletteColors) {
-      AppLogger.d('Invalid palette size: $currentPaletteSize');
+    if (currentPaletteSize == getCurrentPaletteSize()) {
       return;
     }
-
-    _temporaryPaletteSize = currentPaletteSize;
-    await adjustGridColumnsForPaletteSize();
-    _temporaryPaletteSize = null;
+    await setTemporaryPaletteSize(currentPaletteSize);
   }
 }
