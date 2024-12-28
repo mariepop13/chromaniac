@@ -52,8 +52,4 @@
 - 👗 Recommend color matching for fashion/design based on image analysis
 - 🏞️ Identify color trends from different image categories (nature, urban, etc.)
 - 🎨 Suggest color palettes for different design styles (minimalist, maximalist, etc.)
-- 📊 Analyze color usage and preferences in images
-- 🌈 Generate color gradients inspired by image colors
-- 👗 Recommend color matching for fashion/design based on image analysis
-- 🏞️ Identify color trends from different image categories (nature, urban, etc.)
-- 🎨 Detect coloring pages and suggest color palettes for them
+- 📊 Detect coloring pages and suggest color palettes for them
