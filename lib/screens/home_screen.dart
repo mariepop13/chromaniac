@@ -287,6 +287,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildBottomNavigation() {
     return AppBottomNav(
+      context: context,
       currentIndex: 1,
       onTap: (index) {
         switch (index) {
@@ -296,6 +297,9 @@ class _HomeScreenState extends State<HomeScreen> {
           case 1:
             break;
           case 2:
+            // Theme spinner is now handled directly in the bottom nav
+            break;
+          case 3:
             Navigator.push(
               context,
               MaterialPageRoute(
