@@ -8,14 +8,27 @@ class ThemeWheel extends StatefulWidget {
   State<ThemeWheel> createState() => _ThemeWheelState();
 }
 
-class _ThemeWheelState extends State<ThemeWheel> with SingleTickerProviderStateMixin {
+class _ThemeWheelState extends State<ThemeWheel> with TickerProviderStateMixin {
   static final List<ThemeSlice> _slices = [
-    ThemeSlice('🍇', 'Purple Passion', Colors.purple),
-    ThemeSlice('🌊', 'Ocean Breeze', Colors.blue),
-    ThemeSlice('🌅', 'Sunset Glow', Colors.orange),
-    ThemeSlice('🍁', 'Autumn Whisper', Colors.brown),
-    ThemeSlice('❄️', 'Winter Frost', Colors.white),
-    ThemeSlice('🌿', 'Spring Meadow', Colors.green),
+    ThemeSlice('💖', 'Emo Nights', Colors.grey.shade900),
+    ThemeSlice('❤️', 'Valentine Passion', Colors.pink),
+    ThemeSlice('🎄', 'Christmas Cheer', Colors.green.shade700),
+    ThemeSlice('🎃', 'Halloween Spooky', Colors.orange),
+    ThemeSlice('🌈', 'Pride Celebration', Colors.purple.shade300),
+    ThemeSlice('🤘', 'Punk Rock', Colors.red.shade900),
+    ThemeSlice('🌟', 'K-Pop Glam', Colors.pinkAccent),
+    ThemeSlice('🎮', 'Gamer Vibes', Colors.lime.shade700),
+    ThemeSlice('🤖', 'Cyberpunk', Colors.teal.shade400),
+    ThemeSlice('🌸', 'Kawaii Cute', Colors.pink.shade200),
+    ThemeSlice('🍇', 'Purple Passion', Colors.deepPurple),
+    ThemeSlice('🌊', 'Ocean Breeze', Colors.lightBlue),
+    ThemeSlice('🌅', 'Sunset Glow', Colors.amber),
+    ThemeSlice('🍁', 'Autumn Whisper', Colors.brown.shade600),
+    ThemeSlice('❄️', 'Winter Frost', Colors.blueGrey),
+    ThemeSlice('🌿', 'Spring Meadow', Colors.green.shade500),
+    ThemeSlice('🎉', 'Party Mode', Colors.indigo),
+    ThemeSlice('🌍', 'Global Vibes', Colors.cyan.shade700),
+    ThemeSlice('🌈', 'Urban Neon', Colors.purple),
   ];
 
   late AnimationController _rotationController;
@@ -27,7 +40,7 @@ class _ThemeWheelState extends State<ThemeWheel> with SingleTickerProviderStateM
   void initState() {
     super.initState();
     _rotationController = AnimationController(
-      duration: const Duration(seconds: 3),
+      duration: const Duration(seconds: 2),
       vsync: this,
     );
   }
@@ -39,15 +52,16 @@ class _ThemeWheelState extends State<ThemeWheel> with SingleTickerProviderStateM
       _isSpinning = true;
     });
 
-    final randomSpin = Random().nextDouble() * 2 * pi + 3 * pi;
+    final randomSpin = Random().nextDouble() * 4 * pi + 5 * pi;
 
     _rotationController.reset();
+
     _spinAnimation = Tween<double>(
       begin: 0,
       end: randomSpin,
     ).animate(CurvedAnimation(
       parent: _rotationController,
-      curve: Curves.decelerate,
+      curve: Curves.fastOutSlowIn,
     ));
 
     _rotationController.forward().then((_) {
