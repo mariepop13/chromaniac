@@ -66,6 +66,7 @@ dev_dependencies:
   sqflite_common_ffi: ^2.3.2
   build_runner: ^2.4.8
   flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.14.2
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -107,3 +108,13 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+flutter_launcher_icons:
+  image_path: "assets/icons/icon.png"
+  android: true
+  ios: true
+  web: true
+  macos: true
+  windows: true
+  adaptive_icon_background: "#ffffff"
+  adaptive_icon_foreground: "assets/icons/icon.png"
