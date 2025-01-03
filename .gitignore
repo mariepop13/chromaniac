@@ -1,5 +1,7 @@
 ### dotenv ###
 .env
+*.env
+!.env.example
 .env.test
 
 ### Flutter ###
