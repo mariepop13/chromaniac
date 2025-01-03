@@ -29,11 +29,12 @@ class ColorPalette {
     return {
       'id': id,
       'name': name,
-      'colors': colors.map((c) => 
-        ((((c.alpha * 255).round() << 24) |
-          ((c.red * 255).round() << 16) |
-          ((c.green * 255).round() << 8) |
-          (c.blue * 255).round())).toRadixString(16).padLeft(8, '0')).toList(),
+      'colors': colors.map((c) => {
+        'r': c.red,
+        'g': c.green,
+        'b': c.blue,
+        'a': c.opacity
+      }).toList(),
       'user_id': userId,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
@@ -44,20 +45,40 @@ class ColorPalette {
   }
 
   factory ColorPalette.fromMap(Map<String, dynamic> map) {
-    final colorsList = map['colors'] as List;
+    // Handle different possible color list formats
+    dynamic colorData = map['colors'];
+    List<dynamic> colorsList;
+
+    if (colorData is String) {
+      try {
+        colorsList = (jsonDecode(colorData) as List);
+      } catch (e) {
+        colorsList = [];
+      }
+    } else if (colorData is List) {
+      colorsList = colorData;
+    } else {
+      colorsList = [];
+    }
+
     return ColorPalette(
       id: map['id'] ?? const Uuid().v4(),
       name: map['name'] ?? '',
       colors: colorsList.map((c) {
-        if (c is String) {
-
+        if (c is Map) {
+          return Color.fromRGBO(
+            c['r'] ?? 0,
+            c['g'] ?? 0, 
+            c['b'] ?? 0, 
+            c['a'] ?? 1.0
+          );
+        } else if (c is String) {
           final colorStr = c.padLeft(8, '0');
           return Color(int.parse(colorStr, radix: 16));
         } else if (c is int) {
-
           return Color(c | 0xFF000000);
         } else {
-          throw FormatException('Invalid color format: $c');
+          return Colors.black;
         }
       }).toList(),
       userId: map['user_id'],

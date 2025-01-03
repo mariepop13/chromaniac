@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'dart:html' as html;
 
 import '../../services/auth_service.dart';
 import '../../utils/logger/app_logger.dart';
@@ -42,10 +41,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     _emailFocusNode.addListener(_onFocusChange);
     _passwordFocusNode.addListener(_onFocusChange);
 
-    if (kIsWeb) {
-      _configureWebInputHandling();
-    }
-
     developer.log('LoginScreen initialized', 
       name: 'LoginScreen.initState',
       error: {
@@ -57,21 +52,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   void _onFocusChange() {
     // Optional: Add any specific focus change logic
     setState(() {});
-  }
-
-  void _configureWebInputHandling() {
-    // Prevent default touch behaviors that might interfere with Flutter's event handling
-    html.document.addEventListener('touchstart', (event) {
-      if (event.target is html.InputElement) {
-        event.preventDefault();
-      }
-    });
-
-    html.document.addEventListener('touchmove', (event) {
-      if (event.target is html.InputElement) {
-        event.preventDefault();
-      }
-    });
   }
 
   @override
