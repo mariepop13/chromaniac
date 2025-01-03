@@ -1,38 +1,38 @@
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter/foundation.dart';
 import 'package:chromaniac/utils/logger/app_logger.dart';
 
 class EnvironmentConfig {
   static Future<void> initialize() async {
     try {
-      AppLogger.d('Attempting to load .env file...');
-      const envFile = ".env";
-      await dotenv.load(fileName: envFile);
-      AppLogger.i('Successfully loaded .env file');
+      AppLogger.d('Initializing environment configuration');
+      // No need to load .env file
+      AppLogger.i('Environment configuration initialized');
     } catch (e) {
-      AppLogger.e('Critical error loading .env file: $e');
-      // Optionally, you can rethrow the error to prevent app startup
-      // rethrow;
+      AppLogger.e('Error during environment configuration: $e');
     }
   }
 
   static String get openRouterApiKey {
-    final key = dotenv.env['OPENROUTER_API_KEY'];
-    if (key == null || key.isEmpty) {
-      AppLogger.w('OPENROUTER_API_KEY not found in environment variables');
+    // Use environment variable for web, fallback for other platforms
+    const key = String.fromEnvironment('OPENROUTER_API_KEY', 
+      defaultValue: 'default_key_if_not_set');
+    
+    if (key.isEmpty) {
+      AppLogger.w('OPENROUTER_API_KEY not found');
       return '';
     }
     return key;
   }
 
   static String get emojiSetting {
-    return dotenv.env['OCO_EMOJI'] ?? 'true';
+    return const String.fromEnvironment('OCO_EMOJI', defaultValue: 'true');
   }
 
   static String get languageSetting {
-    return dotenv.env['OCO_LANGUAGE'] ?? 'en';
+    return const String.fromEnvironment('OCO_LANGUAGE', defaultValue: 'en');
   }
 
   static String get modelSetting {
-    return dotenv.env['OCO_MODEL'] ?? 'gpt-4o-mini';
+    return const String.fromEnvironment('OCO_MODEL', defaultValue: 'gpt-4o-mini');
   }
 }

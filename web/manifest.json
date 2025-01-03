@@ -1,11 +1,11 @@
 {
-    "name": "chromaniac",
-    "short_name": "chromaniac",
+    "name": "Chromaniac",
+    "short_name": "Chromaniac",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#hexcode",
-    "theme_color": "#hexcode",
-    "description": "A new Flutter project.",
+    "background_color": "#ffffff",
+    "theme_color": "#000000",
+    "description": "A color palette generator app",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

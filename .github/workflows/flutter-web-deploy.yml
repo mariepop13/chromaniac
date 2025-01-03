@@ -17,7 +17,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.27.1'
+          flutter-version: '3.24.5'
           channel: 'stable'
       
       - name: Verify Flutter and Dart versions
@@ -55,6 +55,12 @@ jobs:
         run: flutter build web --base-href="/chromaniac/"
         env:
           FLUTTER_WEB_CANVASKIT_URL: https://unpkg.com/canvaskit-wasm@0.38.1/bin/
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          OCO_EMOJI: 'true'
+          OCO_MODEL: 'gpt-4o-mini'
+          OCO_LANGUAGE: 'en'
       
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
