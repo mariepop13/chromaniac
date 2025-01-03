@@ -22,21 +22,21 @@ class PaletteContent extends StatelessWidget {
           itemCount: provider.state.palette.length,
           itemBuilder: (context, index) {
             final color = provider.state.palette[index];
-            final colorInt = ((color.a * 255).round() << 24) |
-                           ((color.r * 255).round() << 16) |
-                           ((color.g * 255).round() << 8) |
-                           (color.b * 255).round();
+            final colorInt = ((color.alpha * 255).round() << 24) |
+                           ((color.red * 255).round() << 16) |
+                           ((color.green * 255).round() << 8) |
+                           (color.blue * 255).round();
             
             return FutureBuilder<bool>(
               key: ValueKey('color_$colorInt'),
               future: provider.isFavoriteColor(color),
               builder: (context, snapshot) {
 
-                final hexString = ((((color.r * 255).round() << 16) |
-                                  ((color.g * 255).round() << 8) |
-                                  (color.b * 255).round()))
-                                  .toRadixString(16)
-                                  .padLeft(6, '0');
+                final hexString = ((((color.red * 255).round() << 16) |
+                                   ((color.green * 255).round() << 8) |
+                                   (color.blue * 255).round()))
+                                   .toRadixString(16)
+                                   .padLeft(6, '0');
                 
                 return ColorTileWidget(
                   color: color,

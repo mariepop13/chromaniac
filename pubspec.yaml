@@ -59,6 +59,7 @@ dependencies:
   path: ^1.8.3
   uuid: ^4.3.3
   flutter_speed_dial: ^7.0.0
+  app_links: ^6.3.3
 
 dev_dependencies:
   flutter_test:
@@ -82,6 +83,7 @@ flutter:
   assets:
     - .env
     - test/.env.test
+    - assets/icons/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

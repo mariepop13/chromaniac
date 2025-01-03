@@ -21,6 +21,9 @@ import 'home/utils/image_handler.dart';
 import 'package:chromaniac/providers/theme_provider.dart';
 import 'dart:math' show max;
 import '../../screens/home/palette_grid_view.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:chromaniac/screens/auth/login_screen.dart';
+import 'package:chromaniac/services/auth_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -32,11 +35,36 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _state = HomeScreenState();
+  User? _currentUser;
 
   @override
   void initState() {
     super.initState();
     _generateRandomPalette();
+    _checkCurrentUser();
+  }
+
+  void _checkCurrentUser() {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    setState(() {
+      _currentUser = authService.currentUser;
+    });
+  }
+
+  void _showLoginScreen() async {
+    final result = await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const LoginScreen())
+    );
+
+    if (result == true) {
+      _checkCurrentUser();
+    }
+  }
+
+  void _logout() async {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    await authService.signOut();
+    _checkCurrentUser();
   }
 
   void _generateRandomPalette() {
@@ -332,7 +360,45 @@ class _HomeScreenState extends State<HomeScreen> {
           },
         ),
         title: const Text('Chromaniac'),
-        actions: const [AppBarActions()],
+        actions: [
+          AppBarActions(
+            onSettingsTap: () => _showSettingsDialog(context),
+            onFavoritesTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const FavoritesScreen())
+            ),
+          ),
+          if (_currentUser == null)
+            IconButton(
+              icon: const Icon(Icons.login),
+              tooltip: 'Login',
+              onPressed: _showLoginScreen,
+            )
+          else
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.account_circle),
+              tooltip: 'Account',
+              onSelected: (value) {
+                if (value == 'logout') {
+                  _logout();
+                }
+              },
+              itemBuilder: (BuildContext context) => [
+                PopupMenuItem<String>(
+                  value: 'logout',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.logout, color: Colors.red),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Logout (${_currentUser?.email ?? ""})', 
+                        style: const TextStyle(color: Colors.red)
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+        ],
       ),
       body: SafeArea(
         child: OrientationBuilder(

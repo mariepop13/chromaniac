@@ -20,22 +20,22 @@ void main() {
   PathProviderPlatform.instance = MockPathProviderPlatform();
 
   group('ExportPalette', () {
-    final standardTestPalette = [
-      Color.from(alpha: 1.0, red: 1.0, green: 0.0, blue: 0.0),
-      Color.from(alpha: 1.0, red: 0.0, green: 1.0, blue: 0.0),
-      Color.from(alpha: 1.0, red: 0.0, green: 0.0, blue: 1.0),
+    final testColors = [
+      Color.fromRGBO(255, 0, 0, 1.0),   // Red
+      Color.fromRGBO(0, 255, 0, 1.0),   // Green
+      Color.fromRGBO(0, 0, 255, 1.0),   // Blue
     ];
 
     group('CreateSwatchesContent', () {
       test('ExportPalette_CreateSwatches_ShouldGenerateValidSwatchFileWithHSVValues', () async {
-        final content = createSwatchesContent(standardTestPalette);
+        final content = createSwatchesContent(testColors);
         final swatchData = await readSwatchesFile(content);
 
         expect(swatchData['name'], equals('Palette'));
-        expect(swatchData['colors'], hasLength(standardTestPalette.length));
+        expect(swatchData['colors'], hasLength(testColors.length));
 
-        for (var i = 0; i < standardTestPalette.length; i++) {
-          final color = HSVColor.fromColor(standardTestPalette[i]);
+        for (var i = 0; i < testColors.length; i++) {
+          final color = HSVColor.fromColor(testColors[i]);
           final exportedColor = swatchData['colors'][i][0];
           final colorSpace = swatchData['colors'][i][1];
           
@@ -47,7 +47,7 @@ void main() {
       });
 
       test('ExportPalette_CreateSwatches_ShouldCreateValidZipArchiveWithJSON', () {
-        final content = createSwatchesContent(standardTestPalette);
+        final content = createSwatchesContent(testColors);
         final decoder = ZipDecoder();
         final archive = decoder.decodeBytes(content);
 
@@ -59,7 +59,7 @@ void main() {
         
         expect(data.length, equals(1));
         expect(data[0]['name'], equals('Palette'));
-        expect(data[0]['swatches'].length, equals(standardTestPalette.length));
+        expect(data[0]['swatches'].length, equals(testColors.length));
       });
 
       test('ExportPalette_CreateSwatches_ShouldHandleEmptyPaletteCorrectly', () {

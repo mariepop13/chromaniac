@@ -64,9 +64,9 @@ class PaletteGridViewState extends State<PaletteGridView> {
               itemBuilder: (context, index) {
                 final color = widget.palette[index];
                 return ColorTileWidget(
-                  key: ValueKey('${((color.a * 255).round() << 24) | ((color.r * 255).round() << 16) | ((color.g * 255).round() << 8) | (color.b * 255).round()}_$index'),
+                  key: ValueKey('${color.value}_$index'),
                   color: color,
-                  hex: ((((color.r * 255).round() << 16) | ((color.g * 255).round() << 8) | (color.b * 255).round())).toRadixString(16).padLeft(6, '0'),
+                  hex: color.value.toRadixString(16).padLeft(6, '0'),
                   onRemoveColor: widget.onRemoveColor,
                   onEditColor: (newColor) => widget.onEditColor(color, newColor),
                   paletteSize: widget.palette.length,

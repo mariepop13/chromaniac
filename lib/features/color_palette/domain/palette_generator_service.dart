@@ -55,9 +55,9 @@ class PaletteGeneratorService {
   static List<Color> _generateMonochromaticPalette(Color color, int size) {
     final baseColors = [
       color,
-      Color.from(alpha: 0.75, red: color.r, green: color.g, blue: color.b),
-      Color.from(alpha: 0.5, red: color.r, green: color.g, blue: color.b),
-      Color.from(alpha: 0.25, red: color.r, green: color.g, blue: color.b),
+      Color.fromRGBO(color.red, color.green, color.blue, 0.75),
+      Color.fromRGBO(color.red, color.green, color.blue, 0.5),
+      Color.fromRGBO(color.red, color.green, color.blue, 0.25),
     ];
     return _interpolateColors(baseColors, size);
   }

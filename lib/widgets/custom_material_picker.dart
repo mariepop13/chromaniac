@@ -78,9 +78,9 @@ class _CustomMaterialPickerState extends State<CustomMaterialPicker> {
   }
 
   String colorToHex(Color color) {
-    final rgbInt = ((color.r * 255).round() << 16) |
-                   ((color.g * 255).round() << 8) |
-                   (color.b * 255).round();
+    final rgbInt = ((color.red * 255).round() << 16) |
+                   ((color.green * 255).round() << 8) |
+                   (color.blue * 255).round();
     return '#${rgbInt.toRadixString(16).padLeft(6, '0').toUpperCase()}';
   }
 
@@ -90,10 +90,10 @@ class _CustomMaterialPickerState extends State<CustomMaterialPicker> {
     for (List<Color> colors in colorTypes) {
       shadingTypes(colors).forEach((Map<Color, String> color) {
         final firstColor = color.keys.first;
-        if (widget.pickerColor.r == firstColor.r &&
-            widget.pickerColor.g == firstColor.g &&
-            widget.pickerColor.b == firstColor.b &&
-            widget.pickerColor.a == firstColor.a) {
+        if (widget.pickerColor.red == firstColor.red &&
+            widget.pickerColor.green == firstColor.green &&
+            widget.pickerColor.blue == firstColor.blue &&
+            widget.pickerColor.alpha == firstColor.alpha) {
           setState(() {
             currentColorType = colors;
             currentShading = firstColor;

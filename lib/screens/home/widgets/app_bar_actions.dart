@@ -5,13 +5,35 @@ import 'package:provider/provider.dart';
 import 'package:chromaniac/providers/debug_provider.dart';
 
 class AppBarActions extends StatelessWidget {
-  const AppBarActions({super.key});
+  final VoidCallback? onSettingsTap;
+  final VoidCallback? onFavoritesTap;
+
+  const AppBarActions({
+    super.key, 
+    this.onSettingsTap, 
+    this.onFavoritesTap
+  });
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
+        // Favorites button
+        IconButton(
+          icon: const Icon(Icons.favorite),
+          onPressed: onFavoritesTap,
+          tooltip: 'Favorites',
+        ),
+        
+        // Settings button
+        IconButton(
+          icon: const Icon(Icons.settings),
+          onPressed: onSettingsTap,
+          tooltip: 'Settings',
+        ),
+
+        // Debug mode actions
         if (kDebugMode)
           Consumer<PremiumService>(
             builder: (context, premiumService, _) => IconButton(

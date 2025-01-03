@@ -174,11 +174,11 @@ class HomeScreenStateWidgetState extends State<HomeScreenStateWidget> {
 
   Color generateRandomColor() {
     final random = Random();
-    return Color.from(
-      alpha: 1.0,
-      red: random.nextDouble(),
-      green: random.nextDouble(),
-      blue: random.nextDouble(),
+    return Color.fromRGBO(
+      random.nextInt(256),
+      random.nextInt(256),
+      random.nextInt(256),
+      1.0
     );
   }
 
@@ -220,9 +220,9 @@ class HomeScreenStateWidgetState extends State<HomeScreenStateWidget> {
       
       AppLogger.d('Saving palette: ${colorPalette.name}');
       AppLogger.d('Colors: ${colorPalette.colors.map((c) => 
-        ((((c.r * 255).round() << 16) | 
-          ((c.g * 255).round() << 8) | 
-          (c.b * 255).round())).toRadixString(16).padLeft(6, '0')
+        ((((c.red * 255).round() << 16) | 
+          ((c.green * 255).round() << 8) | 
+          (c.blue * 255).round())).toRadixString(16).padLeft(6, '0')
       ).join(', ')}');
       
       await DatabaseService().savePalette(colorPalette);

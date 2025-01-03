@@ -9,9 +9,9 @@ class EnvironmentConfig {
       await dotenv.load(fileName: envFile);
       AppLogger.i('Successfully loaded .env file');
     } catch (e) {
-      AppLogger.w('Error loading .env file: $e');
-
-
+      AppLogger.e('Critical error loading .env file: $e');
+      // Optionally, you can rethrow the error to prevent app startup
+      // rethrow;
     }
   }
 
@@ -22,5 +22,17 @@ class EnvironmentConfig {
       return '';
     }
     return key;
+  }
+
+  static String get emojiSetting {
+    return dotenv.env['OCO_EMOJI'] ?? 'true';
+  }
+
+  static String get languageSetting {
+    return dotenv.env['OCO_LANGUAGE'] ?? 'en';
+  }
+
+  static String get modelSetting {
+    return dotenv.env['OCO_MODEL'] ?? 'gpt-4o-mini';
   }
 }

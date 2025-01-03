@@ -20,10 +20,10 @@ class FavoriteColor {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'color': ((((color.a * 255).round() << 24) |
-                ((color.r * 255).round() << 16) |
-                ((color.g * 255).round() << 8) |
-                (color.b * 255).round())),
+      'color': ((((color.alpha * 255).round() << 24) |
+                ((color.red * 255).round() << 16) |
+                ((color.green * 255).round() << 8) |
+                (color.blue * 255).round())),
       'user_id': userId,
       'created_at': createdAt.toIso8601String(),
       'name': name,
@@ -34,11 +34,11 @@ class FavoriteColor {
   factory FavoriteColor.fromMap(Map<String, dynamic> map) {
     return FavoriteColor(
       id: map['id'],
-      color: Color.from(
-        alpha: ((map['color'] >> 24) & 0xFF) / 255.0,
-        red: ((map['color'] >> 16) & 0xFF) / 255.0,
-        green: ((map['color'] >> 8) & 0xFF) / 255.0,
-        blue: (map['color'] & 0xFF) / 255.0,
+      color: Color.fromRGBO(
+        ((map['color'] >> 16) & 0xFF),
+        ((map['color'] >> 8) & 0xFF),
+        (map['color'] & 0xFF),
+        1.0
       ),
       userId: map['user_id'],
       createdAt: DateTime.parse(map['created_at']),

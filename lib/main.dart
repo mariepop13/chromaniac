@@ -4,27 +4,32 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'providers/theme_provider.dart';
 import 'providers/settings_provider.dart';
 import 'services/premium_service.dart';
+import 'services/auth_service.dart';
 import 'screens/home_screen.dart';
 import 'utils/config/environment_config.dart';
 import 'providers/debug_provider.dart';
 import 'utils/logger/app_logger.dart';
 import 'config/supabase_config.dart';
+import 'utils/web_config.dart';
 
 Future<void> main() async {
   try {
-
     WidgetsFlutterBinding.ensureInitialized();
     
-
+    // Configure web-specific input handling
+    WebConfig.configureWebInputHandling();
+    
     await AppLogger.init();
     await EnvironmentConfig.initialize();
     await SupabaseConfig.initialize();
     
     final prefs = await SharedPreferences.getInstance();
+    final authService = AuthService();
     
     runApp(
       MultiProvider(
         providers: [
+          Provider<AuthService>.value(value: authService),
           ChangeNotifierProvider(create: (_) => ThemeProvider(prefs)),
           ChangeNotifierProvider(create: (_) => PremiumService()),
           ChangeNotifierProvider(create: (context) => SettingsProvider(prefs)),

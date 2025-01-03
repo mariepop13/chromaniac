@@ -75,17 +75,17 @@ class _PaletteDetailsScreenState extends State<PaletteDetailsScreen> {
   }
 
   String _getColorKey(Color color, int index) {
-    final colorInt = ((color.a * 255).round() << 24) |
-                    ((color.r * 255).round() << 16) |
-                    ((color.g * 255).round() << 8) |
-                    (color.b * 255).round();
+    final colorInt = (color.alpha << 24) |
+                    (color.red << 16) |
+                    (color.green << 8) |
+                    color.blue;
     return 'color_${colorInt}_$index';
   }
 
   String _getHexString(Color color) {
-    final rgbInt = ((color.r * 255).round() << 16) |
-                  ((color.g * 255).round() << 8) |
-                  (color.b * 255).round();
+    final rgbInt = (color.red << 16) |
+                  (color.green << 8) |
+                  color.blue;
     return rgbInt.toRadixString(16).padLeft(6, '0');
   }
 
