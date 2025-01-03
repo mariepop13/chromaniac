@@ -27,9 +27,21 @@ jobs:
       
       - name: Create .env file
         run: |
-          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" > .env
+          touch .env
+          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> .env
           echo "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}" >> .env
           echo "OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}" >> .env
+          echo "OCO_EMOJI=true" >> .env
+          echo "OCO_MODEL=gpt-4o-mini" >> .env
+          echo "OCO_LANGUAGE=en" >> .env
+          cat .env  # Display the contents for debugging
+      
+      - name: Verify .env file
+        run: |
+          if [ ! -f .env ]; then
+            echo "Error: .env file not created"
+            exit 1
+          fi
       
       - name: Install dependencies
         run: |
