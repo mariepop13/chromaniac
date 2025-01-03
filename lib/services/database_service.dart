@@ -16,6 +16,8 @@ class DatabaseService {
 
   DatabaseService._internal();
 
+  SupabaseClient get database => _supabase;
+
   Future<List<ColorPalette>> getPalettes({String? userId}) async {
     try {
       AppLogger.d('Fetching palettes from Supabase');
