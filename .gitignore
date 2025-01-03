@@ -92,3 +92,4 @@ test/debug_logs
 .ionide
 
 notes.txt
+lib/config/supabase_config.dart

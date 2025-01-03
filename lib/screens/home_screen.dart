@@ -386,12 +386,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 PopupMenuItem<String>(
                   value: 'logout',
                   child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(Icons.logout, color: Colors.red),
                       const SizedBox(width: 8),
-                      Text(
-                        'Logout (${_currentUser?.email ?? ""})', 
-                        style: const TextStyle(color: Colors.red)
+                      Flexible(
+                        child: Text(
+                          'Logout (${_currentUser?.email ?? ""})', 
+                          style: const TextStyle(color: Colors.red),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
                       ),
                     ],
                   ),

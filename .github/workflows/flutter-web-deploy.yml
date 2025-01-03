@@ -1,0 +1,46 @@
+name: Flutter Web Deploy
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.x'
+          channel: 'stable'
+      
+      - name: Create .env file
+        run: |
+          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" > .env
+          echo "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}" >> .env
+      
+      - name: Install dependencies
+        run: |
+          flutter pub get
+          flutter pub upgrade
+      
+      - name: Configure web
+        run: flutter config --enable-web
+      
+      - name: Build web app
+        run: flutter build web --base-href="/chromaniac/"
+        env:
+          FLUTTER_WEB_CANVASKIT_URL: https://unpkg.com/canvaskit-wasm@0.38.1/bin/
+      
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build/web
+          publish_branch: gh-pages 
