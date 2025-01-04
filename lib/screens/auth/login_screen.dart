@@ -72,13 +72,6 @@ class _LoginScreenState extends State<LoginScreen>
       // Ensure widget is still mounted and input hasn't changed
       if (!mounted) return;
 
-      developer.log('Email validation triggered',
-          name: 'LoginScreen.emailValidation',
-          error: {
-            'length': value.length,
-            'timestamp': DateTime.now().toIso8601String()
-          });
-
       // Validate email with current value
       final validationResult = _validateEmail(value);
 
@@ -99,13 +92,6 @@ class _LoginScreenState extends State<LoginScreen>
     _debounceTimer = Timer(const Duration(milliseconds: 500), () {
       // Ensure widget is still mounted and input hasn't changed
       if (!mounted) return;
-
-      developer.log('Password validation triggered',
-          name: 'LoginScreen.passwordValidation',
-          error: {
-            'length': value.length,
-            'timestamp': DateTime.now().toIso8601String()
-          });
 
       // Validate password with current value
       final validationResult = _validatePassword(value);
@@ -135,12 +121,6 @@ class _LoginScreenState extends State<LoginScreen>
     Future<void> Function(AuthService authService) authAction,
     String successMessage,
   ) async {
-    // Minimal logging for start of authentication
-    developer.log('Auth Start', name: 'LoginScreen.auth', error: {
-      'email': _emailController.text.isNotEmpty ? 'provided' : 'empty',
-      'passwordLength': _passwordController.text.length,
-    });
-
     // Validate form before proceeding
     if (!_formKey.currentState!.validate()) {
       AppLogger.w('Form validation failed');
@@ -197,9 +177,6 @@ class _LoginScreenState extends State<LoginScreen>
       AppLogger.e('Unexpected auth error: $e');
     } finally {
       stopwatch.stop();
-      developer.log('Auth Complete', name: 'LoginScreen.auth', error: {
-        'duration': stopwatch.elapsedMilliseconds,
-      });
 
       if (mounted) {
         setState(() => _isLoading = false);
@@ -213,16 +190,9 @@ class _LoginScreenState extends State<LoginScreen>
     try {
       final result = await Future.microtask(() => action);
       stopwatch.stop();
-      developer.log('Action OK', name: 'Performance', error: {
-        'duration': stopwatch.elapsedMilliseconds,
-      });
       return result;
     } catch (e) {
       stopwatch.stop();
-      developer.log('Action Failed', name: 'Performance', error: {
-        'duration': stopwatch.elapsedMilliseconds,
-        'error': e.toString()
-      });
       rethrow;
     }
   }

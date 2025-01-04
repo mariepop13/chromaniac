@@ -2,16 +2,29 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:app_links/app_links.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import '../utils/logger/app_logger.dart';
 
 class SupabaseConfig {
   static String get url {
-    return const String.fromEnvironment('SUPABASE_URL');
+    // Use dotenv for runtime environment loading
+    final envUrl = dotenv.env['SUPABASE_URL'];
+    if (envUrl == null || envUrl.isEmpty) {
+      AppLogger.e('SUPABASE_URL not found in environment');
+      throw Exception('Supabase URL is not configured');
+    }
+    return envUrl;
   }
 
   static String get anonKey {
-    return const String.fromEnvironment('SUPABASE_ANON_KEY');
+    // Use dotenv for runtime environment loading
+    final envKey = dotenv.env['SUPABASE_ANON_KEY'];
+    if (envKey == null || envKey.isEmpty) {
+      AppLogger.e('SUPABASE_ANON_KEY not found in environment');
+      throw Exception('Supabase Anon Key is not configured');
+    }
+    return envKey;
   }
 
   // Redirect URL for OAuth providers
@@ -21,6 +34,9 @@ class SupabaseConfig {
 
   static Future<void> initialize() async {
     try {
+      // Load environment variables before initialization
+      await dotenv.load(fileName: '.env');
+
       WidgetsFlutterBinding.ensureInitialized();
 
       await Supabase.initialize(
@@ -31,6 +47,8 @@ class SupabaseConfig {
         ),
         debug: kDebugMode, // Enable debug logging in debug mode
       );
+
+      AppLogger.d('Supabase initialized successfully');
 
       // Handle deep links for mobile platforms
       if (!kIsWeb) {

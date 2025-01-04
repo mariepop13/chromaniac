@@ -1,6 +1,7 @@
 import 'package:chromaniac/utils/logger/app_logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../config/supabase_config.dart';
+import 'dart:async' show TimeoutException;
 
 class AuthService {
   static final AuthService _instance = AuthService._internal();
@@ -40,21 +41,52 @@ class AuthService {
         final result = await _supabase.auth.signUp(
           email: email.trim(),
           password: password.trim(),
+        ).timeout(
+          const Duration(seconds: 15),  // Increased timeout
+          onTimeout: () => throw TimeoutException('Network request timed out'),
         );
+
+        // Additional validation of the response
+        if (result.session == null && result.user == null) {
+          throw AuthException('Invalid signup response');
+        }
+
         return result;
       } on AuthException catch (authError) {
-        // Log authentication error
-        AppLogger.e('Sign-Up Error: ${authError.message}');
-        rethrow;
-      } on FormatException catch (formatError) {
-        // Specific handling for JSON parsing errors
-        AppLogger.e('JSON Parsing Error', error: {
-          'message': formatError.message,
+        // Log authentication error with more context
+        AppLogger.e('Sign-Up Error: ${authError.message}', error: {
+          'statusCode': authError.statusCode,
+          'email': email.replaceRange(2, email.indexOf('@'), '***'),
         });
-        throw AuthException('Sign-up failed: Invalid response');
+        rethrow;
+      } on TimeoutException {
+        AppLogger.e('Sign-Up Network Timeout', error: {
+          'email': email.replaceRange(2, email.indexOf('@'), '***'),
+          'action': 'signUp',
+        });
+        throw AuthException('Network connection is slow or unavailable. Please check your internet connection.');
+      } on FormatException catch (formatError) {
+        // Detailed JSON parsing error logging
+        AppLogger.e('Sign-Up JSON Parsing Error', error: {
+          'message': formatError.message,
+          'source': formatError.source,
+          'email': email.replaceRange(2, email.indexOf('@'), '***'),
+        });
+        throw AuthException('Server response is invalid. Please check your network connection.');
+      } catch (e) {
+        // Catch-all for unexpected errors
+        AppLogger.e('Unexpected sign-up error', error: {
+          'error': e.toString(),
+          'type': e.runtimeType.toString(),
+          'email': email.replaceRange(2, email.indexOf('@'), '***'),
+        });
+        throw AuthException('An unexpected signup error occurred. Please try again.');
       }
     } catch (e) {
-      AppLogger.e('Unexpected sign-up error: $e');
+      AppLogger.e('Sign-up process error', error: {
+        'error': e.toString(),
+        'type': e.runtimeType.toString(),
+      });
       rethrow;
     }
   }
@@ -67,26 +99,98 @@ class AuthService {
       }
 
       try {
+        // Add network timeout and more robust error handling
         final result = await _supabase.auth.signInWithPassword(
           email: email.trim(),
           password: password.trim(),
+        ).timeout(
+          const Duration(seconds: 15),  // Increased timeout
+          onTimeout: () => throw TimeoutException('Network request timed out'),
         );
+
+        // Additional validation of the response
+        if (result.session == null && result.user == null) {
+          throw AuthException('Invalid authentication response');
+        }
+
         return result;
+      } on TimeoutException {
+        AppLogger.e('Sign-In Network Timeout', error: {
+          'email': email.replaceRange(2, email.indexOf('@'), '***'),
+          'action': 'signInWithPassword',
+        });
+        throw AuthException('Network connection is slow or unavailable. Please check your internet connection.');
       } on AuthException catch (authError) {
-        // Log authentication error
-        AppLogger.e('Sign-In Error: ${authError.message}');
+        // More comprehensive authentication error logging
+        AppLogger.e('Sign-In Authentication Error', error: {
+          'message': authError.message,
+          'statusCode': authError.statusCode,
+          'email': email.replaceRange(2, email.indexOf('@'), '***'),
+        });
         rethrow;
       } on FormatException catch (formatError) {
-        // Specific handling for JSON parsing errors
-        AppLogger.e('JSON Parsing Error', error: {
+        // Detailed JSON parsing error logging with context
+        AppLogger.e('Sign-In JSON Parsing Error', error: {
           'message': formatError.message,
+          'source': formatError.source,
+          'email': email.replaceRange(2, email.indexOf('@'), '***'),
+          'networkDiagnostics': {
+            'canReachSupabase': await _checkSupabaseConnection(),
+            'jsonParsingDetails': _analyzeJsonParsingError(formatError),
+          },
         });
-        throw AuthException('Sign-in failed: Invalid response');
+        throw AuthException('Server response is invalid. Please check your network connection.');
+      } catch (e) {
+        // Comprehensive catch-all for unexpected errors
+        AppLogger.e('Unexpected Sign-In Error', error: {
+          'error': e.toString(),
+          'type': e.runtimeType.toString(),
+          'email': email.replaceRange(2, email.indexOf('@'), '***'),
+        });
+        throw AuthException('An unexpected authentication error occurred. Please try again.');
       }
     } catch (e) {
-      AppLogger.e('Unexpected sign-in error: $e');
+      AppLogger.e('Sign-in Process Error', error: {
+        'error': e.toString(),
+        'type': e.runtimeType.toString(),
+      });
       rethrow;
     }
+  }
+
+  // Network connectivity diagnostic method
+  Future<bool> _checkSupabaseConnection() async {
+    try {
+      // Attempt a simple health check
+      final response = await _supabase.from('profiles').select().limit(1);
+      return response.isNotEmpty;
+    } catch (e) {
+      AppLogger.e('Supabase Connection Check Failed', error: {
+        'error': e.toString(),
+      });
+      return false;
+    }
+  }
+
+  // Analyze JSON parsing error details
+  Map<String, dynamic> _analyzeJsonParsingError(FormatException formatError) {
+    return {
+      'errorMessage': formatError.message,
+      'source': formatError.source?.toString(),
+      'stackTraceString': formatError.toString(),
+      'possibleCauses': [
+        'Incomplete network response',
+        'Firewall or proxy interference',
+        'Supabase server-side issue',
+        'Unexpected response format',
+      ],
+      'recommendedActions': [
+        'Check internet connection',
+        'Verify Supabase configuration',
+        'Retry authentication',
+        'Contact support if issue persists',
+      ],
+    };
   }
 
   Future<bool> signInWithGoogle() async {
