@@ -4,6 +4,8 @@ import 'dart:typed_data';
 import 'package:chromaniac/utils/color/image_color_analyzer.dart';
 import 'package:chromaniac/core/constants.dart';
 import 'package:chromaniac/utils/color/contrast_color.dart';
+import 'package:chromaniac/services/auth_service.dart';
+import 'package:chromaniac/screens/auth/login_screen.dart';
 
 class ColorAnalysisButton extends StatefulWidget {
   final Uint8List? imageBytes;
@@ -21,6 +23,84 @@ class ColorAnalysisButton extends StatefulWidget {
 
 class _ColorAnalysisButtonState extends State<ColorAnalysisButton> {
   bool _isLoading = false;
+  final _authService = AuthService();
+
+  void _showAuthenticationRequiredDialog() {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Authentication Required'),
+        content: const Text('Please log in to use Smart Palette feature.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              // Navigate to login screen
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => const LoginScreen()));
+            },
+            child: const Text('Log In'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _analyzeColors(BuildContext context) async {
+    if (widget.imageBytes == null) {
+      const message = 'Please select an image first';
+      AppLogger.w(message);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(message),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+      return;
+    }
+
+    // Check authentication first
+    if (_authService.currentUser == null) {
+      _showAuthenticationRequiredDialog();
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final analyzer = ImageColorAnalyzer();
+      final result = await analyzer.analyzeColoringImage(widget.imageBytes!);
+      if (context.mounted) {
+        widget.onAnalysisComplete(result);
+        _showAnalysisDialog(context, result);
+      }
+    } catch (error, stackTrace) {
+      AppLogger.e('Error analyzing colors',
+          error: error, stackTrace: stackTrace);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to analyze colors. Please try again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   void _showAnalysisDialog(BuildContext context, ColorAnalysisResult result) {
     showDialog(
@@ -135,58 +215,21 @@ class _ColorAnalysisButtonState extends State<ColorAnalysisButton> {
     );
   }
 
-  Future<void> _analyzeColors(BuildContext context) async {
-    if (widget.imageBytes == null) {
-      const message = 'Please select an image first';
-      AppLogger.w(message);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(message),
-            backgroundColor: Colors.orange,
-          ),
-        );
-      }
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final analyzer = ImageColorAnalyzer();
-      final result = await analyzer.analyzeColoringImage(widget.imageBytes!);
-      if (context.mounted) {
-        widget.onAnalysisComplete(result);
-        _showAnalysisDialog(context, result);
-      }
-    } catch (error, stackTrace) {
-      AppLogger.e('Error analyzing colors',
-          error: error, stackTrace: stackTrace);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to analyze colors. Please try again.'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final colorScheme = ContrastColorScheme.fromTheme(Theme.of(context));
 
     return ElevatedButton.icon(
-      onPressed: _isLoading ? null : () => _analyzeColors(context),
+      onPressed: _isLoading
+          ? null
+          : () {
+              // Check authentication before analyzing
+              if (_authService.currentUser == null) {
+                _showAuthenticationRequiredDialog();
+              } else {
+                _analyzeColors(context);
+              }
+            },
       icon: _isLoading
           ? SizedBox(
               width: AppConstants.iconSize,

@@ -2,10 +2,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:chromaniac/models/color_palette.dart';
 import 'package:chromaniac/services/database_service.dart';
+import 'package:chromaniac/services/auth_service.dart';
 import 'package:chromaniac/utils/logger/app_logger.dart';
 import 'package:chromaniac/screens/favorites/palette_details_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:chromaniac/providers/debug_provider.dart';
+import 'package:chromaniac/screens/auth/login_screen.dart';
 
 class FavoritesScreen extends StatefulWidget {
   final Function(List<Color>)? onRestorePalette;
@@ -21,22 +23,72 @@ class FavoritesScreen extends StatefulWidget {
 
 class _FavoritesScreenState extends State<FavoritesScreen> {
   late Future<List<ColorPalette>> _palettesFuture;
+  final _authService = AuthService();
+  bool _hasShownAuthDialog = false;
 
   @override
   void initState() {
     super.initState();
-    _loadPalettes();
+    _palettesFuture = Future.value([]);
   }
 
-  void _loadPalettes() {
-    _palettesFuture = DatabaseService().getPalettes();
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _checkAuthentication();
+  }
+
+  void _checkAuthentication() {
+    // Check if user is authenticated and dialog hasn't been shown
+    if (_authService.currentUser == null && !_hasShownAuthDialog) {
+      // Prevent multiple dialog showings
+      _hasShownAuthDialog = true;
+
+      // Use a post-frame callback to show dialog after build
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _showAuthenticationDialog();
+      });
+    } else if (_authService.currentUser != null) {
+      // Load palettes for authenticated user
+      setState(() {
+        _palettesFuture = DatabaseService().getPalettes();
+      });
+    }
+  }
+
+  void _showAuthenticationDialog() {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Authentication Required'),
+        content: const Text('Please log in to view your saved palettes.'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              Navigator.of(context).pop(); // Close favorites screen
+            },
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              // Navigate to login screen
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => const LoginScreen()));
+            },
+            child: const Text('Log In'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _removePalette(ColorPalette palette) async {
     try {
       await DatabaseService().deletePalette(palette.id);
       setState(() {
-        _loadPalettes();
+        _palettesFuture = DatabaseService().getPalettes();
       });
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -54,7 +106,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   void _restorePaletteToHome(List<Color> colors) {
     if (widget.onRestorePalette != null) {
       widget.onRestorePalette!(colors);
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Palette restored to home')),
       );
@@ -80,12 +132,13 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   await DatabaseService().resetDatabase();
                   if (mounted) {
                     setState(() {
-                      _loadPalettes();
+                      _palettesFuture = DatabaseService().getPalettes();
                     });
                   }
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Database reset successfully')),
+                      const SnackBar(
+                          content: Text('Database reset successfully')),
                     );
                   }
                 } catch (e) {
@@ -139,10 +192,10 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                         ),
                       ),
                     );
-                    
+
                     if (updated == true && mounted) {
                       setState(() {
-                        _loadPalettes();
+                        _palettesFuture = DatabaseService().getPalettes();
                       });
                     }
                   },
@@ -160,12 +213,14 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                                 children: [
                                   Text(
                                     palette.name,
-                                    style: Theme.of(context).textTheme.titleMedium,
+                                    style:
+                                        Theme.of(context).textTheme.titleMedium,
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
                                     'Created ${_formatDate(palette.createdAt)}',
-                                    style: Theme.of(context).textTheme.bodySmall,
+                                    style:
+                                        Theme.of(context).textTheme.bodySmall,
                                   ),
                                 ],
                               ),
@@ -201,7 +256,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     );
   }
 
+  // Helper method to format date
   String _formatDate(DateTime date) {
-    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    return '${date.day}/${date.month}/${date.year}';
   }
 }
