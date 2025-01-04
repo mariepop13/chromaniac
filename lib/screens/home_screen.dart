@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:chromaniac/widgets/color_analysis_button.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -54,9 +54,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showLoginScreen() async {
-    final result = await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const LoginScreen())
-    );
+    final result = await Navigator.of(context)
+        .push(MaterialPageRoute(builder: (_) => const LoginScreen()));
 
     if (result == true) {
       _checkCurrentUser();
@@ -82,31 +81,33 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _handleImagePick() async {
     try {
       final result = await ImageHandler.pickImage(context);
-      AppLogger.d('Image pick result: file=${result?.$1}, bytes=${result?.$2?.length}');
+      AppLogger.d(
+          'Image pick result: file=${result?.$1}, bytes=${result?.$2?.length}');
 
       if (!mounted) return;
-      
+
       if (result != null) {
         final (file, bytes) = result;
         if (bytes != null) {
           setState(() {
             _state.selectedImage = kIsWeb ? null : file;
             _state.imageBytes = bytes;
-            AppLogger.d('Image set: selectedImage=${_state.selectedImage}, imageBytes=${_state.imageBytes?.length}');
+            AppLogger.d(
+                'Image set: selectedImage=${_state.selectedImage}, imageBytes=${_state.imageBytes?.length}');
           });
-          
+
           final colors = await ImageHandler.generatePaletteFromImage(
-            context, 
-            kIsWeb ? bytes : file!, 
-            context.read<SettingsProvider>().defaultPaletteSize
-          );
+              context,
+              kIsWeb ? bytes : file!,
+              context.read<SettingsProvider>().defaultPaletteSize);
           AppLogger.d('Generated colors: $colors');
 
           if (!mounted) return;
-          
+
           setState(() {
             _state.clearPalette();
-            _state.addColors(colors.map((paletteColor) => paletteColor.color).toList());
+            _state.addColors(
+                colors.map((paletteColor) => paletteColor.color).toList());
           });
         } else {
           AppLogger.w('Image bytes are null');
@@ -121,7 +122,8 @@ class _HomeScreenState extends State<HomeScreen> {
         AppLogger.w('No image selected');
       }
     } catch (e, stackTrace) {
-      AppLogger.e('Error in image pick process', error: e, stackTrace: stackTrace);
+      AppLogger.e('Error in image pick process',
+          error: e, stackTrace: stackTrace);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -170,14 +172,14 @@ class _HomeScreenState extends State<HomeScreen> {
                             context: context,
                             builder: (context) => PaletteSizeDialog(
                               onSave: (size) {
-                                context.read<SettingsProvider>().setDefaultPaletteSize(
-                                  size, 
-                                  onPaletteTruncate: (newSize) {
-                                    setState(() {
-                                      _state.truncatePaletteToSize(newSize);
-                                    });
-                                  }
-                                );
+                                context
+                                    .read<SettingsProvider>()
+                                    .setDefaultPaletteSize(size,
+                                        onPaletteTruncate: (newSize) {
+                                  setState(() {
+                                    _state.truncatePaletteToSize(newSize);
+                                  });
+                                });
                               },
                             ),
                           );
@@ -187,10 +189,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     Card(
                       margin: const EdgeInsets.symmetric(vertical: 8),
                       child: ListTile(
-                        leading: const Icon(Icons.color_lens, color: Colors.green),
+                        leading:
+                            const Icon(Icons.color_lens, color: Colors.green),
                         title: const Text('Color Harmony'),
                         subtitle: Text(
-                          _state.selectedColorPaletteType?.toString().split('.').last ?? 'Auto',
+                          _state.selectedColorPaletteType
+                                  ?.toString()
+                                  .split('.')
+                                  .last ??
+                              'Auto',
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                         trailing: const Icon(Icons.chevron_right),
@@ -199,7 +206,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           showPaletteOptionsDialog(
                             context,
                             _state.selectedColorPaletteType,
-                            (type) => setState(() => _state.selectedColorPaletteType = type),
+                            (type) => setState(
+                                () => _state.selectedColorPaletteType = type),
                             (colors) => setState(() {
                               _state.clearPalette();
                               _state.addColors(colors);
@@ -211,29 +219,31 @@ class _HomeScreenState extends State<HomeScreen> {
                     Card(
                       margin: const EdgeInsets.symmetric(vertical: 8),
                       child: ListTile(
-                        leading: const Icon(Icons.grid_view, color: Colors.purple),
+                        leading:
+                            const Icon(Icons.grid_view, color: Colors.purple),
                         title: const Text('Grid Layout'),
                         subtitle: Consumer<SettingsProvider>(
                           builder: (context, settingsProvider, _) {
                             final currentColumns = settingsProvider.gridColumns;
-                            final maxColumns = settingsProvider.calculateOptimalColumns(
-                              _state.palette.length
-                            );
-                            
+                            final maxColumns = settingsProvider
+                                .calculateOptimalColumns(_state.palette.length);
+
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   '$currentColumns columns',
-                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold),
                                 ),
                                 Slider(
                                   value: currentColumns.toDouble(),
                                   min: 1,
-                                  max: max(currentColumns, maxColumns).toDouble(),
-                                  divisions: max(currentColumns, maxColumns) > 1 
-                                    ? max(currentColumns, maxColumns) - 1 
-                                    : null,
+                                  max: max(currentColumns, maxColumns)
+                                      .toDouble(),
+                                  divisions: max(currentColumns, maxColumns) > 1
+                                      ? max(currentColumns, maxColumns) - 1
+                                      : null,
                                   label: currentColumns.toString(),
                                   onChanged: (double value) {
                                     final columns = value.round();
@@ -264,23 +274,21 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildContent(BuildContext context, Orientation orientation) {
-    AppLogger.d('Building content: orientation=$orientation, selectedImage=${_state.selectedImage}, imageBytes=${_state.imageBytes != null}');
-    
+    AppLogger.d(
+        'Building content: orientation=$orientation, selectedImage=${_state.selectedImage}, imageBytes=${_state.imageBytes != null}');
+
     if (orientation == Orientation.portrait || _state.selectedImage == null) {
-      return Column(
+      return Stack(
         children: [
-          if (_state.imageBytes != null)
-            ImagePreview(
-              image: _state.selectedImage,
-              imageBytes: _state.imageBytes!,
-              onAnalysisComplete: _handleAnalysisComplete,
-            ),
           Expanded(
             child: PaletteGridView(
               palette: _state.palette,
-              onRemoveColor: (color) => setState(() => _state.removeColor(color)),
-              onEditColor: (oldColor, newColor) => setState(() => _state.updateColor(oldColor, newColor)),
-              onAddHarmonyColors: (colors, paletteType) => PaletteManager.applyHarmonyColors(
+              onRemoveColor: (color) =>
+                  setState(() => _state.removeColor(color)),
+              onEditColor: (oldColor, newColor) =>
+                  setState(() => _state.updateColor(oldColor, newColor)),
+              onAddHarmonyColors: (colors, paletteType) =>
+                  PaletteManager.applyHarmonyColors(
                 context,
                 colors,
                 (newColors) => setState(() {
@@ -289,9 +297,59 @@ class _HomeScreenState extends State<HomeScreen> {
                 }),
                 paletteType,
               ),
-              onReorder: (oldIndex, newIndex) => setState(() => _state.reorderColors(oldIndex, newIndex)),
+              onReorder: (oldIndex, newIndex) =>
+                  setState(() => _state.reorderColors(oldIndex, newIndex)),
             ),
           ),
+          if (_state.imageBytes != null)
+            Positioned(
+              bottom: 16,
+              left: 16,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  GestureDetector(
+                    onTap: () => ImagePreviewDialog.show(
+                      context,
+                      image: _state.selectedImage,
+                      imageBytes: _state.imageBytes!,
+                      onAnalysisComplete: _handleAnalysisComplete,
+                    ),
+                    child: Container(
+                      width: MediaQuery.of(context).size.width * 0.25,
+                      height: MediaQuery.of(context).size.height * 0.25,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 4,
+                            offset: const Offset(2, 2),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: kIsWeb
+                            ? Image.memory(
+                                _state.imageBytes!,
+                                fit: BoxFit.cover,
+                              )
+                            : Image.file(
+                                _state.selectedImage!,
+                                fit: BoxFit.cover,
+                              ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ColorAnalysisButton(
+                    imageBytes: _state.imageBytes,
+                    onAnalysisComplete: _handleAnalysisComplete,
+                  ),
+                ],
+              ),
+            ),
         ],
       );
     }
@@ -300,19 +358,13 @@ class _HomeScreenState extends State<HomeScreen> {
       children: [
         Expanded(
           flex: 1,
-          child: ImagePreview(
-            image: _state.selectedImage,
-            imageBytes: _state.imageBytes!,
-            onAnalysisComplete: _handleAnalysisComplete,
-          ),
-        ),
-        Expanded(
-          flex: 1,
           child: PaletteGridView(
             palette: _state.palette,
             onRemoveColor: (color) => setState(() => _state.removeColor(color)),
-            onEditColor: (oldColor, newColor) => setState(() => _state.updateColor(oldColor, newColor)),
-            onAddHarmonyColors: (colors, paletteType) => PaletteManager.applyHarmonyColors(
+            onEditColor: (oldColor, newColor) =>
+                setState(() => _state.updateColor(oldColor, newColor)),
+            onAddHarmonyColors: (colors, paletteType) =>
+                PaletteManager.applyHarmonyColors(
               context,
               colors,
               (newColors) => setState(() {
@@ -321,7 +373,8 @@ class _HomeScreenState extends State<HomeScreen> {
               }),
               paletteType,
             ),
-            onReorder: (oldIndex, newIndex) => setState(() => _state.reorderColors(oldIndex, newIndex)),
+            onReorder: (oldIndex, newIndex) =>
+                setState(() => _state.reorderColors(oldIndex, newIndex)),
           ),
         ),
       ],
@@ -336,7 +389,8 @@ class _HomeScreenState extends State<HomeScreen> {
         _state.addColors(colors);
       });
     } catch (e, stackTrace) {
-      AppLogger.e('Error processing color analysis', error: e, stackTrace: stackTrace);
+      AppLogger.e('Error processing color analysis',
+          error: e, stackTrace: stackTrace);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -390,8 +444,8 @@ class _HomeScreenState extends State<HomeScreen> {
         leading: SettingsMenu(
           onSettingsTap: () => _showSettingsDialog(context),
           onThemeTap: () {
-            Provider.of<ThemeProvider>(context, listen: false)
-                .toggleTheme(!Provider.of<ThemeProvider>(context, listen: false).isDarkMode);
+            Provider.of<ThemeProvider>(context, listen: false).toggleTheme(
+                !Provider.of<ThemeProvider>(context, listen: false).isDarkMode);
           },
         ),
         title: const Text('Chromaniac'),
@@ -399,8 +453,7 @@ class _HomeScreenState extends State<HomeScreen> {
           AppBarActions(
             onSettingsTap: () => _showSettingsDialog(context),
             onFavoritesTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const FavoritesScreen())
-            ),
+                MaterialPageRoute(builder: (_) => const FavoritesScreen())),
           ),
           if (_currentUser == null)
             IconButton(
@@ -427,7 +480,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(width: 8),
                       Flexible(
                         child: Text(
-                          'Logout (${_currentUser?.email ?? ""})', 
+                          'Logout (${_currentUser?.email ?? ""})',
                           style: const TextStyle(color: Colors.red),
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
@@ -442,7 +495,8 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: SafeArea(
         child: OrientationBuilder(
-          builder: (context, orientation) => _buildContent(context, orientation),
+          builder: (context, orientation) =>
+              _buildContent(context, orientation),
         ),
       ),
       bottomNavigationBar: _buildBottomNavigation(),

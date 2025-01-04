@@ -28,17 +28,18 @@ class _ColorAnalysisButtonState extends State<ColorAnalysisButton> {
       builder: (BuildContext context) {
         return Dialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppConstants.dialogBorderRadius),
+            borderRadius:
+                BorderRadius.circular(AppConstants.dialogBorderRadius),
           ),
           child: OrientationBuilder(
             builder: (context, orientation) {
               final isLandscape = orientation == Orientation.landscape;
               return LayoutBuilder(
                 builder: (context, constraints) {
-                  final maxDialogHeight = isLandscape 
+                  final maxDialogHeight = isLandscape
                       ? MediaQuery.of(context).size.height * 0.8
                       : constraints.maxHeight - 100;
-                  final maxDialogWidth = isLandscape 
+                  final maxDialogWidth = isLandscape
                       ? MediaQuery.of(context).size.width * 0.8
                       : constraints.maxWidth;
 
@@ -56,7 +57,7 @@ class _ColorAnalysisButtonState extends State<ColorAnalysisButton> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             const Text(
-                              'Color Analysis Results',
+                              'Palette Results',
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
@@ -89,17 +90,20 @@ class _ColorAnalysisButtonState extends State<ColorAnalysisButton> {
                                         decoration: BoxDecoration(
                                           color: color,
                                           borderRadius: BorderRadius.circular(
-                                            AppConstants.colorPreviewBorderRadius,
+                                            AppConstants
+                                                .colorPreviewBorderRadius,
                                           ),
                                           border: Border.all(
                                             color: Colors.grey.shade300,
                                           ),
                                         ),
                                       ),
-                                      const SizedBox(width: AppConstants.spacingMedium),
+                                      const SizedBox(
+                                          width: AppConstants.spacingMedium),
                                       Expanded(
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Text(
                                               analysis['object']!,
@@ -158,7 +162,8 @@ class _ColorAnalysisButtonState extends State<ColorAnalysisButton> {
         _showAnalysisDialog(context, result);
       }
     } catch (error, stackTrace) {
-      AppLogger.e('Error analyzing colors', error: error, stackTrace: stackTrace);
+      AppLogger.e('Error analyzing colors',
+          error: error, stackTrace: stackTrace);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -188,12 +193,13 @@ class _ColorAnalysisButtonState extends State<ColorAnalysisButton> {
               height: AppConstants.iconSize,
               child: CircularProgressIndicator(
                 strokeWidth: AppConstants.iconStrokeWidth,
-                valueColor: AlwaysStoppedAnimation<Color>(colorScheme.foregroundColor),
+                valueColor:
+                    AlwaysStoppedAnimation<Color>(colorScheme.foregroundColor),
               ),
             )
-          : Icon(Icons.palette, color: colorScheme.foregroundColor),
+          : Icon(Icons.palette_outlined, color: colorScheme.foregroundColor),
       label: Text(
-        _isLoading ? 'Analyzing...' : 'Analyze Colors',
+        _isLoading ? 'Generating...' : 'Smart Palette',
         style: TextStyle(color: colorScheme.foregroundColor),
       ),
       style: ElevatedButton.styleFrom(
