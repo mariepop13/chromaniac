@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'package:chromaniac/services/auth_service.dart';
 
 class SpeedDialFab extends StatelessWidget {
   final VoidCallback onAddColor;
@@ -21,6 +22,8 @@ class SpeedDialFab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isAuthenticated = AuthService().currentUser != null;
+
     return SpeedDial(
       icon: Icons.add,
       activeIcon: Icons.close,
@@ -43,7 +46,23 @@ class SpeedDialFab extends StatelessWidget {
           onTap: onImportImage,
         ),
         SpeedDialChild(
-          child: const Icon(Icons.save),
+          child: Stack(
+            alignment: Alignment.topRight,
+            clipBehavior: Clip.none,
+            children: [
+              const Icon(Icons.save),
+              if (!isAuthenticated)
+                Positioned(
+                  top: -8,
+                  right: -8,
+                  child: Icon(
+                    Icons.star,
+                    color: Colors.amber.shade700,
+                    size: 24,
+                  ),
+                ),
+            ],
+          ),
           backgroundColor: Colors.purple,
           foregroundColor: Colors.white,
           label: 'Save Palette',

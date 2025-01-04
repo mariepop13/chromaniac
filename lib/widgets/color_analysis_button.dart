@@ -218,41 +218,59 @@ class _ColorAnalysisButtonState extends State<ColorAnalysisButton> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = ContrastColorScheme.fromTheme(Theme.of(context));
+    final isAuthenticated = _authService.currentUser != null;
 
-    return ElevatedButton.icon(
-      onPressed: _isLoading
-          ? null
-          : () {
-              // Check authentication before analyzing
-              if (_authService.currentUser == null) {
-                _showAuthenticationRequiredDialog();
-              } else {
-                _analyzeColors(context);
-              }
-            },
-      icon: _isLoading
-          ? SizedBox(
-              width: AppConstants.iconSize,
-              height: AppConstants.iconSize,
-              child: CircularProgressIndicator(
-                strokeWidth: AppConstants.iconStrokeWidth,
-                valueColor:
-                    AlwaysStoppedAnimation<Color>(colorScheme.foregroundColor),
-              ),
-            )
-          : Icon(Icons.palette_outlined, color: colorScheme.foregroundColor),
-      label: Text(
-        _isLoading ? 'Generating...' : 'Smart Palette',
-        style: TextStyle(color: colorScheme.foregroundColor),
-      ),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: colorScheme.backgroundColor,
-        foregroundColor: colorScheme.foregroundColor,
-        padding: EdgeInsets.symmetric(
-          horizontal: AppConstants.buttonHorizontalPadding,
-          vertical: AppConstants.buttonVerticalPadding,
+    return Stack(
+      alignment: Alignment.topRight,
+      clipBehavior: Clip.none,
+      children: [
+        ElevatedButton.icon(
+          onPressed: _isLoading
+              ? null
+              : () {
+                  // Check authentication before analyzing
+                  if (!isAuthenticated) {
+                    _showAuthenticationRequiredDialog();
+                  } else {
+                    _analyzeColors(context);
+                  }
+                },
+          icon: _isLoading
+              ? SizedBox(
+                  width: AppConstants.iconSize,
+                  height: AppConstants.iconSize,
+                  child: CircularProgressIndicator(
+                    strokeWidth: AppConstants.iconStrokeWidth,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                        colorScheme.foregroundColor),
+                  ),
+                )
+              : Icon(Icons.palette_outlined,
+                  color: colorScheme.foregroundColor),
+          label: Text(
+            _isLoading ? 'Generating...' : 'Smart Palette',
+            style: TextStyle(color: colorScheme.foregroundColor),
+          ),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: colorScheme.backgroundColor,
+            foregroundColor: colorScheme.foregroundColor,
+            padding: EdgeInsets.symmetric(
+              horizontal: AppConstants.buttonHorizontalPadding,
+              vertical: AppConstants.buttonVerticalPadding,
+            ),
+          ),
         ),
-      ),
+        if (!isAuthenticated)
+          Positioned(
+            top: -8,
+            right: -8,
+            child: Icon(
+              Icons.star,
+              color: Colors.amber.shade700,
+              size: 24,
+            ),
+          ),
+      ],
     );
   }
 }
