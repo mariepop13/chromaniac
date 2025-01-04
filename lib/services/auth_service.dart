@@ -19,24 +19,72 @@ class AuthService {
 
   Future<AuthResponse> signUpWithEmail(String email, String password) async {
     try {
-      return await _supabase.auth.signUp(
-        email: email,
-        password: password,
-      );
+      // Validate input before making the request
+      if (email.isEmpty || password.isEmpty) {
+        throw AuthException('Email and password cannot be empty');
+      }
+
+      // Validate email format
+      final emailRegex =
+          RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+      if (!emailRegex.hasMatch(email.trim())) {
+        throw AuthException('Invalid email format');
+      }
+
+      // Validate password strength
+      if (password.trim().length < 6) {
+        throw AuthException('Password must be at least 6 characters long');
+      }
+
+      try {
+        final result = await _supabase.auth.signUp(
+          email: email.trim(),
+          password: password.trim(),
+        );
+        return result;
+      } on AuthException catch (authError) {
+        // Log authentication error
+        AppLogger.e('Sign-Up Error: ${authError.message}');
+        rethrow;
+      } on FormatException catch (formatError) {
+        // Specific handling for JSON parsing errors
+        AppLogger.e('JSON Parsing Error', error: {
+          'message': formatError.message,
+        });
+        throw AuthException('Sign-up failed: Invalid response');
+      }
     } catch (e) {
-      AppLogger.e('Error signing up: $e');
+      AppLogger.e('Unexpected sign-up error: $e');
       rethrow;
     }
   }
 
   Future<AuthResponse> signInWithEmail(String email, String password) async {
     try {
-      return await _supabase.auth.signInWithPassword(
-        email: email,
-        password: password,
-      );
+      // Validate input before making the request
+      if (email.isEmpty || password.isEmpty) {
+        throw AuthException('Email and password cannot be empty');
+      }
+
+      try {
+        final result = await _supabase.auth.signInWithPassword(
+          email: email.trim(),
+          password: password.trim(),
+        );
+        return result;
+      } on AuthException catch (authError) {
+        // Log authentication error
+        AppLogger.e('Sign-In Error: ${authError.message}');
+        rethrow;
+      } on FormatException catch (formatError) {
+        // Specific handling for JSON parsing errors
+        AppLogger.e('JSON Parsing Error', error: {
+          'message': formatError.message,
+        });
+        throw AuthException('Sign-in failed: Invalid response');
+      }
     } catch (e) {
-      AppLogger.e('Error signing in: $e');
+      AppLogger.e('Unexpected sign-in error: $e');
       rethrow;
     }
   }
@@ -48,7 +96,7 @@ class AuthService {
         redirectTo: 'io.supabase.chromaniac://login-callback',
       );
     } catch (e) {
-      AppLogger.e('Error signing in with Google: $e');
+      AppLogger.e('Google Sign-In Error: $e');
       rethrow;
     }
   }
@@ -60,7 +108,7 @@ class AuthService {
         redirectTo: 'io.supabase.chromaniac://login-callback',
       );
     } catch (e) {
-      AppLogger.e('Error signing in with Apple: $e');
+      AppLogger.e('Apple Sign-In Error: $e');
       rethrow;
     }
   }
@@ -69,7 +117,7 @@ class AuthService {
     try {
       await _supabase.auth.resetPasswordForEmail(email);
     } catch (e) {
-      AppLogger.e('Error resetting password: $e');
+      AppLogger.e('Password Reset Error: $e');
       rethrow;
     }
   }
@@ -78,7 +126,7 @@ class AuthService {
     try {
       await _supabase.auth.signOut();
     } catch (e) {
-      AppLogger.e('Error signing out: $e');
+      AppLogger.e('Sign-Out Error: $e');
       rethrow;
     }
   }
