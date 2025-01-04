@@ -7,10 +7,8 @@ class MockSupabaseClient extends Mock implements SupabaseClient {}
 
 void main() {
   late DatabaseService databaseService;
-  late MockSupabaseClient mockSupabaseClient;
 
   setUp(() {
-    mockSupabaseClient = MockSupabaseClient();
     databaseService = DatabaseService();
   });
 
