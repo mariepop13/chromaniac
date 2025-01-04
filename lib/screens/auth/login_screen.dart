@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -242,12 +241,7 @@ class _LoginScreenState extends State<LoginScreen>
               // Attempt to handle potential input element conflicts
               FocusScope.of(context).requestFocus(FocusNode());
             } catch (e) {
-              developer.log('Pointer event handling error',
-                  name: 'LoginScreen.pointerEventHandling',
-                  error: {
-                    'error': e.toString(),
-                    'timestamp': DateTime.now().toIso8601String()
-                  });
+              // Removed developer.log() call
             }
           }
         },
@@ -257,9 +251,6 @@ class _LoginScreenState extends State<LoginScreen>
             leading: IconButton(
               icon: const Icon(Icons.arrow_back),
               onPressed: () {
-                developer.log('Back button pressed',
-                    name: 'LoginScreen.backNavigation',
-                    error: {'timestamp': DateTime.now().toIso8601String()});
                 Navigator.of(context).pop();
               },
             ),

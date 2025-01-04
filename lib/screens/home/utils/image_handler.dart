@@ -3,10 +3,9 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:palette_generator/palette_generator.dart';
-import 'package:provider/provider.dart';
-import '../../../providers/settings_provider.dart';
 import '../../../utils/logger/app_logger.dart';
 import '../../../utils/dialog/dialog_utils.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class ImageHandler {
   static Future<(File?, Uint8List?)?> pickImage(BuildContext context) async {
@@ -16,7 +15,7 @@ class ImageHandler {
 
       if (pickedFile != null) {
         final bytes = await pickedFile.readAsBytes();
-        return (File(pickedFile.path), bytes);
+        return (kIsWeb ? null : File(pickedFile.path), bytes);
       }
       return null;
     } catch (e) {
@@ -28,16 +27,38 @@ class ImageHandler {
     }
   }
 
-  static Future<List<Color>> generatePaletteFromImage(
+  static Future<List<PaletteColor>> generatePaletteFromImage(
     BuildContext context,
     File imageFile,
+    int defaultPaletteSize,
   ) async {
-    final paletteGenerator = await PaletteGenerator.fromImageProvider(
-      FileImage(imageFile),
-      maximumColorCount: context.read<SettingsProvider>().defaultPaletteSize,
-    );
+    try {
+      final imageProvider = kIsWeb 
+        ? MemoryImage(await imageFile.readAsBytes()) as ImageProvider
+        : FileImage(imageFile) as ImageProvider;
 
-    return paletteGenerator.colors.toList();
+      final paletteGenerator = await PaletteGenerator.fromImageProvider(
+        imageProvider,
+        maximumColorCount: defaultPaletteSize,
+      ).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          AppLogger.w('Palette generation timed out');
+          return PaletteGenerator.fromColors([PaletteColor(const Color(0xFF808080), 1)]);
+        },
+      );
+
+      return paletteGenerator.colors.map((color) => 
+        PaletteColor(color, 1)
+      ).toList();
+    } catch (e) {
+      AppLogger.e('Error generating palette', error: e);
+      return [
+        PaletteColor(const Color(0xFF808080), 1),
+        PaletteColor(const Color(0xFF000000), 1),
+        PaletteColor(const Color(0xFFFFFFFF), 1)
+      ];
+    }
   }
 
   static List<Color> processColorAnalysis(List<Map<String, dynamic>> colorAnalysis) {

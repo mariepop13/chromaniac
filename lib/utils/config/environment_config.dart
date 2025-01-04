@@ -1,10 +1,12 @@
 import 'package:chromaniac/utils/logger/app_logger.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class EnvironmentConfig {
   static Future<void> initialize() async {
     try {
       AppLogger.d('Initializing environment configuration');
-      // No need to load .env file
+      // Load .env file
+      await dotenv.load(fileName: '.env');
       AppLogger.i('Environment configuration initialized');
     } catch (e) {
       AppLogger.e('Error during environment configuration: $e');
@@ -12,9 +14,7 @@ class EnvironmentConfig {
   }
 
   static String get openRouterApiKey {
-    // Use environment variable for web, fallback for other platforms
-    const key = String.fromEnvironment('OPENROUTER_API_KEY',
-        defaultValue: 'default_key_if_not_set');
+    final key = dotenv.env['OPENROUTER_API_KEY'] ?? '';
 
     if (key.isEmpty) {
       AppLogger.w('OPENROUTER_API_KEY not found');
@@ -24,15 +24,14 @@ class EnvironmentConfig {
   }
 
   static String get emojiSetting {
-    return const String.fromEnvironment('OCO_EMOJI', defaultValue: 'true');
+    return dotenv.env['OCO_EMOJI'] ?? 'true';
   }
 
   static String get languageSetting {
-    return const String.fromEnvironment('OCO_LANGUAGE', defaultValue: 'en');
+    return dotenv.env['OCO_LANGUAGE'] ?? 'en';
   }
 
   static String get modelSetting {
-    return const String.fromEnvironment('OCO_MODEL',
-        defaultValue: 'gpt-4o-mini');
+    return dotenv.env['OCO_MODEL'] ?? 'gpt-4o-mini';
   }
 }

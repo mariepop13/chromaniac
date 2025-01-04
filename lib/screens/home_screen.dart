@@ -78,24 +78,54 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _handleImagePick() async {
-    final result = await ImageHandler.pickImage(context);
-    if (!mounted) return;
-    
-    if (result != null) {
-      final (file, bytes) = result;
-      if (file != null && bytes != null) {
-        setState(() {
-          _state.selectedImage = file;
-          _state.imageBytes = bytes;
-        });
-        
-        final colors = await ImageHandler.generatePaletteFromImage(context, file);
-        if (!mounted) return;
-        
-        setState(() {
-          _state.clearPalette();
-          _state.addColors(colors);
-        });
+    try {
+      final result = await ImageHandler.pickImage(context);
+      AppLogger.d('Image pick result: $result');
+
+      if (!mounted) return;
+      
+      if (result != null) {
+        final (file, bytes) = result;
+        if (file != null && bytes != null) {
+          setState(() {
+            _state.selectedImage = file;
+            _state.imageBytes = bytes;
+          });
+          
+          final colors = await ImageHandler.generatePaletteFromImage(
+            context, 
+            file, 
+            context.read<SettingsProvider>().defaultPaletteSize
+          );
+          AppLogger.d('Generated colors: $colors');
+
+          if (!mounted) return;
+          
+          setState(() {
+            _state.clearPalette();
+            _state.addColors(colors);
+          });
+        } else {
+          AppLogger.w('Image file or bytes are null');
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to process image. Please try again.'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      } else {
+        AppLogger.w('No image selected');
+      }
+    } catch (e, stackTrace) {
+      AppLogger.e('Error in image pick process', error: e, stackTrace: stackTrace);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error processing image: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }
