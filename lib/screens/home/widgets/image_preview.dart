@@ -2,7 +2,6 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:chromaniac/widgets/color_analysis_button.dart';
 import 'package:chromaniac/utils/color/image_color_analyzer.dart';
 
 class ImagePreviewDialog extends StatefulWidget {
