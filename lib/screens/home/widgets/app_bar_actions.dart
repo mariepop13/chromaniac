@@ -15,13 +15,6 @@ class AppBarActions extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Favorites button
-        IconButton(
-          icon: const Icon(Icons.favorite),
-          onPressed: onFavoritesTap,
-          tooltip: 'Favorites',
-        ),
-
         // Debug mode actions
         if (kDebugMode) ...[
           Consumer<PremiumService>(
