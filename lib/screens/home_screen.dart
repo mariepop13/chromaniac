@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:chromaniac/features/color_palette/presentation/color_picker_dialog.dart';
@@ -80,21 +82,22 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _handleImagePick() async {
     try {
       final result = await ImageHandler.pickImage(context);
-      AppLogger.d('Image pick result: $result');
+      AppLogger.d('Image pick result: file=${result?.$1}, bytes=${result?.$2?.length}');
 
       if (!mounted) return;
       
       if (result != null) {
         final (file, bytes) = result;
-        if (file != null && bytes != null) {
+        if (bytes != null) {
           setState(() {
-            _state.selectedImage = file;
+            _state.selectedImage = kIsWeb ? null : file;
             _state.imageBytes = bytes;
+            AppLogger.d('Image set: selectedImage=${_state.selectedImage}, imageBytes=${_state.imageBytes?.length}');
           });
           
           final colors = await ImageHandler.generatePaletteFromImage(
             context, 
-            file, 
+            kIsWeb ? bytes : file!, 
             context.read<SettingsProvider>().defaultPaletteSize
           );
           AppLogger.d('Generated colors: $colors');
@@ -103,10 +106,10 @@ class _HomeScreenState extends State<HomeScreen> {
           
           setState(() {
             _state.clearPalette();
-            _state.addColors(colors);
+            _state.addColors(colors.map((paletteColor) => paletteColor.color).toList());
           });
         } else {
-          AppLogger.w('Image file or bytes are null');
+          AppLogger.w('Image bytes are null');
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Failed to process image. Please try again.'),
@@ -261,12 +264,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildContent(BuildContext context, Orientation orientation) {
+    AppLogger.d('Building content: orientation=$orientation, selectedImage=${_state.selectedImage}, imageBytes=${_state.imageBytes != null}');
+    
     if (orientation == Orientation.portrait || _state.selectedImage == null) {
       return Column(
         children: [
-          if (_state.selectedImage != null)
+          if (_state.imageBytes != null)
             ImagePreview(
-              image: _state.selectedImage!,
+              image: _state.selectedImage,
               imageBytes: _state.imageBytes!,
               onAnalysisComplete: _handleAnalysisComplete,
             ),
@@ -296,7 +301,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Expanded(
           flex: 1,
           child: ImagePreview(
-            image: _state.selectedImage!,
+            image: _state.selectedImage,
             imageBytes: _state.imageBytes!,
             onAnalysisComplete: _handleAnalysisComplete,
           ),

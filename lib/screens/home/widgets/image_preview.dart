@@ -1,12 +1,13 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:chromaniac/core/constants.dart';
 import 'package:chromaniac/widgets/color_analysis_button.dart';
 import 'package:chromaniac/utils/color/image_color_analyzer.dart';
 
 class ImagePreview extends StatelessWidget {
-  final File image;
+  final File? image;
   final Uint8List imageBytes;
   final Function(ColorAnalysisResult) onAnalysisComplete;
 
@@ -26,12 +27,19 @@ class ImagePreview extends StatelessWidget {
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Image.file(
-              image,
-              height: imageHeight,
-              width: imageWidth,
-              fit: BoxFit.cover,
-            ),
+            kIsWeb
+              ? Image.memory(
+                  imageBytes,
+                  height: imageHeight,
+                  width: imageWidth,
+                  fit: BoxFit.cover,
+                )
+              : Image.file(
+                  image!,
+                  height: imageHeight,
+                  width: imageWidth,
+                  fit: BoxFit.cover,
+                ),
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: AppConstants.defaultPadding,

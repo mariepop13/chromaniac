@@ -29,13 +29,13 @@ class ImageHandler {
 
   static Future<List<PaletteColor>> generatePaletteFromImage(
     BuildContext context,
-    File imageFile,
+    dynamic imageSource,
     int defaultPaletteSize,
   ) async {
     try {
-      final imageProvider = kIsWeb 
-        ? MemoryImage(await imageFile.readAsBytes()) as ImageProvider
-        : FileImage(imageFile) as ImageProvider;
+      final ImageProvider imageProvider = kIsWeb 
+        ? MemoryImage(imageSource is Uint8List ? imageSource : await imageSource.readAsBytes()) 
+        : FileImage(imageSource);
 
       final paletteGenerator = await PaletteGenerator.fromImageProvider(
         imageProvider,
@@ -44,19 +44,29 @@ class ImageHandler {
         const Duration(seconds: 10),
         onTimeout: () {
           AppLogger.w('Palette generation timed out');
-          return PaletteGenerator.fromColors([PaletteColor(const Color(0xFF808080), 1)]);
+          return PaletteGenerator.fromColors([
+            PaletteColor(Colors.blue, 1),
+            PaletteColor(Colors.green, 1),
+            PaletteColor(Colors.red, 1)
+          ]);
         },
       );
 
-      return paletteGenerator.colors.map((color) => 
-        PaletteColor(color, 1)
-      ).toList();
+      // Si aucune couleur n'est détectée, utiliser des couleurs par défaut vibrantes
+      final colors = paletteGenerator.colors;
+      return colors.isNotEmpty 
+        ? colors.map((color) => PaletteColor(color, 1)).toList()
+        : [
+            PaletteColor(Colors.blue, 1),
+            PaletteColor(Colors.green, 1),
+            PaletteColor(Colors.red, 1)
+          ];
     } catch (e) {
       AppLogger.e('Error generating palette', error: e);
       return [
-        PaletteColor(const Color(0xFF808080), 1),
-        PaletteColor(const Color(0xFF000000), 1),
-        PaletteColor(const Color(0xFFFFFFFF), 1)
+        PaletteColor(Colors.blue, 1),
+        PaletteColor(Colors.green, 1),
+        PaletteColor(Colors.red, 1)
       ];
     }
   }
