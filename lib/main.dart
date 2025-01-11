@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 import 'providers/theme_provider.dart';
 import 'providers/settings_provider.dart';
 import 'services/premium_service.dart';
@@ -15,6 +17,9 @@ import 'utils/web_config.dart';
 Future<void> main() async {
   try {
     WidgetsFlutterBinding.ensureInitialized();
+    
+    // Load environment variables
+    await dotenv.load(fileName: '.env');
     
     // Configure web-specific input handling
     WebConfig.configureWebInputHandling();
