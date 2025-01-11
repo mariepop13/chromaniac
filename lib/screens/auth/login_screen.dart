@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 
 import '../../services/auth_service.dart';
 import '../../utils/logger/app_logger.dart';
+import 'package:chromaniac/screens/auth/forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -208,25 +209,18 @@ class _LoginScreenState extends State<LoginScreen>
         'Account created successfully',
       );
 
-  Future<void> _resetPassword() async {
-    final email = _emailController.text.trim();
-    if (email.isEmpty) {
-      _showSnackBar('Please enter your email first');
-      return;
-    }
-
-    await _performAuthAction(
-      (authService) => authService.resetPassword(email),
-      'Password reset email sent',
-    );
-  }
-
   void _showSnackBar(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(message),
       duration: const Duration(seconds: 3),
     ));
+  }
+
+  void _navigateToForgotPassword() {
+    Navigator.of(context).push<void>(
+      MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
+    );
   }
 
   @override
@@ -315,7 +309,7 @@ class _LoginScreenState extends State<LoginScreen>
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
-                      onPressed: _resetPassword,
+                      onPressed: _navigateToForgotPassword,
                       child: const Text('Forgot Password?'),
                     ),
                   ),
