@@ -60,6 +60,7 @@ dependencies:
   uuid: ^4.3.3
   flutter_speed_dial: ^7.0.0
   app_links: ^6.3.3
+  flutter_riverpod: ^2.5.1
 
 dev_dependencies:
   flutter_test:
