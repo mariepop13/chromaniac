@@ -4,8 +4,7 @@ import 'dart:typed_data';
 import 'package:chromaniac/utils/color/image_color_analyzer.dart';
 import 'package:chromaniac/core/constants.dart';
 import 'package:chromaniac/utils/color/contrast_color.dart';
-import 'package:chromaniac/services/auth_service.dart';
-import 'package:chromaniac/screens/auth/login_screen.dart';
+// import 'package:chromaniac/services/auth_service.dart';
 
 class ColorAnalysisButton extends StatefulWidget {
   final Uint8List? imageBytes;
@@ -23,32 +22,7 @@ class ColorAnalysisButton extends StatefulWidget {
 
 class _ColorAnalysisButtonState extends State<ColorAnalysisButton> {
   bool _isLoading = false;
-  final _authService = AuthService();
-
-  void _showAuthenticationRequiredDialog() {
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Authentication Required'),
-        content: const Text('Please log in to use Smart Palette feature.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(dialogContext);
-              // Navigate to login screen
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => const LoginScreen()));
-            },
-            child: const Text('Log In'),
-          ),
-        ],
-      ),
-    );
-  }
+  // final _authService = AuthService();
 
   Future<void> _analyzeColors(BuildContext context) async {
     if (widget.imageBytes == null) {
@@ -65,11 +39,11 @@ class _ColorAnalysisButtonState extends State<ColorAnalysisButton> {
       return;
     }
 
-    // Check authentication first
-    if (_authService.currentUser == null) {
-      _showAuthenticationRequiredDialog();
-      return;
-    }
+    // Removed authentication check
+    // if (_authService.currentUser == null) {
+    //   _showAuthenticationRequiredDialog();
+    //   return;
+    // }
 
     setState(() {
       _isLoading = true;
@@ -218,23 +192,13 @@ class _ColorAnalysisButtonState extends State<ColorAnalysisButton> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = ContrastColorScheme.fromTheme(Theme.of(context));
-    final isAuthenticated = _authService.currentUser != null;
 
     return Stack(
       alignment: Alignment.topRight,
       clipBehavior: Clip.none,
       children: [
         ElevatedButton.icon(
-          onPressed: _isLoading
-              ? null
-              : () {
-                  // Check authentication before analyzing
-                  if (!isAuthenticated) {
-                    _showAuthenticationRequiredDialog();
-                  } else {
-                    _analyzeColors(context);
-                  }
-                },
+          onPressed: _isLoading ? null : () => _analyzeColors(context),
           icon: _isLoading
               ? SizedBox(
                   width: AppConstants.iconSize,
@@ -260,16 +224,6 @@ class _ColorAnalysisButtonState extends State<ColorAnalysisButton> {
             ),
           ),
         ),
-        if (!isAuthenticated)
-          Positioned(
-            top: -8,
-            right: -8,
-            child: Icon(
-              Icons.star,
-              color: Colors.amber.shade700,
-              size: 24,
-            ),
-          ),
       ],
     );
   }
