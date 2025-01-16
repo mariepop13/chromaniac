@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../screens/theme_spinner_dialog.dart';
+import 'package:chromaniac/services/auth_service.dart';
+import 'package:chromaniac/screens/theme_spinner_dialog.dart';
 
 class AppBottomNav extends StatelessWidget {
   final int currentIndex;
@@ -22,6 +23,8 @@ class AppBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isAuthenticated = AuthService().currentUser != null;
+
     return BottomNavigationBar(
       type: BottomNavigationBarType.fixed,
       currentIndex: currentIndex,
@@ -33,12 +36,12 @@ class AppBottomNav extends StatelessWidget {
         }
       },
       items: [
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.shuffle),
+        BottomNavigationBarItem(
+          icon: const Icon(Icons.shuffle),
           label: 'Random',
         ),
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.home_outlined),
+        BottomNavigationBarItem(
+          icon: const Icon(Icons.home_outlined),
           label: 'Home',
         ),
         BottomNavigationBarItem(
@@ -46,8 +49,24 @@ class AppBottomNav extends StatelessWidget {
           activeIcon: const Icon(Icons.palette),
           label: 'Theme',
         ),
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.favorite_border),
+        BottomNavigationBarItem(
+          icon: Stack(
+            alignment: Alignment.topRight,
+            clipBehavior: Clip.none,
+            children: [
+              const Icon(Icons.favorite_border),
+              if (!isAuthenticated)
+                Positioned(
+                  top: -8,
+                  right: -8,
+                  child: Icon(
+                    Icons.star,
+                    color: Colors.amber.shade700,
+                    size: 24,
+                  ),
+                ),
+            ],
+          ),
           label: 'Favorites',
         ),
       ],

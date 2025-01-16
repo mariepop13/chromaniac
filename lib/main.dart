@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:provider/provider.dart' as legacy_provider;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -17,35 +18,41 @@ import 'utils/web_config.dart';
 Future<void> main() async {
   try {
     WidgetsFlutterBinding.ensureInitialized();
-    
+
     // Load environment variables
     await dotenv.load(fileName: '.env');
-    
+
     // Configure web-specific input handling
     WebConfig.configureWebInputHandling();
-    
+
     await AppLogger.init();
     await EnvironmentConfig.initialize();
     await SupabaseConfig.initialize();
-    
+
     final prefs = await SharedPreferences.getInstance();
     final authService = AuthService();
-    
+
     runApp(
-      MultiProvider(
-        providers: [
-          Provider<AuthService>.value(value: authService),
-          ChangeNotifierProvider(create: (_) => ThemeProvider(prefs)),
-          ChangeNotifierProvider(create: (_) => PremiumService()),
-          ChangeNotifierProvider(create: (context) => SettingsProvider(prefs)),
-          ChangeNotifierProvider(
-            create: (context) => DebugProvider(
-              Provider.of<SettingsProvider>(context, listen: false),
-              Provider.of<PremiumService>(context, listen: false)
+      ProviderScope(
+        child: legacy_provider.MultiProvider(
+          providers: [
+            legacy_provider.Provider<AuthService>.value(value: authService),
+            legacy_provider.ChangeNotifierProvider(
+                create: (_) => ThemeProvider(prefs)),
+            legacy_provider.ChangeNotifierProvider(
+                create: (_) => PremiumService()),
+            legacy_provider.ChangeNotifierProvider(
+                create: (context) => SettingsProvider(prefs)),
+            legacy_provider.ChangeNotifierProvider(
+              create: (context) => DebugProvider(
+                  legacy_provider.Provider.of<SettingsProvider>(context,
+                      listen: false),
+                  legacy_provider.Provider.of<PremiumService>(context,
+                      listen: false)),
             ),
-          ),
-        ],
-        child: const ChromaniacApp(),
+          ],
+          child: const ChromaniacApp(),
+        ),
       ),
     );
   } catch (e) {
@@ -53,12 +60,12 @@ Future<void> main() async {
   }
 }
 
-class ChromaniacApp extends StatelessWidget {
+class ChromaniacApp extends ConsumerWidget {
   const ChromaniacApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeProvider = legacy_provider.Provider.of<ThemeProvider>(context);
     return MaterialApp(
       title: 'Chromaniac',
       theme: themeProvider.themeData,

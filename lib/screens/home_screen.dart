@@ -428,6 +428,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             );
             break;
+          case 4:
+            _showSettingsDialog(context);
+            break;
         }
       },
     );
