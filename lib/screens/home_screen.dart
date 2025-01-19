@@ -27,6 +27,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:chromaniac/screens/auth/login_screen.dart';
 import 'package:chromaniac/services/auth_service.dart';
 import 'package:chromaniac/core/constants.dart';
+import 'home/dialogs/image_selection_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -80,60 +81,63 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _handleImagePick() async {
-    try {
-      final result = await ImageHandler.pickImage(context);
-      AppLogger.d(
-          'Image pick result: file=${result?.$1}, bytes=${result?.$2?.length}');
-
-      if (!mounted) return;
-
-      if (result != null) {
-        final (file, bytes) = result;
-        if (bytes != null) {
-          setState(() {
-            _state.selectedImage = kIsWeb ? null : file;
-            _state.imageBytes = bytes;
+    showDialog(
+      context: context,
+      builder: (context) => ImageSelectionDialog(
+        onImageSelected: (file, bytes) async {
+          try {
             AppLogger.d(
-                'Image set: selectedImage=${_state.selectedImage}, imageBytes=${_state.imageBytes?.length}');
-          });
+                'Image pick result: file=$file, bytes=${bytes?.length}');
 
-          final colors = await ImageHandler.generatePaletteFromImage(
-              context,
-              kIsWeb ? bytes : file!,
-              context.read<SettingsProvider>().defaultPaletteSize);
-          AppLogger.d('Generated colors: $colors');
+            if (!mounted) return;
 
-          if (!mounted) return;
+            if (bytes != null) {
+              setState(() {
+                _state.selectedImage = kIsWeb ? null : file;
+                _state.imageBytes = bytes;
+                AppLogger.d(
+                    'Image set: selectedImage=${_state.selectedImage}, imageBytes=${_state.imageBytes?.length}');
+              });
 
-          setState(() {
-            _state.clearPalette();
-            _state.addColors(
-                colors.map((paletteColor) => paletteColor.color).toList());
-          });
-        } else {
-          AppLogger.w('Image bytes are null');
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Failed to process image. Please try again.'),
-              backgroundColor: Colors.orange,
-            ),
-          );
-        }
-      } else {
-        AppLogger.w('No image selected');
-      }
-    } catch (e, stackTrace) {
-      AppLogger.e('Error in image pick process',
-          error: e, stackTrace: stackTrace);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error processing image: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
+              final colors = await ImageHandler.generatePaletteFromImage(
+                  context,
+                  kIsWeb ? bytes : file!,
+                  context.read<SettingsProvider>().defaultPaletteSize);
+              AppLogger.d('Generated colors: $colors');
+
+              if (!mounted) return;
+
+              setState(() {
+                _state.clearPalette();
+                _state.addColors(
+                    colors.map((paletteColor) => paletteColor.color).toList());
+              });
+            } else {
+              AppLogger.w('Image bytes are null');
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Failed to process image. Please try again.'),
+                  backgroundColor: Colors.orange,
+                ),
+              );
+            }
+          } catch (e, stackTrace) {
+            AppLogger.e('Error in image pick process',
+                error: e, stackTrace: stackTrace);
+
+            // Explicitly check mounted before accessing context
+            if (mounted && context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Error processing image: $e'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          }
+        },
+      ),
+    );
   }
 
   void _showSettingsDialog(BuildContext context) {
