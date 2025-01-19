@@ -4,7 +4,10 @@
         {
             "name": "chromaniac",
             "request": "launch",
-            "type": "dart"
+            "type": "dart",
+            "args": [
+                "--web-port=8080"
+            ]
         },
         {
             "name": "chromaniac (profile mode)",
