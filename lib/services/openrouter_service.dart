@@ -6,13 +6,15 @@ import 'package:chromaniac/utils/logger/app_logger.dart';
 import '../core/constants.dart';
 
 class OpenRouterService {
-  static const String _baseUrl = 'https://openrouter.ai/api/v1/chat/completions';
+  static const String _baseUrl =
+      'https://openrouter.ai/api/v1/chat/completions';
   static const int _maxRetries = AppConstants.maxApiRetries;
   final http.Client _client;
 
   OpenRouterService({http.Client? client}) : _client = client ?? http.Client();
 
-  Future<Map<String, dynamic>> analyzeImage(Uint8List imageBytes) async {
+  Future<Map<String, dynamic>> analyzeImage(Uint8List imageBytes,
+      [String? theme]) async {
     if (imageBytes.isEmpty) {
       const message = 'Image data is empty';
       AppLogger.e(message);
@@ -29,25 +31,26 @@ class OpenRouterService {
     Exception? lastError;
     for (int attempt = 0; attempt <= _maxRetries; attempt++) {
       try {
-        final response = await _sendRequest(apiKey, imageBytes);
-        
+        final String selectedTheme = theme ?? 'neutral';
+        final response = await _sendRequest(apiKey, imageBytes, selectedTheme);
 
         if (response.statusCode == 401 || response.statusCode == 403) {
-          final message = 'API request failed with status: ${response.statusCode}';
+          final message =
+              'API request failed with status: ${response.statusCode}';
           AppLogger.e(message);
           throw Exception(message);
         }
-        
 
         if (response.statusCode >= 500) {
-          final message = 'API request failed with status: ${response.statusCode}';
+          final message =
+              'API request failed with status: ${response.statusCode}';
           AppLogger.e(message);
           throw Exception(message);
         }
-        
 
         if (response.statusCode != 200) {
-          final message = 'API request failed with status: ${response.statusCode}';
+          final message =
+              'API request failed with status: ${response.statusCode}';
           AppLogger.e(message);
           if (attempt == _maxRetries) {
             throw Exception(message);
@@ -55,10 +58,11 @@ class OpenRouterService {
           await Future.delayed(Duration(seconds: 1 << attempt));
           continue;
         }
-        
+
         return _processResponse(response);
       } catch (e) {
-        if (e is Exception && e.toString().contains('API request failed with status:')) {
+        if (e is Exception &&
+            e.toString().contains('API request failed with status:')) {
           rethrow;
         }
         lastError = e is Exception ? e : Exception(e.toString());
@@ -72,7 +76,8 @@ class OpenRouterService {
     throw lastError ?? Exception('Unknown error');
   }
 
-  Future<http.Response> _sendRequest(String apiKey, Uint8List imageBytes) async {
+  Future<http.Response> _sendRequest(
+      String apiKey, Uint8List imageBytes, String theme) async {
     final url = Uri.parse(_baseUrl);
     final base64Image = base64Encode(imageBytes);
 
@@ -89,33 +94,39 @@ class OpenRouterService {
         {
           'role': 'system',
           'content': '''
-            You are a color analysis expert. Analyze the image and provide color suggestions in the following strict JSON format:
+            You are an expert color palette designer focusing on the "$theme" theme.
 
+            Theme Interpretation Guidelines:
+            - Deeply analyze the image through the lens of "$theme"
+            - Select colors that embody the essence and mood of "$theme"
+            - Prioritize color harmony and thematic coherence
+
+            Theme-Specific Color Selection Criteria:
+            - Pastel: Soft, muted, delicate color palette
+            - Noel (Christmas): Rich reds, greens, golds, winter whites
+            - Summer: Bright, vibrant, warm, energetic colors
+            - Autumn: Warm earth tones, deep oranges, browns, burgundies
+            - Spring: Soft, fresh, light colors with floral undertones
+
+            Strict JSON Output Format:
             {
               "colors": [
                 {
                   "object": "sky",
                   "colorName": "light blue",
                   "hexCode": "#87CEEB"
-                },
-                {
-                  "object": "tree",
-                  "colorName": "forest green",
-                  "hexCode": "#228B22"
                 }
               ]
             }
 
             Requirements:
-            1. Each color suggestion must have:
-               - object: the element or part of the image to color
-               - colorName: natural language color name (like "purple", "light blue")
-               - hexCode: valid hex color code starting with # (e.g., "#FF0000")
-            2. Use standard web color hex codes
-            3. Ensure hex codes match the natural color names
-            4. Keep object and color names concise but descriptive
-            5. Return at least 3 color suggestions
-            6. Ensure all hex codes are valid 6-digit codes (e.g., #FF0000, not #F00)
+            1. Minimum 3, maximum 5 color suggestions
+            2. Each color must:
+               - Represent a distinct image element
+               - Match the "$theme" aesthetic
+               - Have a descriptive color name
+               - Include a precise hex color code
+            3. Ensure color diversity and thematic consistency
           '''
         },
         {
@@ -123,7 +134,8 @@ class OpenRouterService {
           'content': [
             {
               'type': 'text',
-              'text': 'Analyze this coloring image and provide: 1) A list of main colors that would be appropriate for coloring the different elements, considering the context and objects shown. 2) Brief descriptions of the key elements and their suggested colors. Format the response as JSON with "colors" array.'
+              'text':
+                  'Analyze this image and generate a color palette that perfectly captures the "$theme" theme. Focus on color selection that reflects the theme\'s mood, energy, and visual essence.'
             },
             {
               'type': 'image_url',
@@ -133,7 +145,7 @@ class OpenRouterService {
         }
       ],
       'max_tokens': AppConstants.maxTokens,
-      'temperature': AppConstants.temperature,
+      'temperature': 0.7, // Slightly higher for creative theme interpretation
     });
 
     return await _client.post(url, headers: headers, body: body);
@@ -151,37 +163,42 @@ class OpenRouterService {
       }
 
       String content = responseData['choices'][0]['message']['content'];
-      
 
-      content = content.replaceAll(RegExp(r'```json\n|\n```', multiLine: true), '');
-      AppLogger.d('API Response content: $content');
-      
+      // Extract JSON from content by finding the first '{' and last '}'
+      final startIndex = content.indexOf('{');
+      final endIndex = content.lastIndexOf('}') + 1;
+
+      if (startIndex == -1 || endIndex == 0) {
+        throw Exception('No valid JSON found in response');
+      }
+
+      content = content.substring(startIndex, endIndex);
+      AppLogger.d('Extracted JSON content: $content');
+
       try {
         final result = jsonDecode(content);
         AppLogger.d('Parsed JSON result: $result');
 
-
         if (result['colors'] is List && result['descriptions'] is List) {
           final colors = result['colors'] as List;
           final descriptions = result['descriptions'] as List;
-          
 
           if (colors.isEmpty || descriptions.isEmpty) {
-            AppLogger.e('Invalid response data structure: empty colors or descriptions list');
+            AppLogger.e(
+                'Invalid response data structure: empty colors or descriptions list');
             throw Exception('Invalid response data structure');
           }
 
           final transformedColors = <Map<String, String>>[];
-          
+
           for (var i = 0; i < colors.length; i++) {
             final description = i < descriptions.length ? descriptions[i] : '';
             final parts = description.split(' - ');
             final object = parts.length > 1 ? parts[0] : 'element ${i + 1}';
             final colorName = colors[i];
-            
 
             final hexCode = _colorNameToHex(colorName);
-            
+
             transformedColors.add({
               'object': object,
               'colorName': colorName,
@@ -200,16 +217,10 @@ class OpenRouterService {
         }
         return result;
       } catch (e) {
-        if (e.toString().contains('Invalid response data structure')) {
-          rethrow;
-        }
         AppLogger.e('Failed to parse content as JSON: $content');
         throw Exception('Failed to parse content as JSON: ${e.toString()}');
       }
     } catch (e) {
-      if (e.toString().contains('Invalid response data structure')) {
-        rethrow;
-      }
       final errorMsg = 'Failed to process API response: ${e.toString()}';
       AppLogger.e(errorMsg, error: e, stackTrace: StackTrace.current);
       throw Exception('$errorMsg. Please check debug logs for details.');
@@ -217,7 +228,6 @@ class OpenRouterService {
   }
 
   String _colorNameToHex(String colorName) {
-
     final colorMap = {
       'red': '#FF0000',
       'green': '#00FF00',
@@ -239,19 +249,16 @@ class OpenRouterService {
       'dark red': '#8B0000',
     };
 
-
     final normalizedColor = colorName.toLowerCase();
     if (colorMap.containsKey(normalizedColor)) {
       return colorMap[normalizedColor]!;
     }
-
 
     for (final entry in colorMap.entries) {
       if (normalizedColor.contains(entry.key)) {
         return entry.value;
       }
     }
-
 
     return '#808080';
   }

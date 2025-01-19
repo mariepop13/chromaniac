@@ -31,11 +31,17 @@ class MockOpenRouterService extends _i1.Mock implements _i2.OpenRouterService {
   }
 
   @override
-  _i3.Future<Map<String, dynamic>> analyzeImage(_i4.Uint8List? imageBytes) =>
+  _i3.Future<Map<String, dynamic>> analyzeImage(
+    _i4.Uint8List? imageBytes, [
+    String? theme,
+  ]) =>
       (super.noSuchMethod(
         Invocation.method(
           #analyzeImage,
-          [imageBytes],
+          [
+            imageBytes,
+            theme,
+          ],
         ),
         returnValue:
             _i3.Future<Map<String, dynamic>>.value(<String, dynamic>{}),

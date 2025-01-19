@@ -26,6 +26,7 @@ import '../../screens/home/palette_grid_view.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:chromaniac/screens/auth/login_screen.dart';
 import 'package:chromaniac/services/auth_service.dart';
+import 'package:chromaniac/core/constants.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -379,24 +380,236 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _handleAnalysisComplete(ColorAnalysisResult result) {
-    try {
+    // If result is empty, it means Smart Palette button was pressed
+    if (result.colorAnalysis.isEmpty) {
+      // Simply show the theme input dialog without any analysis
+      _showThemeInputDialog();
+    } else {
+      // If result is not empty, use it directly
+      _showThemeInputDialog();
+    }
+  }
+
+  void _showThemeInputDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        final TextEditingController themeController = TextEditingController();
+        final ValueNotifier<String?> errorNotifier = ValueNotifier(null);
+
+        return AlertDialog(
+          title: const Text('Enter Theme'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ValueListenableBuilder<String?>(
+                valueListenable: errorNotifier,
+                builder: (context, errorText, child) {
+                  return TextField(
+                    controller: themeController,
+                    decoration: InputDecoration(
+                      hintText: 'e.g., pastel, noel, summer',
+                      errorText: errorText,
+                      helperText:
+                          'Choose a theme to generate your color palette',
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final String theme = themeController.text.trim();
+
+                if (theme.isEmpty) {
+                  // Set more descriptive error message if theme is empty
+                  errorNotifier.value =
+                      'Please enter a theme for color generation\n'
+                      'Examples: pastel, noel, summer, vintage, modern';
+                } else {
+                  // Clear any previous error
+                  errorNotifier.value = null;
+
+                  // Close the dialog
+                  Navigator.of(context).pop();
+
+                  // Initiate color analysis with theme
+                  _initiateColorAnalysisWithTheme(theme);
+                }
+              },
+              child: const Text('Confirm Generation'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _initiateColorAnalysisWithTheme(String theme) {
+    // Ensure image bytes are available
+    if (_state.imageBytes == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No image selected. Please pick an image first.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    // Use ImageColorAnalyzer with theme
+    final analyzer = ImageColorAnalyzer();
+
+    // Perform color analysis with theme
+    analyzer
+        .analyzeColoringImageWithTheme(
+      _state.imageBytes!,
+      theme,
+    )
+        .then((themedResult) {
+      // Show analysis dialog with the themed result
+      _showAnalysisDialog(themedResult);
+
       setState(() {
         _state.clearPalette();
-        final colors = ImageHandler.processColorAnalysis(result.colorAnalysis);
+        final colors =
+            ImageHandler.processColorAnalysis(themedResult.colorAnalysis);
         _state.addColors(colors);
+        AppLogger.d('Generated palette for theme: $theme');
       });
-    } catch (e, stackTrace) {
-      AppLogger.e('Error processing color analysis',
+    }).catchError((e, stackTrace) {
+      AppLogger.e('Error processing themed color analysis',
           error: e, stackTrace: stackTrace);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Error processing colors. Please try again.'),
+            content: Text('Error generating palette. Please try again.'),
             backgroundColor: Colors.red,
           ),
         );
       }
-    }
+    });
+  }
+
+  void _showAnalysisDialog(ColorAnalysisResult result) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius:
+                BorderRadius.circular(AppConstants.dialogBorderRadius),
+          ),
+          child: OrientationBuilder(
+            builder: (context, orientation) {
+              final isLandscape = orientation == Orientation.landscape;
+              return LayoutBuilder(
+                builder: (context, constraints) {
+                  final maxDialogHeight = isLandscape
+                      ? MediaQuery.of(context).size.height * 0.8
+                      : constraints.maxHeight - 100;
+                  final maxDialogWidth = isLandscape
+                      ? MediaQuery.of(context).size.width * 0.8
+                      : constraints.maxWidth;
+
+                  return Container(
+                    width: maxDialogWidth,
+                    constraints: BoxConstraints(
+                      maxHeight: maxDialogHeight,
+                    ),
+                    padding: const EdgeInsets.all(AppConstants.dialogPadding),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Palette Results',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.close),
+                              onPressed: () => Navigator.of(context).pop(),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: AppConstants.spacingMedium),
+                        Flexible(
+                          child: SingleChildScrollView(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: result.colorAnalysis.map((analysis) {
+                                final color = Color(int.parse(
+                                  analysis['hexCode']!.replaceAll('#', '0xFF'),
+                                ));
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: AppConstants.spacingSmall,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: AppConstants.colorPreviewSize,
+                                        height: AppConstants.colorPreviewSize,
+                                        decoration: BoxDecoration(
+                                          color: color,
+                                          borderRadius: BorderRadius.circular(
+                                            AppConstants
+                                                .colorPreviewBorderRadius,
+                                          ),
+                                          border: Border.all(
+                                            color: Colors.grey.shade300,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                          width: AppConstants.spacingMedium),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              analysis['object']!,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            Text(analysis['colorName']!),
+                                          ],
+                                        ),
+                                      ),
+                                      Text(analysis['hexCode']!),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildBottomNavigation() {
