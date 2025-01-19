@@ -16,48 +16,40 @@ import 'config/supabase_config.dart';
 import 'utils/web_config.dart';
 
 Future<void> main() async {
-  try {
-    WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: '.env');
+  WebConfig.configureWebInputHandling();
+  await AppLogger.init();
+  await EnvironmentConfig.initialize();
+  await SupabaseConfig.initialize();
 
-    // Load environment variables
-    await dotenv.load(fileName: '.env');
+  final prefs = await SharedPreferences.getInstance();
+  final authService = AuthService();
 
-    // Configure web-specific input handling
-    WebConfig.configureWebInputHandling();
-
-    await AppLogger.init();
-    await EnvironmentConfig.initialize();
-    await SupabaseConfig.initialize();
-
-    final prefs = await SharedPreferences.getInstance();
-    final authService = AuthService();
-
-    runApp(
-      ProviderScope(
-        child: legacy_provider.MultiProvider(
-          providers: [
-            legacy_provider.Provider<AuthService>.value(value: authService),
-            legacy_provider.ChangeNotifierProvider(
-                create: (_) => ThemeProvider(prefs)),
-            legacy_provider.ChangeNotifierProvider(
-                create: (_) => PremiumService()),
-            legacy_provider.ChangeNotifierProvider(
-                create: (context) => SettingsProvider(prefs)),
-            legacy_provider.ChangeNotifierProvider(
-              create: (context) => DebugProvider(
-                  legacy_provider.Provider.of<SettingsProvider>(context,
-                      listen: false),
-                  legacy_provider.Provider.of<PremiumService>(context,
-                      listen: false)),
+  runApp(
+    ProviderScope(
+      child: legacy_provider.MultiProvider(
+        providers: [
+          legacy_provider.Provider<AuthService>.value(value: authService),
+          legacy_provider.ChangeNotifierProvider(
+              create: (_) => ThemeProvider(prefs)),
+          legacy_provider.ChangeNotifierProvider(
+              create: (_) => PremiumService()),
+          legacy_provider.ChangeNotifierProvider(
+              create: (context) => SettingsProvider(prefs)),
+          legacy_provider.ChangeNotifierProvider(
+            create: (context) => DebugProvider(
+              legacy_provider.Provider.of<SettingsProvider>(context,
+                  listen: false),
+              legacy_provider.Provider.of<PremiumService>(context,
+                  listen: false),
             ),
-          ],
-          child: const ChromaniacApp(),
-        ),
+          ),
+        ],
+        child: const ChromaniacApp(),
       ),
-    );
-  } catch (e) {
-    AppLogger.e('Error during initialization: $e');
-  }
+    ),
+  );
 }
 
 class ChromaniacApp extends ConsumerWidget {

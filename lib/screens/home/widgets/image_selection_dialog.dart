@@ -41,7 +41,6 @@ class ImageSelectionDialogState extends State<ImageSelectionDialog> {
       final ByteData imageData = await rootBundle.load(imagePath);
       final Uint8List bytes = imageData.buffer.asUint8List();
 
-      // For web, we'll pass null as the file
       final File? file = kIsWeb ? null : File(imagePath);
 
       if (!mounted) return;

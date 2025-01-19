@@ -29,12 +29,9 @@ class ColorPalette {
     return {
       'id': id,
       'name': name,
-      'colors': colors.map((c) => {
-        'r': c.red,
-        'g': c.green,
-        'b': c.blue,
-        'a': c.opacity
-      }).toList(),
+      'colors': colors
+          .map((c) => {'r': c.red, 'g': c.green, 'b': c.blue, 'a': c.opacity})
+          .toList(),
       'user_id': userId,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
@@ -45,7 +42,6 @@ class ColorPalette {
   }
 
   factory ColorPalette.fromMap(Map<String, dynamic> map) {
-    // Handle different possible color list formats
     dynamic colorData = map['colors'];
     List<dynamic> colorsList;
 
@@ -67,11 +63,7 @@ class ColorPalette {
       colors: colorsList.map((c) {
         if (c is Map) {
           return Color.fromRGBO(
-            c['r'] ?? 0,
-            c['g'] ?? 0, 
-            c['b'] ?? 0, 
-            c['a'] ?? 1.0
-          );
+              c['r'] ?? 0, c['g'] ?? 0, c['b'] ?? 0, c['a'] ?? 1.0);
         } else if (c is String) {
           final colorStr = c.padLeft(8, '0');
           return Color(int.parse(colorStr, radix: 16));
@@ -92,7 +84,7 @@ class ColorPalette {
 
   String toJson() => json.encode(toMap());
 
-  factory ColorPalette.fromJson(String source) => 
+  factory ColorPalette.fromJson(String source) =>
       ColorPalette.fromMap(json.decode(source));
 
   ColorPalette copyWith({
