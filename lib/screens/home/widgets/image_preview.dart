@@ -137,7 +137,6 @@ class ImagePreviewDialogState extends State<ImagePreviewDialog> {
           _currentFit = BoxFit.contain;
           break;
       }
-      // Réinitialiser le zoom lors du changement de mode
       _transformationController.value = Matrix4.identity();
     });
   }

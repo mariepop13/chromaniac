@@ -10,9 +10,7 @@ void showSavePaletteDialog(BuildContext context, List<Color> palette) {
   final authService = AuthService();
   final textController = TextEditingController();
 
-  // Check if user is authenticated
   if (authService.currentUser == null) {
-    // Show login/signup dialog
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -26,7 +24,6 @@ void showSavePaletteDialog(BuildContext context, List<Color> palette) {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(dialogContext);
-              // Navigate to login screen
               Navigator.push(context,
                   MaterialPageRoute(builder: (context) => const LoginScreen()));
             },
@@ -38,7 +35,6 @@ void showSavePaletteDialog(BuildContext context, List<Color> palette) {
     return;
   }
 
-  // Existing save palette dialog logic
   showDialog(
     context: context,
     builder: (dialogContext) => AlertDialog(

@@ -24,7 +24,6 @@ class _LoginScreenState extends State<LoginScreen>
   String? _errorMessage;
   bool _obscurePassword = true;
 
-  // Debounce timer for input validation
   Timer? _debounceTimer;
   late AnimationController _animationController;
   final _emailFocusNode = FocusNode();
@@ -35,14 +34,11 @@ class _LoginScreenState extends State<LoginScreen>
     super.initState();
     _animationController = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 300));
-
-    // Add listeners to focus nodes
     _emailFocusNode.addListener(_onFocusChange);
     _passwordFocusNode.addListener(_onFocusChange);
   }
 
   void _onFocusChange() {
-    // Optional: Add any specific focus change logic
     setState(() {});
   }
 
@@ -52,30 +48,18 @@ class _LoginScreenState extends State<LoginScreen>
     _emailController.dispose();
     _passwordController.dispose();
     _animationController.dispose();
-
-    // Remove listeners before disposing
     _emailFocusNode.removeListener(_onFocusChange);
     _passwordFocusNode.removeListener(_onFocusChange);
-
     _emailFocusNode.dispose();
     _passwordFocusNode.dispose();
-
     super.dispose();
   }
 
   void _onEmailChanged(String value) {
-    // Cancel any existing timer
     _debounceTimer?.cancel();
-
-    // Use a more robust debounce mechanism
     _debounceTimer = Timer(const Duration(milliseconds: 500), () {
-      // Ensure widget is still mounted and input hasn't changed
       if (!mounted) return;
-
-      // Validate email with current value
       final validationResult = _validateEmail(value);
-
-      // Use a null-safe setState to prevent multiple rebuilds
       if (mounted) {
         setState(() {
           _errorMessage = validationResult;
@@ -85,18 +69,10 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   void _onPasswordChanged(String value) {
-    // Cancel any existing timer
     _debounceTimer?.cancel();
-
-    // Use a more robust debounce mechanism
     _debounceTimer = Timer(const Duration(milliseconds: 500), () {
-      // Ensure widget is still mounted and input hasn't changed
       if (!mounted) return;
-
-      // Validate password with current value
       final validationResult = _validatePassword(value);
-
-      // Use a null-safe setState to prevent multiple rebuilds
       if (mounted) {
         setState(() {
           _errorMessage = validationResult;
@@ -105,7 +81,6 @@ class _LoginScreenState extends State<LoginScreen>
     });
   }
 
-  // Add explicit validation methods
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) return 'Email cannot be empty';
     final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
@@ -121,13 +96,11 @@ class _LoginScreenState extends State<LoginScreen>
     Future<void> Function(AuthService authService) authAction,
     String successMessage,
   ) async {
-    // Validate form before proceeding
     if (!_formKey.currentState!.validate()) {
       AppLogger.w('Form validation failed');
       return;
     }
 
-    // Prevent multiple simultaneous submissions
     if (_isLoading) {
       AppLogger.w('Authentication in progress');
       return;
@@ -142,7 +115,6 @@ class _LoginScreenState extends State<LoginScreen>
 
     try {
       final authService = Provider.of<AuthService>(context, listen: false);
-
       await Future.any([
         _wrapWithPerformanceLogging(authAction(authService)),
         Future.delayed(const Duration(seconds: 10),
@@ -153,7 +125,6 @@ class _LoginScreenState extends State<LoginScreen>
 
       _emailController.clear();
       _passwordController.clear();
-
       Navigator.of(context).pop(true);
       _showSnackBar(successMessage);
     } on TimeoutException {
@@ -177,14 +148,12 @@ class _LoginScreenState extends State<LoginScreen>
       AppLogger.e('Unexpected auth error: $e');
     } finally {
       stopwatch.stop();
-
       if (mounted) {
         setState(() => _isLoading = false);
       }
     }
   }
 
-  // Wrapper to add performance logging
   Future<T> _wrapWithPerformanceLogging<T>(Future<T> action) async {
     final stopwatch = Stopwatch()..start();
     try {
@@ -229,13 +198,11 @@ class _LoginScreenState extends State<LoginScreen>
       onTap: () => FocusScope.of(context).unfocus(),
       child: Listener(
         onPointerDown: (event) {
-          // Additional handling for pointer events on web
           if (kIsWeb) {
             try {
-              // Attempt to handle potential input element conflicts
               FocusScope.of(context).requestFocus(FocusNode());
             } catch (e) {
-              // Removed developer.log() call
+              AppLogger.e('Error requesting focus: $e');
             }
           }
         },

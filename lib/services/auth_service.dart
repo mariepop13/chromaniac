@@ -20,40 +20,38 @@ class AuthService {
 
   Future<AuthResponse> signUpWithEmail(String email, String password) async {
     try {
-      // Validate input before making the request
       if (email.isEmpty || password.isEmpty) {
         throw AuthException('Email and password cannot be empty');
       }
 
-      // Validate email format
       final emailRegex =
           RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
       if (!emailRegex.hasMatch(email.trim())) {
         throw AuthException('Invalid email format');
       }
 
-      // Validate password strength
       if (password.trim().length < 6) {
         throw AuthException('Password must be at least 6 characters long');
       }
 
       try {
-        final result = await _supabase.auth.signUp(
-          email: email.trim(),
-          password: password.trim(),
-        ).timeout(
-          const Duration(seconds: 15),  // Increased timeout
-          onTimeout: () => throw TimeoutException('Network request timed out'),
-        );
+        final result = await _supabase.auth
+            .signUp(
+              email: email.trim(),
+              password: password.trim(),
+            )
+            .timeout(
+              const Duration(seconds: 15),
+              onTimeout: () =>
+                  throw TimeoutException('Network request timed out'),
+            );
 
-        // Additional validation of the response
         if (result.session == null && result.user == null) {
           throw AuthException('Invalid signup response');
         }
 
         return result;
       } on AuthException catch (authError) {
-        // Log authentication error with more context
         AppLogger.e('Sign-Up Error: ${authError.message}', error: {
           'statusCode': authError.statusCode,
           'email': email.replaceRange(2, email.indexOf('@'), '***'),
@@ -64,23 +62,24 @@ class AuthService {
           'email': email.replaceRange(2, email.indexOf('@'), '***'),
           'action': 'signUp',
         });
-        throw AuthException('Network connection is slow or unavailable. Please check your internet connection.');
+        throw AuthException(
+            'Network connection is slow or unavailable. Please check your internet connection.');
       } on FormatException catch (formatError) {
-        // Detailed JSON parsing error logging
         AppLogger.e('Sign-Up JSON Parsing Error', error: {
           'message': formatError.message,
           'source': formatError.source,
           'email': email.replaceRange(2, email.indexOf('@'), '***'),
         });
-        throw AuthException('Server response is invalid. Please check your network connection.');
+        throw AuthException(
+            'Server response is invalid. Please check your network connection.');
       } catch (e) {
-        // Catch-all for unexpected errors
         AppLogger.e('Unexpected sign-up error', error: {
           'error': e.toString(),
           'type': e.runtimeType.toString(),
           'email': email.replaceRange(2, email.indexOf('@'), '***'),
         });
-        throw AuthException('An unexpected signup error occurred. Please try again.');
+        throw AuthException(
+            'An unexpected signup error occurred. Please try again.');
       }
     } catch (e) {
       AppLogger.e('Sign-up process error', error: {
@@ -93,22 +92,22 @@ class AuthService {
 
   Future<AuthResponse> signInWithEmail(String email, String password) async {
     try {
-      // Validate input before making the request
       if (email.isEmpty || password.isEmpty) {
         throw AuthException('Email and password cannot be empty');
       }
 
       try {
-        // Add network timeout and more robust error handling
-        final result = await _supabase.auth.signInWithPassword(
-          email: email.trim(),
-          password: password.trim(),
-        ).timeout(
-          const Duration(seconds: 15),  // Increased timeout
-          onTimeout: () => throw TimeoutException('Network request timed out'),
-        );
+        final result = await _supabase.auth
+            .signInWithPassword(
+              email: email.trim(),
+              password: password.trim(),
+            )
+            .timeout(
+              const Duration(seconds: 15),
+              onTimeout: () =>
+                  throw TimeoutException('Network request timed out'),
+            );
 
-        // Additional validation of the response
         if (result.session == null && result.user == null) {
           throw AuthException('Invalid authentication response');
         }
@@ -119,9 +118,9 @@ class AuthService {
           'email': email.replaceRange(2, email.indexOf('@'), '***'),
           'action': 'signInWithPassword',
         });
-        throw AuthException('Network connection is slow or unavailable. Please check your internet connection.');
+        throw AuthException(
+            'Network connection is slow or unavailable. Please check your internet connection.');
       } on AuthException catch (authError) {
-        // More comprehensive authentication error logging
         AppLogger.e('Sign-In Authentication Error', error: {
           'message': authError.message,
           'statusCode': authError.statusCode,
@@ -129,7 +128,6 @@ class AuthService {
         });
         rethrow;
       } on FormatException catch (formatError) {
-        // Detailed JSON parsing error logging with context
         AppLogger.e('Sign-In JSON Parsing Error', error: {
           'message': formatError.message,
           'source': formatError.source,
@@ -139,15 +137,16 @@ class AuthService {
             'jsonParsingDetails': _analyzeJsonParsingError(formatError),
           },
         });
-        throw AuthException('Server response is invalid. Please check your network connection.');
+        throw AuthException(
+            'Server response is invalid. Please check your network connection.');
       } catch (e) {
-        // Comprehensive catch-all for unexpected errors
         AppLogger.e('Unexpected Sign-In Error', error: {
           'error': e.toString(),
           'type': e.runtimeType.toString(),
           'email': email.replaceRange(2, email.indexOf('@'), '***'),
         });
-        throw AuthException('An unexpected authentication error occurred. Please try again.');
+        throw AuthException(
+            'An unexpected authentication error occurred. Please try again.');
       }
     } catch (e) {
       AppLogger.e('Sign-in Process Error', error: {
@@ -158,10 +157,8 @@ class AuthService {
     }
   }
 
-  // Network connectivity diagnostic method
   Future<bool> _checkSupabaseConnection() async {
     try {
-      // Attempt a simple health check
       final response = await _supabase.from('profiles').select().limit(1);
       return response.isNotEmpty;
     } catch (e) {
@@ -172,7 +169,6 @@ class AuthService {
     }
   }
 
-  // Analyze JSON parsing error details
   Map<String, dynamic> _analyzeJsonParsingError(FormatException formatError) {
     return {
       'errorMessage': formatError.message,

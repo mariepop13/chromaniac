@@ -3,24 +3,23 @@ import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
 import 'package:intl/intl.dart';
 
-// Conditional import for platform-specific functionality
 import 'app_logger_mobile.dart' if (dart.library.html) 'app_logger_web.dart';
 
 class AppLogger {
   static late Logger _logger;
   static bool _isInitialized = false;
   static final DateFormat _dateFormat = DateFormat('yyyy-MM-dd HH:mm:ss');
-  
+
   static bool get isInitialized => _isInitialized;
 
   static void enableTestMode() {
     if (_isInitialized) return;
-    
+
     _logger = Logger(
       printer: SimpleLogPrinter(),
       output: ConsoleOutput(),
     );
-    
+
     _isInitialized = true;
   }
 
@@ -28,7 +27,6 @@ class AppLogger {
     if (_isInitialized) return;
 
     try {
-      // Platform-specific initialization
       await initializePlatformLogger();
 
       _logger = Logger(
@@ -50,7 +48,8 @@ class AppLogger {
 
   static void _checkInitialized() {
     if (!_isInitialized) {
-      throw StateError('AppLogger must be initialized by calling init() before use');
+      throw StateError(
+          'AppLogger must be initialized by calling init() before use');
     }
   }
 
@@ -79,21 +78,24 @@ class SimpleLogPrinter extends LogPrinter {
   @override
   List<String> log(LogEvent event) {
     final List<String> lines = [];
-    
+
     lines.add(event.message);
-    
+
     if (event.error != null) {
       lines.add(event.error.toString());
     }
-    
+
     if (event.stackTrace != null) {
-      final frames = event.stackTrace.toString().trim().split('\n')
-        .map((line) => line.replaceAll(RegExp(r'\x1B\[[0-9;]*m'), ''))
-        .map((line) => line.trim())
-        .where((line) => line.isNotEmpty);
+      final frames = event.stackTrace
+          .toString()
+          .trim()
+          .split('\n')
+          .map((line) => line.replaceAll(RegExp(r'\x1B\[[0-9;]*m'), ''))
+          .map((line) => line.trim())
+          .where((line) => line.isNotEmpty);
       lines.addAll(frames);
     }
-    
+
     return lines;
   }
 }

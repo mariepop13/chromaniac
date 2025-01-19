@@ -20,8 +20,7 @@ class ContrastColorScheme {
     return ContrastColorScheme(
       backgroundColor: backgroundColor,
       foregroundColor: foregroundColor,
-      inactiveForegroundColor:
-          foregroundColor.withAlpha(153), // ~60% opacity (153/255)
+      inactiveForegroundColor: foregroundColor.withAlpha(153),
     );
   }
 

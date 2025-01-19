@@ -20,17 +20,24 @@ class ImageColorAnalyzer {
       : _service = service ?? OpenRouterService();
 
   Future<ColorAnalysisResult> analyzeColoringImage(Uint8List imageBytes) async {
+    throw Exception('Initial color analysis is not allowed without a theme');
+  }
+
+  Future<ColorAnalysisResult> analyzeColoringImageWithTheme(
+    Uint8List imageBytes,
+    String theme,
+  ) async {
     try {
-      AppLogger.d('Starting color analysis');
-      final result = await _service.analyzeImage(imageBytes);
+      AppLogger.d('Starting color analysis with theme: $theme');
+      final result = await _service.analyzeImage(imageBytes, theme);
       AppLogger.d('Got API result: $result');
 
       final colorAnalysis = List<Map<String, String>>.from(
         (result['colors'] as List).map((color) => {
-          'object': color['object'] as String,
-          'colorName': color['colorName'] as String,
-          'hexCode': color['hexCode'] as String,
-        }),
+              'object': color['object'] as String,
+              'colorName': color['colorName'] as String,
+              'hexCode': color['hexCode'] as String,
+            }),
       );
       AppLogger.d('Processed color analysis: $colorAnalysis');
 

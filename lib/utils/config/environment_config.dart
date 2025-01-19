@@ -5,7 +5,6 @@ class EnvironmentConfig {
   static Future<void> initialize() async {
     try {
       AppLogger.d('Initializing environment configuration');
-      // Load .env file
       await dotenv.load(fileName: '.env');
       AppLogger.i('Environment configuration initialized');
     } catch (e) {

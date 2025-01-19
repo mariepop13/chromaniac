@@ -26,6 +26,8 @@ import '../../screens/home/palette_grid_view.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:chromaniac/screens/auth/login_screen.dart';
 import 'package:chromaniac/services/auth_service.dart';
+import 'package:chromaniac/core/constants.dart';
+import 'home/dialogs/image_selection_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -79,60 +81,62 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _handleImagePick() async {
-    try {
-      final result = await ImageHandler.pickImage(context);
-      AppLogger.d(
-          'Image pick result: file=${result?.$1}, bytes=${result?.$2?.length}');
-
-      if (!mounted) return;
-
-      if (result != null) {
-        final (file, bytes) = result;
-        if (bytes != null) {
-          setState(() {
-            _state.selectedImage = kIsWeb ? null : file;
-            _state.imageBytes = bytes;
+    showDialog(
+      context: context,
+      builder: (context) => ImageSelectionDialog(
+        onImageSelected: (file, bytes) async {
+          try {
             AppLogger.d(
-                'Image set: selectedImage=${_state.selectedImage}, imageBytes=${_state.imageBytes?.length}');
-          });
+                'Image pick result: file=$file, bytes=${bytes?.length}');
 
-          final colors = await ImageHandler.generatePaletteFromImage(
-              context,
-              kIsWeb ? bytes : file!,
-              context.read<SettingsProvider>().defaultPaletteSize);
-          AppLogger.d('Generated colors: $colors');
+            if (!mounted) return;
 
-          if (!mounted) return;
+            if (bytes != null) {
+              setState(() {
+                _state.selectedImage = kIsWeb ? null : file;
+                _state.imageBytes = bytes;
+                AppLogger.d(
+                    'Image set: selectedImage=${_state.selectedImage}, imageBytes=${_state.imageBytes?.length}');
+              });
 
-          setState(() {
-            _state.clearPalette();
-            _state.addColors(
-                colors.map((paletteColor) => paletteColor.color).toList());
-          });
-        } else {
-          AppLogger.w('Image bytes are null');
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Failed to process image. Please try again.'),
-              backgroundColor: Colors.orange,
-            ),
-          );
-        }
-      } else {
-        AppLogger.w('No image selected');
-      }
-    } catch (e, stackTrace) {
-      AppLogger.e('Error in image pick process',
-          error: e, stackTrace: stackTrace);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error processing image: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
+              final colors = await ImageHandler.generatePaletteFromImage(
+                  context,
+                  kIsWeb ? bytes : file!,
+                  context.read<SettingsProvider>().defaultPaletteSize);
+              AppLogger.d('Generated colors: $colors');
+
+              if (!mounted) return;
+
+              setState(() {
+                _state.clearPalette();
+                _state.addColors(
+                    colors.map((paletteColor) => paletteColor.color).toList());
+              });
+            } else {
+              AppLogger.w('Image bytes are null');
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Failed to process image. Please try again.'),
+                  backgroundColor: Colors.orange,
+                ),
+              );
+            }
+          } catch (e, stackTrace) {
+            AppLogger.e('Error in image pick process',
+                error: e, stackTrace: stackTrace);
+
+            if (mounted && context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Error processing image: $e'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          }
+        },
+      ),
+    );
   }
 
   void _showSettingsDialog(BuildContext context) {
@@ -379,24 +383,225 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _handleAnalysisComplete(ColorAnalysisResult result) {
-    try {
+    if (result.colorAnalysis.isEmpty) {
+      _showThemeInputDialog();
+    } else {
+      _showThemeInputDialog();
+    }
+  }
+
+  void _showThemeInputDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        final TextEditingController themeController = TextEditingController();
+        final ValueNotifier<String?> errorNotifier = ValueNotifier(null);
+
+        return AlertDialog(
+          title: const Text('Enter Theme'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ValueListenableBuilder<String?>(
+                valueListenable: errorNotifier,
+                builder: (context, errorText, child) {
+                  return TextField(
+                    controller: themeController,
+                    decoration: InputDecoration(
+                      hintText: 'e.g., pastel, noel, summer',
+                      errorText: errorText,
+                      helperText:
+                          'Choose a theme to generate your color palette',
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final String theme = themeController.text.trim();
+
+                if (theme.isEmpty) {
+                  errorNotifier.value =
+                      'Please enter a theme for color generation\n'
+                      'Examples: pastel, noel, summer, vintage, modern';
+                } else {
+                  errorNotifier.value = null;
+
+                  Navigator.of(context).pop();
+
+                  _initiateColorAnalysisWithTheme(theme);
+                }
+              },
+              child: const Text('Confirm Generation'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _initiateColorAnalysisWithTheme(String theme) {
+    if (_state.imageBytes == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No image selected. Please pick an image first.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    final analyzer = ImageColorAnalyzer();
+
+    analyzer
+        .analyzeColoringImageWithTheme(
+      _state.imageBytes!,
+      theme,
+    )
+        .then((themedResult) {
+      _showAnalysisDialog(themedResult);
+
       setState(() {
         _state.clearPalette();
-        final colors = ImageHandler.processColorAnalysis(result.colorAnalysis);
+        final colors =
+            ImageHandler.processColorAnalysis(themedResult.colorAnalysis);
         _state.addColors(colors);
+        AppLogger.d('Generated palette for theme: $theme');
       });
-    } catch (e, stackTrace) {
-      AppLogger.e('Error processing color analysis',
+    }).catchError((e, stackTrace) {
+      AppLogger.e('Error processing themed color analysis',
           error: e, stackTrace: stackTrace);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Error processing colors. Please try again.'),
+            content: Text('Error generating palette. Please try again.'),
             backgroundColor: Colors.red,
           ),
         );
       }
-    }
+    });
+  }
+
+  void _showAnalysisDialog(ColorAnalysisResult result) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius:
+                BorderRadius.circular(AppConstants.dialogBorderRadius),
+          ),
+          child: OrientationBuilder(
+            builder: (context, orientation) {
+              final isLandscape = orientation == Orientation.landscape;
+              return LayoutBuilder(
+                builder: (context, constraints) {
+                  final maxDialogHeight = isLandscape
+                      ? MediaQuery.of(context).size.height * 0.8
+                      : constraints.maxHeight - 100;
+                  final maxDialogWidth = isLandscape
+                      ? MediaQuery.of(context).size.width * 0.8
+                      : constraints.maxWidth;
+
+                  return Container(
+                    width: maxDialogWidth,
+                    constraints: BoxConstraints(
+                      maxHeight: maxDialogHeight,
+                    ),
+                    padding: const EdgeInsets.all(AppConstants.dialogPadding),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Palette Results',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.close),
+                              onPressed: () => Navigator.of(context).pop(),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: AppConstants.spacingMedium),
+                        Flexible(
+                          child: SingleChildScrollView(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: result.colorAnalysis.map((analysis) {
+                                final color = Color(int.parse(
+                                  analysis['hexCode']!.replaceAll('#', '0xFF'),
+                                ));
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: AppConstants.spacingSmall,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: AppConstants.colorPreviewSize,
+                                        height: AppConstants.colorPreviewSize,
+                                        decoration: BoxDecoration(
+                                          color: color,
+                                          borderRadius: BorderRadius.circular(
+                                            AppConstants
+                                                .colorPreviewBorderRadius,
+                                          ),
+                                          border: Border.all(
+                                            color: Colors.grey.shade300,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                          width: AppConstants.spacingMedium),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              analysis['object']!,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            Text(analysis['colorName']!),
+                                          ],
+                                        ),
+                                      ),
+                                      Text(analysis['hexCode']!),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildBottomNavigation() {
@@ -411,7 +616,6 @@ class _HomeScreenState extends State<HomeScreen> {
           case 1:
             break;
           case 2:
-            // Theme spinner is now handled directly in the bottom nav
             break;
           case 3:
             Navigator.push(
