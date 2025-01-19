@@ -83,7 +83,7 @@ class OpenRouterService {
 
     final headers = {
       'Authorization': 'Bearer $apiKey',
-      'HTTP-Referer': 'https://github.com/mariepop13/chromaniac',
+      'HTTP-Referer': 'https://www.mariepop13.com/chromaniac/',
       'X-Title': 'Chromaniac Color Analyzer',
       'Content-Type': 'application/json',
     };

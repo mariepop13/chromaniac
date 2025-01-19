@@ -15,7 +15,6 @@ class AppBarActions extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Debug mode actions
         if (kDebugMode) ...[
           Consumer<PremiumService>(
             builder: (context, premiumService, _) => IconButton(

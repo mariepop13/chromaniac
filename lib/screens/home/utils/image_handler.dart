@@ -33,9 +33,11 @@ class ImageHandler {
     int defaultPaletteSize,
   ) async {
     try {
-      final ImageProvider imageProvider = kIsWeb 
-        ? MemoryImage(imageSource is Uint8List ? imageSource : await imageSource.readAsBytes()) 
-        : FileImage(imageSource);
+      final ImageProvider imageProvider = kIsWeb
+          ? MemoryImage(imageSource is Uint8List
+              ? imageSource
+              : await imageSource.readAsBytes())
+          : FileImage(imageSource);
 
       final paletteGenerator = await PaletteGenerator.fromImageProvider(
         imageProvider,
@@ -52,15 +54,14 @@ class ImageHandler {
         },
       );
 
-      // Si aucune couleur n'est détectée, utiliser des couleurs par défaut vibrantes
       final colors = paletteGenerator.colors;
-      return colors.isNotEmpty 
-        ? colors.map((color) => PaletteColor(color, 1)).toList()
-        : [
-            PaletteColor(Colors.blue, 1),
-            PaletteColor(Colors.green, 1),
-            PaletteColor(Colors.red, 1)
-          ];
+      return colors.isNotEmpty
+          ? colors.map((color) => PaletteColor(color, 1)).toList()
+          : [
+              PaletteColor(Colors.blue, 1),
+              PaletteColor(Colors.green, 1),
+              PaletteColor(Colors.red, 1)
+            ];
     } catch (e) {
       AppLogger.e('Error generating palette', error: e);
       return [
@@ -71,7 +72,8 @@ class ImageHandler {
     }
   }
 
-  static List<Color> processColorAnalysis(List<Map<String, dynamic>> colorAnalysis) {
+  static List<Color> processColorAnalysis(
+      List<Map<String, dynamic>> colorAnalysis) {
     return colorAnalysis.map((colorData) {
       try {
         final hexCode = colorData['hexCode'] as String;

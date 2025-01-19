@@ -1,3 +1,4 @@
+import 'package:chromaniac/utils/logger/app_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:chromaniac/screens/auth/forgot_password_viewmodel.dart';
@@ -28,7 +29,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             .read(forgotPasswordViewModelProvider.notifier)
             .resetPassword(_emailController.text.trim());
       } catch (e) {
-        // Error handling is done in the ViewModel and listener
+        AppLogger.e('Error requesting focus: $e');
       }
     }
   }

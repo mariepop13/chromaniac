@@ -39,17 +39,12 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   }
 
   void _checkAuthentication() {
-    // Check if user is authenticated and dialog hasn't been shown
     if (_authService.currentUser == null && !_hasShownAuthDialog) {
-      // Prevent multiple dialog showings
       _hasShownAuthDialog = true;
-
-      // Use a post-frame callback to show dialog after build
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _showAuthenticationDialog();
       });
     } else if (_authService.currentUser != null) {
-      // Load palettes for authenticated user
       setState(() {
         _palettesFuture = DatabaseService().getPalettes();
       });
@@ -66,14 +61,13 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           TextButton(
             onPressed: () {
               Navigator.pop(dialogContext);
-              Navigator.of(context).pop(); // Close favorites screen
+              Navigator.of(context).pop();
             },
             child: const Text('Cancel'),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(dialogContext);
-              // Navigate to login screen
               Navigator.push(context,
                   MaterialPageRoute(builder: (context) => const LoginScreen()));
             },
@@ -106,7 +100,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   void _restorePaletteToHome(List<Color> colors) {
     if (widget.onRestorePalette != null) {
       widget.onRestorePalette!(colors);
-
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Palette restored to home')),
       );
@@ -256,7 +249,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     );
   }
 
-  // Helper method to format date
   String _formatDate(DateTime date) {
     return '${date.day}/${date.month}/${date.year}';
   }

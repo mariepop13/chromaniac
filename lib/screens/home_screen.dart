@@ -125,7 +125,6 @@ class _HomeScreenState extends State<HomeScreen> {
             AppLogger.e('Error in image pick process',
                 error: e, stackTrace: stackTrace);
 
-            // Explicitly check mounted before accessing context
             if (mounted && context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -384,12 +383,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _handleAnalysisComplete(ColorAnalysisResult result) {
-    // If result is empty, it means Smart Palette button was pressed
     if (result.colorAnalysis.isEmpty) {
-      // Simply show the theme input dialog without any analysis
       _showThemeInputDialog();
     } else {
-      // If result is not empty, use it directly
       _showThemeInputDialog();
     }
   }
@@ -434,18 +430,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 final String theme = themeController.text.trim();
 
                 if (theme.isEmpty) {
-                  // Set more descriptive error message if theme is empty
                   errorNotifier.value =
                       'Please enter a theme for color generation\n'
                       'Examples: pastel, noel, summer, vintage, modern';
                 } else {
-                  // Clear any previous error
                   errorNotifier.value = null;
 
-                  // Close the dialog
                   Navigator.of(context).pop();
 
-                  // Initiate color analysis with theme
                   _initiateColorAnalysisWithTheme(theme);
                 }
               },
@@ -458,7 +450,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _initiateColorAnalysisWithTheme(String theme) {
-    // Ensure image bytes are available
     if (_state.imageBytes == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -469,17 +460,14 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    // Use ImageColorAnalyzer with theme
     final analyzer = ImageColorAnalyzer();
 
-    // Perform color analysis with theme
     analyzer
         .analyzeColoringImageWithTheme(
       _state.imageBytes!,
       theme,
     )
         .then((themedResult) {
-      // Show analysis dialog with the themed result
       _showAnalysisDialog(themedResult);
 
       setState(() {
@@ -628,7 +616,6 @@ class _HomeScreenState extends State<HomeScreen> {
           case 1:
             break;
           case 2:
-            // Theme spinner is now handled directly in the bottom nav
             break;
           case 3:
             Navigator.push(

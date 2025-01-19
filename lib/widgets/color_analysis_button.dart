@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:typed_data';
 import 'package:chromaniac/utils/color/image_color_analyzer.dart';
-// import 'package:chromaniac/services/auth_service.dart';
 
 class ColorAnalysisButton extends StatefulWidget {
   final Uint8List? imageBytes;
@@ -18,8 +17,6 @@ class ColorAnalysisButton extends StatefulWidget {
 }
 
 class _ColorAnalysisButtonState extends State<ColorAnalysisButton> {
-  // Removed _isAnalyzing field
-
   void _performColorAnalysis() {
     if (widget.imageBytes == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -31,7 +28,6 @@ class _ColorAnalysisButtonState extends State<ColorAnalysisButton> {
       return;
     }
 
-    // Trigger the callback with an empty result to indicate Smart Palette button press
     widget.onAnalysisComplete(ColorAnalysisResult(colorAnalysis: []));
   }
 

@@ -20,7 +20,6 @@ class ImageColorAnalyzer {
       : _service = service ?? OpenRouterService();
 
   Future<ColorAnalysisResult> analyzeColoringImage(Uint8List imageBytes) async {
-    // Prevent initial analysis without a theme
     throw Exception('Initial color analysis is not allowed without a theme');
   }
 
